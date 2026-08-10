@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CW2026 optional extension activities" />
+    <title>CW2026 · Going Further</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js?v=8" defer></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <aside class="sidebar" aria-label="Course navigation">
+        <a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
+        <div class="course-status"><span class="status-dot"></span>Course learning journey</div>
+        <nav data-course-navigation></nav>
+      </aside>
+      <main id="top" class="main-content">
+        <header class="topbar"><div class="breadcrumb"><a href="index.html">CW2026</a><b>/</b><strong>Going Further</strong></div><span class="save-state"><span class="save-dot"></span>Optional extensions</span></header>
+        <section id="overview" class="intro"><div class="eyebrow"><span class="eyebrow-line"></span>Optional exploration</div><h1>Follow a question<br /><em>that interests you.</em></h1><p class="lead">These optional worksheets introduce capabilities beyond the core journey. Use them when they help you explore an idea, extend a system, or develop your own workflow.</p></section>
+        <section class="orientation-card"><div class="orientation-icon">+</div><div><span class="section-kicker">Not mandatory</span><h2>Extensions, not extra hurdles</h2><p>GitHub, Git, VS Code, and Arduino CLI are self-directed extensions. The core route needs only Arduino IDE, Processing, the supplied local workspace, and the robot.</p></div></section>
+        <section class="selection-section">
+          <div class="section-heading"><span class="section-number">01</span><div><span class="section-kicker">Repository workflow</span><h2>Use GitHub and a local clone</h2></div></div>
+          <div class="journey-grid">
+            <article class="journey-card is-static"><span class="section-number">Access</span><h3>Set up GitHub access</h3><p>Your team repository can be a shared workspace for code, measurements, analysis, checkpoints, and reports. Create a GitHub account using your university email address, accept the invitation to your pre-populated team repository, then confirm that you can view it in a browser and identify its clone address.</p></article>
+            <article class="journey-card is-static"><span class="section-number">Clone</span><h3>Clone the team repository</h3><p>Cloning makes a complete local working copy of the supplied repository. In VS Code, select <strong>Source Control → Clone Repository</strong>, sign in to GitHub if prompted, choose a location for the workspace, then open the cloned folder and choose <strong>Trust</strong>. Check that it contains <strong>StampC3_Template</strong>, <strong>DigitalTwin</strong>, <strong>investigations</strong>, and <strong>.vscode</strong>.</p><figure class="orientation-figure"><img src="assets/images/setup/vs_code_source_control.png" alt="Screenshot of opening the source control panel in VS Code" width="100%" /><img src="assets/images/setup/vs_code_trust.png" alt="Screenshot of selecting Trust in VS Code" width="100%" /></figure></article>
+          </div>
+        </section>
+        <section class="selection-section">
+          <div class="section-heading"><span class="section-number">02</span><div><span class="section-kicker">Editor and command-line workflow</span><h2>Configure VS Code, Git, and Arduino CLI</h2></div></div>
+          <div class="journey-grid">
+            <article class="journey-card is-static"><span class="section-number">Setup</span><h3>Install the development tools</h3><p>Install <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener">Visual Studio Code</a>, <a href="https://git-scm.com/downloads" target="_blank" rel="noopener">Git</a>, and <a href="https://docs.arduino.cc/arduino-cli/installation" target="_blank" rel="noopener">Arduino CLI</a>. Install the <strong>C/C++</strong> extension from the Extensions view, then confirm <code>git --version</code> and <code>arduino-cli version</code> work in a new terminal.</p><figure class="orientation-figure"><img src="assets/images/setup/vs_code_extensions_panel.png" alt="Screenshot of the extensions panel in VS Code" width="100%" /><img src="assets/images/setup/vs_code_new_terminal.png" alt="Screenshot opening a new terminal in VS Code" width="100%" /></figure></article>
+            <article class="journey-card is-static"><span class="section-number">Tasks</span><h3>Use the supplied StampC3 tasks</h3><p>Copy <strong>StampC3_Template</strong> into the <code>code/</code> folder for your allocated Phase 1 specialism and rename the folder and matching <code>.ino</code> file together. Run <strong>StampC3: Install M5Stack board support</strong>, then use the IntelliSense, compile, and compile/upload tasks with the relative path to your copied sketch. The upload and Serial Monitor tasks prompt for the selected serial port.</p></article>
+          </div>
+        </section>
+        <section class="selection-section">
+          <div class="section-heading"><span class="section-number">03</span><div><span class="section-kicker">Advanced collaboration</span><h2>Extend your GitHub and VS Code practice</h2></div></div>
+          <div class="journey-grid">
+            <article class="journey-card is-static"><span class="section-number">Advanced</span><h3>Collaborate deliberately</h3><p>Practise branches, pull requests, code review, resolving merge conflicts, and small reviewed AI-assisted changes. Keep commits focused, inspect every diff, and link changes to measurements or a testable purpose.</p></article>
+            <article class="journey-card is-static"><span class="section-number">Support</span><h3>Diagnose common setup failures</h3><p>Check one layer at a time: Git is installed and the correct repository is open; <code>arduino-cli version</code> runs; M5Stack board support is installed; the sketch folder and <code>.ino</code> filename match; and the selected serial port is correct. Keep the first complete error message before changing anything.</p></article>
+          </div>
+        </section>
+        <section class="selection-section"><div class="section-heading"><span class="section-number">01—03</span><div><span class="section-kicker">Planned worksheets</span><h2>Additional ways to work with the robot</h2></div></div><div class="journey-grid journey-grid-three"><article class="journey-card is-static"><span class="section-number">01</span><h3>Bluetooth</h3><p>Explore the Bluetooth interface and develop a small, testable interaction with the robot.</p></article><article class="journey-card is-static"><span class="section-number">02</span><h3>WiFi</h3><p>Go further with wireless communication, data exchange, or live observation in a way that supports your own investigation.</p></article><article class="journey-card is-static"><span class="section-number">03</span><h3>IR LEDs and transistors</h3><p>Use the IR LED and transistor hardware on the StampC3 extension board to investigate an additional sensing or actuation capability.</p></article></div></section>
+        <section class="selection-section"><div class="section-heading"><span class="section-number">+</span><div><span class="section-kicker">Cross-system exploration</span><h2>Combine sensing, motion, and timing</h2></div></div><div class="journey-grid"><article class="journey-card is-static"><span class="section-number">01</span><h3>Dot-size estimation</h3><p>Move a black dot past a surface sensor at a measured speed and time how long its response remains above a stated threshold. Speed × duration estimates the traversal chord across the dot. A centred pass can approximate a diameter; off-centre passes need known offset or multiple traverses to infer a circle. Account for the sensor footprint, which broadens the apparent dot.</p></article></div></section>
+        <footer><span>CW2026 · Going Further</span><span>Optional extension content</span></footer>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CW2026 StampC3 system and API reference" />
+    <title>
+      CW2026 · StampC3 System Reference
+    </title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js?v=8" defer>
+    </script>
+  </head>
+  <body data-exercise-default="open">
+    <div class="site-shell">
+      <aside class="sidebar" aria-label="Course navigation">
+        <a class="brand" href="index.html">
+          <span class="brand-mark">
+            CW
+          </span>
+          <span>
+            <strong>
+              SEMTM0043/42
+            </strong>
+            <small>
+              Robotics Science &amp; Systems
+            </small>
+          </span>
+        </a>
+        <div class="course-status">
+          <span class="status-dot">
+          </span>
+          System reference
+        </div>
+        <nav data-course-navigation>
+          <p class="nav-label">
+            Course journey
+          </p>
+        </nav>
+      </aside>
+      <main id="top" class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb">
+            <a href="index.html">
+              CW2026
+            </a>
+            <b>
+              /
+            </b>
+            <a href="system-reference.html">
+              System Reference
+            </a>
+            <b>
+              /
+            </b>
+            <strong>
+              StampC3 template code
+            </strong>
+          </div>
+          <span class="save-state">
+            <span class="save-dot">
+            </span>
+            Read alongside the code
+          </span>
+        </header>
+        <section id="overview" class="intro">
+          <div class="eyebrow">
+            <span class="eyebrow-line">
+            </span>
+            Technical reference
+          </div>
+          <h1>
+            Read the interface.
+            <br />
+            <em>
+              Question the system.
+            </em>
+          </h1>
+          <p class="lead">
+            This reference describes the supplied StampC3 template and its public interfaces. It tells you what the code requests, stores, and transmits. It does not reveal how the physical robot or opaque middleware will respond.
+          </p>
+        </section>
+        <section class="orientation-card">
+          <div class="orientation-icon">
+            i
+          </div>
+          <div>
+            <span class="section-kicker">
+              How to use this page
+            </span>
+            <h2>
+              Start from a question in your own code
+            </h2>
+            <p>
+              Find the relevant class or type here, then open the named file in your cloned repository. Treat source comments and this reference as an API contract; test physical behaviour with measurements.
+            </p>
+          </div>
+        </section>
+        <div class="sequence-actions" aria-label="Reference section controls">
+          <button type="button" data-exercise-action="collapse">
+            Collapse all
+          </button>
+          <button type="button" data-exercise-action="open">
+            Open all
+          </button>
+        </div>
+        <div class="exercise-sequence">
+          <article id="reference-map" class="exercise-card">
+            <div class="exercise-index">
+              01
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Code map · ownership
+                  </span>
+                  <h2 id="template-structure">
+                    Template structure
+                  </h2>
+                </div>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  The template separates application control, robot I/O, WiFi/TCP transport, and packed I2C messages. Begin by following data and commands across these boundaries.
+                </p>
+              </div>
+              <div class="api-table-wrap">
+                <table class="api-table">
+                  <thead>
+                    <tr>
+                      <th>
+                        File
+                      </th>
+                      <th>
+                        Primary responsibility
+                      </th>
+                      <th>
+                        Public entry point
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <code>StampC3_Template.ino</code>
+                      </td>
+                      <td>
+                        Creates shared objects, starts the application, and calls them from <code>loop()</code>.
+                      </td>
+                      <td>
+                        <code>setup()</code>, <code>loop()</code>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <code>Robot.h</code>
+                      </td>
+                      <td>
+                        Provides the StampC3 application’s I2C interface to the robot and its cached snapshots.
+                      </td>
+                      <td>
+                        <code>Robot_c</code>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <code>Controller.h</code>
+                      </td>
+                      <td>
+                        Supplies the nominal line-following controller and CSV telemetry record.
+                      </td>
+                      <td>
+                        <code>Controller_c</code>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <code>TaskTimer.h</code>
+                      </td>
+                      <td>
+                        Provides a small polling timer for loose, non-blocking tasks.
+                      </td>
+                      <td>
+                        <code>TaskTimer_c</code>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <code>RobotWifiAP.h</code>
+                      </td>
+                      <td>
+                        Runs the StampC3 WiFi access point and one optional TCP client connection.
+                      </td>
+                      <td>
+                        <code>RobotWifiAP_c</code>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <code>i2c_datatypes.h</code>
+                      </td>
+                      <td>
+                        Defines the packed I2C registers and data payloads shared with the robot middleware.
+                      </td>
+                      <td>
+                        <code>Robot..._t</code> types
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+          <article id="reference-hardware" class="exercise-card">
+            <div class="exercise-index">
+              02
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Hardware-facing capabilities
+                  </span>
+                  <h2 id="hardware-interface">
+                    StampC3 and extension-board interface
+                  </h2>
+                </div>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  The supplied code uses the StampC3 as an external master for the Pololu robot. It starts I2C at 400 kHz, reads the StampC3 button on pin 3, drives its on-board RGB LED through <code>setLED(...)</code>, starts serial at 115200 baud, and can create a WiFi access point for TCP telemetry.
+                </p>
+              </div>
+              <div class="investigation">
+                <h3 id="template-interface-limits">
+                  What the template does and does not specify
+                </h3>
+                <ul class="reference-list">
+                  <li>
+                    <strong>
+                      I2C:
+                    </strong>
+                    the robot interface is addressed as <code>0x08</code>; requests and data layouts are defined in <code>i2c_datatypes.h</code>.
+                  </li>
+                  <li>
+                    <strong>
+                      Serial:
+                    </strong>
+                    the sketch initialises Serial at 115200 baud. Whether a particular program prints a record depends on its own code.
+                  </li>
+                  <li>
+                    <strong>
+                      WiFi/TCP:
+                    </strong>
+                    <code>RobotWifiAP_c</code> owns the access point and one TCP connection; <code>Controller_c</code> publishes CSV telemetry only when a client is connected.
+                  </li>
+                  <li>
+                    <strong>
+                      Extension hardware:
+                    </strong>
+                    only interfaces represented in the supplied code should be assumed available without checking the hardware documentation.
+                  </li>
+                </ul>
+                <p class="resource-links">
+                  <a href="https://docs.m5stack.com/en/arduino/m5stampc3/program" target="_blank" rel="noopener">
+                    M5Stack Stamp-C3 programming guide
+                  </a>
+                  <a href="https://docs.m5stack.com/en/arduino/arduino_ide" target="_blank" rel="noopener">
+                    M5Stack Arduino environment guide
+                  </a>
+                </p>
+              </div>
+            </div>
+          </article>
+          <article id="reference-robot-state" class="exercise-card">
+            <div class="exercise-index">
+              03
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Robot_c · cached state
+                  </span>
+                  <h2 id="robot-state">
+                    Readings and public data
+                  </h2>
+                </div>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  <code>Robot_c</code> is the main robot-facing class. Its public data members are cached snapshots, not continuously updating hardware registers. Call the corresponding <code>get...</code> method to request a fresh snapshot, then interpret the stored data with its timestamp and measurement context.
+                </p>
+              </div>
+              <div class="api-table-wrap">
+                <table class="api-table">
+                  <thead>
+                    <tr>
+                      <th>
+                        Member
+                      </th>
+                      <th>
+                        Type
+                      </th>
+                      <th>
+                        Meaning
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><code>teamname</code></td><td><code>RobotTeamname_t</code></td><td>Cached team-name payload most recently sent through I2C.</td></tr>
+                    <tr><td><code>surface</code></td><td><code>RobotSurface_t</code></td><td>Most recent five-channel surface snapshot and its interface timestamp.</td></tr>
+                    <tr><td><code>encoders</code></td><td><code>RobotEncoders_t</code></td><td>Most recent pair of encoder counts.</td></tr>
+                    <tr><td><code>last_encoders</code></td><td><code>RobotEncoders_t</code></td><td>Encoder snapshot held before the most recent refresh.</td></tr>
+                    <tr><td><code>pose</code></td><td><code>RobotPose_t</code></td><td>Most recent interface-provided pose estimate; not an independent physical reference.</td></tr>
+                    <tr><td><code>motors</code></td><td><code>RobotMotors_t</code></td><td>Most recent requested ordinary motor-PWM pair.</td></tr>
+                    <tr><td><code>motion_status</code></td><td><code>RobotMotionStatus_t</code></td><td>Most recent status snapshot for a distance or rotation helper request.</td></tr>
+                    <tr><td><code>buzzer</code></td><td><code>RobotBuzzer_t</code></td><td>Cached buzzer command structure.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+          <article id="reference-robot-api" class="exercise-card">
+            <div class="exercise-index">
+              04
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Robot_c · full public API
+                  </span>
+                  <h2 id="robot-api">
+                    Request, command, and inspect
+                  </h2>
+                </div>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  Named left/right getters follow the shared convention: channel <code>0</code> is left and channel <code>1</code> is right for both motor commands and encoder counts.
+                </p>
+              </div>
+              <div class="api-table-wrap">
+                <table class="api-table">
+                  <thead>
+                    <tr><th>Signature</th><th>Purpose and important limits</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><code>Robot_c()</code></td><td>Creates a zero-initialised interface and starts button-debounce timing.</td></tr>
+                    <tr><td><code>initialise()</code></td><td>Starts I2C, the RGB LED, and the button input. Call during setup.</td></tr>
+                    <tr><td><code>initialise(char* teamname)</code></td><td>Initialises the interface, then sends a team name.</td></tr>
+                    <tr><td><code>isButtonPressed()</code></td><td>Returns one debounced, active-low button-press event.</td></tr>
+                    <tr><td><code>getMillis()</code></td><td>Returns the StampC3 millisecond clock.</td></tr>
+                    <tr><td><code>getSurfaceSensors()</code></td><td>Requests one surface snapshot and writes it to <code>surface</code>.</td></tr>
+                    <tr><td><code>getEncoders()</code></td><td>Copies <code>encoders</code> to <code>last_encoders</code>, then requests a new encoder snapshot.</td></tr>
+                    <tr><td><code>getPose()</code></td><td>Requests one pose estimate and writes it to <code>pose</code>.</td></tr>
+                    <tr><td><code>getMotionStatus()</code></td><td>Requests one helper-motion status snapshot and writes it to <code>motion_status</code>.</td></tr>
+                    <tr><td><code>isMotionHelperRunning()</code></td><td>Returns true only when the cached <code>motion_status.state</code> is <code>MOTION_STATUS_RUNNING</code>.</td></tr>
+                    <tr><td><code>getLeftEncoderCount()</code><br /><code>getRightEncoderCount()</code></td><td>Returns named values from the cached encoder snapshot.</td></tr>
+                    <tr><td><code>getLeftMotorPWM()</code><br /><code>getRightMotorPWM()</code></td><td>Returns named values from the cached requested-PWM pair for telemetry.</td></tr>
+                    <tr><td><code>setTeamname(char*)</code></td><td>Stores and sends a null-terminated team name; long values are truncated to fit the payload.</td></tr>
+                    <tr><td><code>setMotorPWM(float l, float r)</code></td><td>Sends requested left/right PWM through I2C. A new ordinary motor command cancels a running helper motion.</td></tr>
+                    <tr><td><code>startMoveDistance(float distance_mm)</code></td><td>Starts a relative nominal straight-line helper request. Negative distance requests backward travel.</td></tr>
+                    <tr><td><code>startRotateAngle(float angle_rad)</code></td><td>Starts a relative nominal in-place rotation request. Positive angle requests a left turn; negative requests a right turn.</td></tr>
+                    <tr><td><code>setPose(float x, float y, float theta)</code></td><td>Sends a requested interface pose; useful for a controlled demonstration, not a physical measurement.</td></tr>
+                    <tr><td><code>playTone(uint16_t, uint16_t, uint8_t)</code></td><td>Sends one buzzer-tone request: frequency, duration, and volume.</td></tr>
+                    <tr><td><code>setLED(uint8_t r, uint8_t g, uint8_t b, uint8_t brightness)</code></td><td>Sets the StampC3's on-board RGB LED; each component and brightness is constrained to 0–255.</td></tr>
+                    <tr><td><code>printAllSensors()</code><br /><code>printTelemetry()</code></td><td>Reserved helpers that currently produce no output in the supplied template.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+          <article id="reference-motion-helpers" class="exercise-card">
+            <div class="exercise-index">
+              05
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Motion helpers · controlled apparatus
+                  </span>
+                  <h2 id="motion-helpers">
+                    Nominal distance and rotation motions
+                  </h2>
+                </div>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  The helpers provide limited, asynchronous motions for repeatable odometry experiments. They use a fixed internal PWM, direct encoder feedback, and nominal geometry. They are relative to the encoder position at the moment of the request: <code>startRotateAngle(PI / 2.0f)</code> requests a nominal left turn from the current orientation, not an absolute heading.
+                </p>
+                <p>
+                  They intentionally bypass the ordinary motor-command path. They are therefore not suitable for characterising motor deadband, gain, non-linearity, lag, or speed response. Completion only means the nominal encoder target was reached; it does not establish that the physical distance or angle was exact. Measure the outcome independently.
+                </p>
+              </div>
+              <div class="api-table-wrap">
+                <table class="api-table">
+                  <thead>
+                    <tr><th>Field</th><th>Meaning</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><code>state</code></td><td><code>MOTION_STATUS_IDLE</code>, <code>RUNNING</code>, <code>COMPLETE</code>, <code>TIMEOUT</code>, or <code>CANCELLED</code>. Both distance and rotation requests use the same completion state.</td></tr>
+                    <tr><td><code>mode</code></td><td><code>MOTION_MODE_DISTANCE</code> or <code>MOTION_MODE_ROTATION</code>; use this field to identify the type of the most recent helper request.</td></tr>
+                    <tr><td><code>elapsed_ms</code></td><td>Elapsed helper time in milliseconds.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="investigation">
+                <h3 id="motion-helper-observation-rules">
+                  Ownership and observation rules
+                </h3>
+                <ul class="reference-list">
+                  <li>A later <code>setMotorPWM(...)</code> command cancels a running helper and takes ownership of the motors.</li>
+                  <li>A later helper command replaces the preceding helper request.</li>
+                  <li>Encoder, surface-sensor, pose, and helper-status requests may be made while a helper runs; they do not interrupt it. Record encoder snapshots explicitly with <code>getEncoders()</code> around the helper request.</li>
+                  <li>The helper stops at a safety timeout if its encoder targets are not reached.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+          <article id="reference-protocol" class="exercise-card">
+            <div class="exercise-index">
+              06
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    I2C protocol · packed types
+                  </span>
+                  <h2 id="i2c-protocol">
+                    Messages, types, and channel order
+                  </h2>
+                </div>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  <code>i2c_datatypes.h</code> defines the binary messages exchanged between the StampC3 and robot middleware. These structures are packed: field order and width are part of the protocol, so do not change them in only one place.
+                </p>
+              </div>
+              <div class="api-table-wrap">
+                <table class="api-table">
+                  <thead>
+                    <tr><th>Type or register group</th><th>Contents</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><code>RobotSurface_t</code></td><td><code>timestamp_us</code> and five <code>reading[]</code> values.</td></tr>
+                    <tr><td><code>RobotPose_t</code></td><td><code>x</code>, <code>y</code>, and <code>theta</code>.</td></tr>
+                    <tr><td><code>RobotEncoders_t</code></td><td>Two signed counts: <code>count[0]</code> is left and <code>count[1]</code> is right.</td></tr>
+                    <tr><td><code>RobotMotors_t</code></td><td>Two requested PWM values: <code>pwm[0]</code> is left and <code>pwm[1]</code> is right.</td></tr>
+                    <tr><td><code>RobotMotionDistance_t</code></td><td>One relative <code>distance_mm</code> request.</td></tr>
+                    <tr><td><code>RobotMotionRotation_t</code></td><td>One relative <code>angle_rad</code> request; positive is left.</td></tr>
+                    <tr><td><code>RobotMotionStatus_t</code></td><td>State, mode, and elapsed milliseconds. Record encoder observations separately through <code>RobotEncoders_t</code>.</td></tr>
+                    <tr><td><code>RobotBuzzer_t</code></td><td><code>freq</code>, <code>duration_ms</code>, and <code>volume</code>.</td></tr>
+                    <tr><td><code>RobotTeamname_t</code></td><td>32-byte null-terminated team-name payload, with up to 31 content characters.</td></tr>
+                    <tr><td><code>REGISTER_GET_...</code></td><td>Requests surface, encoder, pose, or motion-status snapshots.</td></tr>
+                    <tr><td><code>REGISTER_SET_...</code></td><td>Sends pose, motor, buzzer, team-name, distance-helper, or rotation-helper requests.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+          <article id="reference-task-timer" class="exercise-card">
+            <div class="exercise-index">
+              07
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Timing · non-blocking polling
+                  </span>
+                  <h2 id="task-timer">
+                    TaskTimer_c
+                  </h2>
+                </div>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  <code>TaskTimer_c</code> helps a sketch run a task at a loose interval without using <code>delay()</code>. It is not a background task, interrupt, or real-time scheduler: your code still calls <code>isReady(...)</code> regularly and chooses what to do when it returns true.
+                </p>
+              </div>
+              <div class="api-table-wrap">
+                <table class="api-table">
+                  <thead>
+                    <tr><th>Signature</th><th>Purpose</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><code>TaskTimer_c(unsigned long interval_ms = 0)</code></td><td>Creates a timer. An interval of zero is ready every time it is checked.</td></tr>
+                    <tr><td><code>setIntervalMS(unsigned long interval_ms)</code></td><td>Changes the interval for later checks.</td></tr>
+                    <tr><td><code>isReady(unsigned long now_ms)</code></td><td>Returns true when the interval has elapsed since the last reset. It does not reset the timer.</td></tr>
+                    <tr><td><code>resetTimer(unsigned long now_ms)</code></td><td>Starts the next interval from the supplied time.</td></tr>
+                    <tr><td><code>isReady()</code><br /><code>resetTimer()</code></td><td>Convenience overloads that use the StampC3 <code>millis()</code> clock.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="investigation">
+                <h3 id="task-timer-pattern">
+                  Typical pattern
+                </h3>
+                <pre><code>TaskTimer_c log_timer(100);
+
+void loop() {
+  unsigned long now = robot.getMillis();
+
+  if (log_timer.isReady(now)) {
+    recordOneMeasurement();
+    log_timer.resetTimer(now);
+  }
+
+  runOtherWork();
+}</code></pre>
+                <p>
+                  Resetting after the work deliberately starts the next interval from the current time. A slow task therefore does not cause a burst of catch-up calls. The supplied controller uses the same pattern for its 10 ms update and 50 ms telemetry timers.
+                </p>
+              </div>
+            </div>
+          </article>
+          <article id="reference-control-network" class="exercise-card">
+            <div class="exercise-index">
+              08
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Controller and transport APIs
+                  </span>
+                  <h2 id="controller-and-transport">
+                    Controller_c and RobotWifiAP_c
+                  </h2>
+                </div>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  <code>Controller_c</code> is the supplied nominal line follower. <code>RobotWifiAP_c</code> is a one-client TCP transport helper. Their separation is deliberate: controller logic creates a telemetry record; the network class only delivers bytes.
+                </p>
+              </div>
+              <div class="api-table-wrap">
+                <table class="api-table">
+                  <thead>
+                    <tr><th>Class</th><th>Public API</th><th>Purpose</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><code>TaskTimer_c</code></td><td><code>TaskTimer_c(interval_ms)</code>, <code>setIntervalMS(...)</code>, <code>isReady(...)</code>, <code>resetTimer(...)</code></td><td>Provides the explicit polling timing used by the supplied controller. It performs no work itself and does not block the rest of the sketch.</td></tr>
+                    <tr><td><code>Controller_c</code></td><td><code>Controller_c()</code>, <code>reset()</code>, <code>getSignal()</code>, <code>setSignal(uint8_t)</code>, <code>update(Robot_c&amp;, RobotWifiAP_c&amp;)</code></td><td>Owns controller state, refreshes cached robot data once per accepted 10 ms cycle, commands motors, and sends a CSV telemetry record every 50 ms when connected. Its ordinary motor commands cancel a helper motion.</td></tr>
+                    <tr><td><code>RobotWifiAP_c</code></td><td><code>RobotWifiAP_c(ssid, password, port)</code>, <code>begin()</code>, <code>update()</code>, <code>clientConnected()</code>, <code>ip()</code>, <code>stationCount()</code>, <code>disconnectClient()</code></td><td>Starts and maintains the access point and a single TCP client.</td></tr>
+                    <tr><td><code>RobotWifiAP_c</code></td><td><code>available()</code>, <code>read()</code>, <code>readBytes(...)</code>, <code>send(...)</code>, <code>sendLine(...)</code>, <code>sendBuffer(...)</code>, <code>printf(...)</code>, <code>printlnf(...)</code>, <code>setAcceptIntervalMs(...)</code></td><td>Reads or writes transport bytes. Formatted output has a fixed 256-byte local buffer; it should not be treated as a general logging system.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+        </div>
+        <section class="validation">
+          <div>
+            <span class="section-kicker">
+              Use the reference well
+            </span>
+            <h2>
+              Documentation narrows questions; evidence answers them
+            </h2>
+            <p>
+              Use the API to identify what information and commands are available. Then design measurements that test claims about the actual robot, middleware, controller, and environment.
+            </p>
+          </div>
+          <div class="validation-list">
+            <a href="system-reference.html">
+              Return to System Reference →
+            </a>
+          </div>
+        </section>
+        <footer>
+          <span>
+            CW2026 · StampC3 system reference
+          </span>
+          <span>
+            Read code, then test the system
+          </span>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

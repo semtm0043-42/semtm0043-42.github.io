@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CW2026 odometry characterisation exercises" />
+    <title>
+      CW2026 · Odometry
+    </title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js?v=8" defer>
+    </script>
+  </head>
+  <body data-exercise-default="open">
+    <div class="site-shell">
+      <aside class="sidebar" aria-label="Course navigation">
+        <a class="brand" href="index.html">
+          <span class="brand-mark">CW</span>
+          <span><strong>CW2026</strong><small>Robotics investigation</small></span>
+        </a>
+        <div class="course-status"><span class="status-dot"></span>Phase 1 · odometry</div>
+        <nav data-course-navigation>
+          <p class="nav-label">Subsystems</p>
+          <a class="nav-item" href="phase-1.html"><span>00</span>Phase 1 overview</a>
+          <p class="nav-label">Investigation sequence</p>
+          <a class="nav-item active" href="#overview"><span>00</span>Brief &amp; setup</a>
+          <a class="nav-item" href="#exercise-01"><span>01</span>Encoder data</a>
+          <a class="nav-item" href="#exercise-02"><span>02</span>Physical reference</a>
+          <a class="nav-item" href="#exercise-03"><span>03</span>Encoder logging</a>
+          <a class="nav-item" href="#exercise-04"><span>04</span>Signs and repeatability</a>
+          <a class="nav-item" href="#exercise-05"><span>05</span>Wheel scale</a>
+          <a class="nav-item" href="#exercise-06"><span>06</span>Left/right scale</a>
+          <a class="nav-item" href="#exercise-07"><span>07</span>Heading evidence</a>
+          <a class="nav-item" href="#exercise-08"><span>08</span>Wheel separation</a>
+          <a class="nav-item" href="#exercise-09"><span>09</span>One Euler update</a>
+          <a class="nav-item" href="#exercise-10"><span>10</span>Euler replay</a>
+          <a class="nav-item" href="#exercise-11"><span>11</span>Residuals</a>
+          <a class="nav-item" href="#exercise-12"><span>12</span>Held-out prediction</a>
+          <a class="nav-item" href="#going-further"><span>+</span>Going Further</a>
+        </nav>
+      </aside>
+      <main id="top" class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb"><a href="index.html">CW2026</a><b>/</b><a href="phase-1.html">Phase 1</a><b>/</b><strong>Odometry</strong></div>
+          <span class="save-state"><span class="save-dot"></span>Real robot investigation</span>
+        </header>
+        <section id="overview" class="intro">
+          <h1>Discover the robot’s<br /><em>geometry through motion.</em></h1>
+          <p class="lead">Odometry estimates position and heading from wheel encoder motion. Encoder counts are direct measurements of wheel rotation: use independent physical observations to determine how those counts become distance and turn, then check a simple Euler pose model against a new observation.</p>
+          <div class="principles">
+            <div><span>01</span><strong>Define a reference</strong><small>Measure distance and heading independently of the robot estimate.</small></div>
+            <div><span>02</span><strong>Calibrate simply</strong><small>Establish scale before interpreting curved motion.</small></div>
+            <div><span>03</span><strong>Predict a new run</strong><small>Keep an observation separate from the data used to tune the model.</small></div>
+          </div>
+        </section>
+        <section class="orientation-card">
+          <div class="orientation-icon">→</div>
+          <div><span class="section-kicker">How to use this page</span><h2>Build one transparent chain of evidence</h2><p>Each exercise contributes one part of an odometry investigation: a trustworthy observation, an identifiable parameter, a calculation, or a check. Keep its data, plots, notes, and code under <code>investigations/phase-1/student-3-odometry/</code>, and save checkpoint snapshots in the corresponding <code>investigations/checkpoints/checkpoint-N/student-3-odometry/</code> folder. The supplied distance and rotation helpers can provide repeatable apparatus motions, but your own encoder records and physical references remain the evidence.</p>
+</div>
+          <div class="orientation-key"><span class="key-nonai">●</span>Self-Directed Route<br /><span class="key-ai">●</span>AI-Assisted Route</div>
+        </section>
+        <div class="sequence-heading">
+          <span class="section-number">01—12</span>
+          <div><span class="section-kicker">Core investigation sequence</span><h2>From encoder readings to a checked pose prediction</h2></div>
+          <p>Use the same record throughout: requested motion, encoder changes, independent measurements, uncertainty, and what the model predicted.</p>
+        </div>
+        <div class="sequence-actions" aria-label="Exercise section controls"><button type="button" data-exercise-action="collapse">Collapse all</button><button type="button" data-exercise-action="open">Open all</button></div>
+        <div class="exercise-sequence">
+          <article id="exercise-01" class="exercise-card">
+            <div class="exercise-index">01</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Orientation · interface</span><h2>Reading encoder data from the StampC3</h2></div>
+<span class="time-badge">20–25 min</span></div>
+              <div class="teaching-brief"><p>Trace the data that you will trust. In <code>Robot.h</code>, <code>getEncoders()</code> requests a new cached <code>RobotEncoders_t</code> snapshot. <code>getLeftEncoderCount()</code> and <code>getRightEncoderCount()</code> give named access to it. A value remains cached until you request another snapshot.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Encoder data guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Locate <code>getEncoders()</code>, <code>encoders</code>, <code>last_encoders</code>, and the named getters in the template and <a href="stampc3-reference.html#reference-robot-api">system reference</a>.</li><li>Make a short program that requests counts at known intervals and prints left and right values.</li><li>Record which physical wheel and array channel correspond to left and right.</li></ol>
+<strong>Reason it out</strong><p>What difference would you expect between a cached reading and a live hardware register? Decide when your routine needs a new request.</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to explain the code path in your own words, then verify every claimed data member and method in the source.</p>
+<span class="ai-reminder">The source code is the API contract.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>cached data</span><span><b>Evidence</b>code trace + values</span><span><b>Keep</b>channel convention</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-02" class="exercise-card">
+            <div class="exercise-index">02</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Orientation · measurement</span><h2>Establishing an independent physical reference</h2></div>
+<span class="time-badge">20–30 min</span></div>
+              <div class="teaching-brief"><p>Encoder counts cannot independently tell you whether the robot travelled the intended distance or angle. Define a taped distance scale and start line for translation, plus a marked heading line, large protractor, or overhead image for rotation. State the robot point that represents pose and how accurately the reference can be read.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Physical reference guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Choose a reference point on the robot and draw its coordinate frame, positive heading direction, and start alignment.</li><li>Prepare a distance and heading reference which does not use <code>robot.pose</code>.</li><li>Make one short trial and record the reference before and after motion, including likely reading uncertainty.</li></ol>
+<strong>Reason it out</strong><p>Identify one alignment or parallax error in your apparatus and decide how you will detect or reduce it.</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to critique a sketch of the reference method and list possible confounds. Retain only suggestions you can inspect physically.</p>
+<span class="ai-reminder">The reference must remain independent of the model.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>independence</span><span><b>Evidence</b>reference method</span><span><b>Keep</b>uncertainty estimate</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-03" class="exercise-card">
+            <div class="exercise-index">03</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Data collection · timing</span><h2>Building an encoder logging routine</h2></div>
+<span class="time-badge">25–35 min</span></div>
+              <div class="teaching-brief"><p>Odometry is a sequence of encoder updates, not only a start and end calculation. Build a small routine that records a StampC3 time, both encoder counts, and a motion label at a consistent interval. This record will later let you replay the model and inspect individual updates.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Logging guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Log <code>robot.getMillis()</code>, left count, right count, and a trial identifier over one short motion.</li><li>Inspect the intervals between rows and explain any variation.</li><li>Keep a raw, unmodified version of the log alongside any processed table or plot.</li></ol>
+<strong>Reason it out</strong><p>Choose a logging interval that reveals encoder changes without creating unnecessary duplicate rows. Explain the trade-off.</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to help parse your CSV and plot counts against time, but check row count, units, and timestamps against the raw file.</p>
+<span class="ai-reminder">Keep raw observations separate from processing.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>time series</span><span><b>Evidence</b>raw log</span><span><b>Keep</b>sampling interval</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-04" class="exercise-card">
+            <div class="exercise-index">04</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Data quality · conventions</span><h2>Checking encoder signs and repeatability</h2></div>
+<span class="time-badge">25–35 min</span></div>
+              <div class="teaching-brief"><p>Before fitting geometry, establish how count changes relate to forward, reverse, and rotational motion. Repeated nominal motions also reveal whether counts and physical outcomes are stable enough for the proposed calibration. The question is not whether every trial is identical, but whether variation is visible and recorded.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Signs and repeatability guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Use short forward, reverse, left-turn, and right-turn trials; record count signs and physical direction.</li><li>Repeat one nominal motion several times and compare count changes and the independent final reference.</li><li>Note any slip, start alignment, battery, or surface effects that limit interpretation.</li></ol>
+<strong>Reason it out</strong><p>Make a sign table before calculating any distance. Which observation would show that your convention has been applied inconsistently?</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI for a compact repeatability summary or plot, then inspect the individual trials it labels as unusual.</p>
+<span class="ai-reminder">Do not discard a trial without recording why.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>signs + variation</span><span><b>Evidence</b>repeated trials</span><span><b>Keep</b>data-quality notes</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-05" class="exercise-card">
+            <div class="exercise-index">05</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Translation · calibration</span><h2>Estimating wheel distance per encoder count</h2></div>
+<span class="time-badge">35–45 min</span></div>
+              <div class="teaching-brief"><p>For each wheel, encoder-count change becomes a distance through a scale such as millimetres per count. Begin with nominally straight motion because it provides a clear physical distance reference. The helper can make repeatable starts, but physical distance and encoder changes are still measurements to fit.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Wheel scale guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Use <code>startMoveDistance(...)</code> to request at least two nominal travel distances and record counts before and after each run.</li><li>Measure forward travel independently and fit a transparent distance-per-count estimate with units.</li><li>Use one repeat or distance as an initial check rather than fitting every row.</li></ol>
+<strong>Reason it out</strong><p>Decide whether a graph, ratio, or fitted line makes the scale and its uncertainty most visible. State why.</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to calculate a candidate fit and residuals from your table. Reproduce the calculation and retain its equation and units.</p>
+<span class="ai-reminder">A fitted value needs its raw measurements.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>scale</span><span><b>Evidence</b>distance + counts</span><span><b>Fit</b>mm per count</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-06" class="exercise-card">
+            <div class="exercise-index">06</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Translation · asymmetry</span><h2>Testing left and right wheel scales</h2></div>
+<span class="time-badge">30–40 min</span></div>
+              <div class="teaching-brief"><p>A shared scale is a useful first approximation, but equal nominal encoder travel can still produce a shallow curve. Use lateral displacement, final heading, and the two count changes to ask whether the measurements support separate left/right distance scales or whether the variation is too large to justify that extra complexity.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Left and right scale guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Repeat straight trials in both directions where practical and measure final lateral displacement or heading.</li><li>Compare left and right count-distance relationships and residual patterns from the shared-scale model.</li><li>State whether a separate-scale model is supported, and what observation could distinguish scale mismatch from alignment error.</li></ol>
+<strong>Reason it out</strong><p>What residual pattern would make a shared scale doubtful? What pattern would instead suggest an inconsistent start alignment?</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to compare shared and separate-scale fits using your data, then examine whether the apparent improvement exceeds your reference uncertainty.</p>
+<span class="ai-reminder">Prefer the simplest model the measurements support.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>left/right ratio</span><span><b>Evidence</b>drift + counts</span><span><b>Decide</b>model complexity</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-07" class="exercise-card">
+            <div class="exercise-index">07</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Rotation · observation</span><h2>Relating differential wheel travel to heading</h2></div>
+<span class="time-badge">25–35 min</span></div>
+              <div class="teaching-brief"><p>Heading change arises from the difference between right and left wheel distances. Before estimating a geometric parameter, use recorded turn trials to check that the sign and relative size of the observed heading change agree with the wheel-distance difference calculated from your current scale.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Heading evidence guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Use <code>startRotateAngle(...)</code> for several nominal turns in both directions.</li><li>Record encoder changes and independently measured final headings.</li><li>Make a signed comparison between <code>sR − sL</code> and heading change; identify any convention error before fitting separation.</li></ol>
+<strong>Reason it out</strong><p>Predict the sign of the heading change before the trial. What would a reversed sign imply about your code or coordinate frame?</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to check a hand-worked sign example, then reproduce the calculation using one of your own recorded rows.</p>
+<span class="ai-reminder">Use physical heading to check the algebra.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>turn direction</span><span><b>Evidence</b>heading + wheel travel</span><span><b>Check</b>sign convention</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-08" class="exercise-card">
+            <div class="exercise-index">08</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Rotation · geometry</span><h2>Estimating effective wheel separation</h2></div>
+<span class="time-badge">35–45 min</span></div>
+              <div class="teaching-brief"><p>With wheel-distance scale established, estimate the effective wheel separation <strong>B</strong> from <strong>Δθ = (s<sub>R</sub> − s<sub>L</sub>) / B</strong>. This initial experiment supports one effective separation, not separate left/right centre-to-wheel values. Keep the first model as simple as the evidence allows.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Wheel separation guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Use the recorded heading trials to calculate an effective separation for several turn magnitudes and directions.</li><li>Compare estimates and state a central value and plausible uncertainty or range.</li><li>Explain how error in wheel scale or physical heading measurement affects this estimate.</li></ol>
+<strong>Reason it out</strong><p>What happens to the estimated separation when the measured heading is too small? Explain from the equation, including units.</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to check unit conversion and sensitivity in your calculation. Compare its explanation against a hand-worked example.</p>
+<span class="ai-reminder">A plausible equation still needs measured heading.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>effective separation</span><span><b>Evidence</b>heading + counts</span><span><b>Fit</b>one B value</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-09" class="exercise-card">
+            <div class="exercise-index">09</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Model · hand check</span><h2>Working through one Euler pose update</h2></div>
+<span class="time-badge">25–35 min</span></div>
+              <div class="teaching-brief"><p>Before processing a full log, work through one encoder interval by hand. Convert count changes to wheel distances, calculate forward distance and heading change, then apply the supplied first-order Euler update. This exposes units, signs, and reference-frame choices that can be hidden in a program.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Euler update guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Select one consecutive pair of rows from a turn log.</li><li>Calculate Δcount, <code>sL</code>, <code>sR</code>, forward distance, heading change, and the updated pose.</li><li>Compare the hand result with a one-step implementation using the identical input.</li></ol>
+<strong>Reason it out</strong><p>Choose values simple enough to calculate independently. Which unit or sign error would be most visible in this one-step check?</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to check your shown arithmetic, not to invent values. Verify every intermediate number with a calculator or independent script.</p>
+<span class="ai-reminder">A hand check anchors the implementation.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>one update</span><span><b>Evidence</b>worked calculation</span><span><b>Check</b>code matches maths</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-10" class="exercise-card">
+            <div class="exercise-index">10</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Model · replay</span><h2>Replaying an encoder log through the Euler model</h2></div>
+<span class="time-badge">35–45 min</span></div>
+              <div class="teaching-brief"><p>Use the calibrated distance scale and effective separation to replay a complete recorded trial. Plot the predicted pose sequence or at least its final position and heading against the independent reference. Begin with a trial used for calibration only to check that the implementation behaves as intended.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Euler replay guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Enter the current parameter values, units, and coordinate convention into the supplied Euler model.</li><li>Replay one straight and one rotation log, plotting or tabulating predicted and measured final pose.</li><li>Check whether a different logging or integration interval materially changes the result.</li></ol>
+<strong>Reason it out</strong><p>Separate a code check from a physical validation. Which already-used trial is useful for debugging but not for a final prediction claim?</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to help construct a reproducible plot from your log and parameter file. Check that the plotted trial identifier is correct.</p>
+<span class="ai-reminder">Calibration data cannot also be the sole validation.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>model replay</span><span><b>Evidence</b>predicted vs measured</span><span><b>Check</b>step size</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-11" class="exercise-card">
+            <div class="exercise-index">11</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Evaluation · uncertainty</span><h2>Analysing residuals and uncertainty</h2></div>
+<span class="time-badge">25–35 min</span></div>
+              <div class="teaching-brief"><p>A residual is the difference between model prediction and independent observation. Examine its direction, size, and repeatability before revising parameters. Consistent residuals can suggest scale, separation, or convention issues; scatter can arise from slip, floor effects, start alignment, or reference uncertainty.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Residual analysis guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Calculate position and heading residuals for repeated calibration trials.</li><li>Compare the residual size with the variation in your reference measurements.</li><li>Write one testable explanation and one next experiment that would distinguish it from an alternative.</li></ol>
+<strong>Reason it out</strong><p>Classify one residual pattern as potentially systematic or non-systematic, then name the observation needed to support that classification.</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to propose competing explanations for your residual plot. Reject any explanation that does not identify a discriminating measurement.</p>
+<span class="ai-reminder">Residuals guide the next observation.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>error pattern</span><span><b>Evidence</b>residuals + repeats</span><span><b>Decide</b>next experiment</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-12" class="exercise-card">
+            <div class="exercise-index">12</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Prediction · validation</span><h2>Predicting a held-out motion</h2></div>
+<span class="time-badge">30–40 min</span></div>
+              <div class="teaching-brief"><p>Reserve one straight or rotation trial that was not used to choose parameters. Before running it, state the requested motion, predicted final position and heading, and expected uncertainty. Then collect the independent reference and explain the difference without silently refitting the model.</p>
+</div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box><div class="context-tabs" role="tablist" aria-label="Held-out prediction guidance"><button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button><button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button></div>
+<div class="context-panel active" data-panel="nonai">
+<h3>Investigation brief</h3><ol><li>Freeze the parameter values and choose a new motion within the safe range of your apparatus.</li><li>Record a dated prediction before observing the final physical reference.</li><li>Compare prediction and observation, then state what the result supports, limits, or leaves uncertain.</li></ol>
+<strong>Reason it out</strong><p>Choose a held-out motion which is informative but does not introduce an entirely untested behaviour. Define success before running it.</p>
+</div>
+<div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to format your prediction table or plot template before data collection. Do not provide the final observation until the prediction is recorded.</p>
+<span class="ai-reminder">Prediction precedes observation.</span></div>
+</div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row"><span><b>Focus</b>unseen motion</span><span><b>Evidence</b>pre-registered prediction</span><span><b>Prepare</b>measurement report</span></div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+        <section id="going-further" class="selection-section">
+          <div class="section-heading"><span class="section-number">+</span><div><span class="section-kicker">Optional investigations</span><h2>Going Further with odometry</h2></div>
+</div>
+          <p class="section-lead">Use these extensions after the core Euler model has been calibrated and checked. Select one because it answers a question raised by your residuals, not simply because it creates a more complicated path.</p>
+          <div class="subsystem-grid">
+            <article class="subsystem-card"><span class="section-number">01</span><h3>Curves and asymmetric geometry</h3><p>Use left- and right-turning arcs to test whether separate left/right centre-to-wheel separations explain a repeatable residual better than one effective separation.</p>
+</article>
+            <article class="subsystem-card"><span class="section-number">02</span><h3>Exact differential-drive integration</h3><p>Implement exact constant-curvature integration and compare it with Euler using the same encoder log. Decide whether the difference is meaningful relative to reference uncertainty.</p>
+</article>
+            <article class="subsystem-card"><span class="section-number">03</span><h3>Bidirectional square benchmark</h3><p>Run repeatable clockwise and counter-clockwise squares to expose accumulated systematic error. Use this as a diagnostic, not as the first place to fit every parameter.</p>
+</article>
+          </div>
+        </section>
+        <section class="validation" id="validation">
+          <div><span class="section-kicker">Before Phase 2</span><h2>Carry a transparent model forward</h2><p>Keep raw encoder records, the physical reference method, fitted values, calculations, residuals, and held-out prediction together. They provide the basis for deciding what the Digital Twin represents well and what it should improve.</p>
+</div>
+          <div class="validation-list"><span>□ Define an independent reference</span><span>□ Calibrate scale and separation</span><span>□ Check an Euler replay</span><span>□ Predict a new motion</span></div>
+        </section>
+        <footer><span>CW2026 · Phase 1</span><span><a href="phase-1.html">Return to Phase 1</a></span></footer>
+      </main>
+    </div>
+  </body>
+</html>
