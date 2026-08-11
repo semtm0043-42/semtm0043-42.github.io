@@ -1,0 +1,9 @@
+              <div class="teaching-brief">
+                <p>
+                  Begin by establishing that you can deliberately produce and stop simple, observable movements. The supplied line-following controller in <strong>StampC3_Template</strong> is a useful starting point because it already connects surface-sensor decisions to one command for each wheel. Read it closely, then make a small test routine of your own. At this stage, the aim is not to measure a motor model: it is to build confidence that a chosen command produces a visible movement you can describe and repeat.
+                </p>
+                <p>
+                  In <strong>Controller.h</strong>, find every call to <strong>robot.setMotorPWM(...)</strong>. Follow the path from <strong>update(...)</strong> into <strong>runLineFollower(...)</strong>, and compare the commands used while the robot is waiting, following the line, searching for it, and stopped. Then inspect <strong>Robot.h</strong>: find the <strong>setMotorPWM(float l, float r)</strong> declaration, the motor values it stores, and the I2C request that sends the command to the robot.
+                </p>
+              </div>
+              <div class="exercise-grid">

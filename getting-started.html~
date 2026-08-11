@@ -13,169 +13,214 @@
       <aside class="sidebar" aria-label="Course navigation">
         <a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
         <div class="course-status"><span class="status-dot"></span>Course learning journey</div>
-        <nav data-course-navigation><p class="nav-label">Course journey</p>
-</nav>
+        <nav data-course-navigation></nav>
       </aside>
       <main id="top" class="main-content">
-        <header class="topbar"><div class="breadcrumb"><a href="index.html">CW2026</a><b>/</b><strong>Getting Started</strong></div>
-<span class="save-state"><span class="save-dot"></span>Shared setup</span></header>
+        <header class="topbar"><div class="breadcrumb"><a href="index.html">CW2026</a><b>/</b><strong>Getting Started</strong></div><span class="save-state"><span class="save-dot"></span>Core route</span></header>
         <section id="overview" class="intro">
-          <div class="eyebrow"><span class="eyebrow-line"></span>Orientation</div>
-          <h1>Prepare the tools,<br /><em>then observe the system.</em></h1>
-          <p class="lead">This shared sequence prepares every team to work in a cloned GitHub repository using Visual Studio Code, Arduino CLI, Arduino IDE, and Processing before running the physical robot and Digital Twin examples.</p>
+          <div class="eyebrow"><span class="eyebrow-line"></span>Core route</div>
+          <h1>Prepare the tools,<br /><em>verify the demonstration.</em></h1>
+          <p class="lead">This shared sequence uses Arduino IDE, Processing, the supplied local course workspace, and the physical robot before you begin investigating the Digital Twin.</p>
         </section>
         <section class="orientation-card">
-          <div class="orientation-icon">→</div>
-          <div><span class="section-kicker">Jumping in the Deep End</span><h2>It's OK to feel a little uncomfortable.</h2><p>On the first day of a new job, a lot of your time will be spent getting familiar with new tools, processes and materials.  This experience is intended to be the same.  You can take your time and ask questions.</p>
-</div>
-        </section>
-        </section>
-        <section class="orientation-card">
-          <div class="orientation-icon">→</div>
-          <div><span class="section-kicker">Help & Support</span><h2>The following steps will be followed in the first teaching session.</h2><p>The first teaching session will be used to help you set up all the tools and processes you need to make progress with the course.</p>
-</div>
+          <div class="orientation-icon">✓</div>
+          <div><span class="section-kicker">Keep the route simple</span><h2>Use the supplied local workspace.</h2>
+          <p>You do not need GitHub, Git, VS Code, or Arduino CLI to follow this route. Those tools remain available as optional extensions in <a href="going-further.html">Going Further</a>.</p></div>
         </section>
         <div class="sequence-actions" aria-label="Exercise section controls"><button type="button" data-exercise-action="collapse">Collapse all</button><button type="button" data-exercise-action="open">Open all</button></div>
         <div class="exercise-sequence">
           <article id="exercise-01" class="exercise-card">
             <div class="exercise-index">01</div>
             <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Hardware orientation · robot and controller</span><h2>Meet the 3Pi+ and StampC3</h2></div>
-<span class="time-badge">10–15 min</span></div>
+              <div class="exercise-heading"><div><span class="concept-tag">Hardware orientation · robot and controller</span><h2>Meet the 3Pi+ and StampC3</h2></div><span class="time-badge">10–15 min</span></div>
               <div class="teaching-brief">
                 <figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3.png" alt="Top view of the Pololu 3Pi+ robot with the StampC3 controller mounted at its centre" width="100%" /></figure>
-                <p>Your physical system combines a <a href="https://www.pololu.com/docs/0J83">Pololu 3Pi+ 32U4 mobile robot</a> with an <a href="https://docs.m5stack.com/en/core/stamp_c3">M5Stack StampC3 controller</a>. Inspect the system to identify the parts that sense, move, and communicate. You can ask a member of teaching staff about the parts of your robot.</p>
-                <p>For this coursework, you will program the <strong>StampC3 controller</strong>, shown at the centre of the robot and labelled below.</p>
+                <p>Your physical system combines a <a href="https://www.pololu.com/docs/0J83">Pololu 3Pi+ 32U4 mobile robot</a> with an <a href="https://docs.m5stack.com/en/core/stamp_c3">M5Stack StampC3 controller</a>. Inspect the system to identify the parts that sense, move, and communicate.</p>
+                <p>For this coursework, you will program the <strong>StampC3 controller</strong>. The Pololu 3Pi+ runs supplied middleware that operates its motors and sensors; the StampC3 requests sensor information and sends motor commands.</p>
                 <figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3_Annotated_Simple.png" alt="Annotated top view of the robot labelling the StampC3, reset button, on-off button, push-button input, and USB-C programming port" width="100%" /></figure>
-                <p>The Pololu 3Pi+ runs supplied middleware that operates its motors and sensors. The StampC3 requests sensor information and sends motor commands.</p>
-                <p>We will learn more about the robot and the Digital Twin through these exercise pages. Before using it, set up the software tools and verify that the supplied system works. <strong>It is good practice to confirm that something works before modifying it.</strong></p>
               </div>
             </div>
           </article>
           <article id="exercise-02" class="exercise-card">
             <div class="exercise-index">02</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Development environment · hardware</span><h2>Install and Configure the Arduino IDE, Arduino CLI</h2></div>
-<span class="time-badge">25–35 min</span></div>
-<div class="teaching-brief"><p>We will use the Arduino framework to programme the StampC3.  We will install both the Arduino IDE (integrated development environment) and the Arduino CLI (command line interface).  </p>
-</div>
-<div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3><ol><li>Select and install <a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener">Arduino IDE</a>. </li><li>In Arduino IDE, navigate to Preferences and add M5Stack's Board Manager URL: <code>https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json</code>.  You will need to copy and paste this URL into the board manager text box, as shown below.</li>
-<p align="center"><img src="./assets/images/setup/arduino_preferences.png" alt="Screenshot of the preferences panel in Arduino IDE" width="100%"></p> 
-<li>Install the M5Stack board package: select Tools → Board Manager.  Type "StampC3" into the text entry field, and wait for the list to update. Select the latest version, and then click "Install".</li>
-<p align="center"><img src="./assets/images/setup/arduino_boards_manager.png" alt="Screenshot of the boards manager panel in Arduino IDE" width="100%"></p>
-<li>Select the correct board to program: select Tools → Board → M5Stack Arduino → M5StackC3. </li>
-<li>Configure boot options: select and set <strong>Tools → USB-CDC On Boot → Disabled</strong>.</li>
-<li>You can now close the Arduino IDE</li>
-<li>Install <a href="https://docs.arduino.cc/arduino-cli/installation" target="_blank" rel="noopener">Arduino CLI</a> and confirm that <code>arduino-cli version</code> works in a new terminal.</li></ol><div class="measure-row"><span><b>Check</b> M5StampC3 is selected</span><span><b>Check</b> Arduino CLI runs</span><span><b>Keep</b> setup errors</span></div>
-</div>
-</div>
-</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Development environment · hardware</span><h2>Install and Configure the Arduino IDE</h2></div><span class="time-badge">20–30 min</span></div>
+              <div class="teaching-brief">
+              <p>We will use the Arduino framework to program the StampC3. Arduino IDE is the core editor, compiler, and upload tool for the supplied robot program.</p></div>
+              <div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3>
+              <ol>
+              <li>Download and Install <a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener">Arduino IDE</a>.</li>
+              <li>In Preferences, add M5Stack's Board Manager URL by copying-and-pasting the following line into the blank text input area: <blockquote><code>https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json</code></blockquote><figure class="orientation-figure"><img src="assets/images/setup/arduino_preferences.png" alt="Screenshot of the preferences panel in Arduino IDE" width="100%" /></figure></li>
+              <li>Whilst the Preferences window is open, tick the checkbox <strong>Display Line Numbers</strong>. Close the preferences window by clicking "OK".</li>
+              <li>Select <strong>Tools  → Board  → Board Manager... </strong>.  In Board Manager, type <strong>StampC3</strong> into the blank text input area, wait for the list to update.  Click "install" on the entry for the M5Stack board package.  This is a large package and may take some time to download and install. Once installed, click "close". <figure class="orientation-figure"><img src="assets/images/setup/arduino_boards_manager.png" alt="Screenshot of the boards manager panel in Arduino IDE" width="100%" /></figure></li>
+              <li>Select <strong>Tools → Board → M5Stack Arduino → M5StampC3</strong>.</li>
+              <li>Set <strong>Tools → USB-CDC On Boot → Disabled</strong>.</li></ol><div class="measure-row"><span><b>Check</b> M5StampC3 is selected</span><span><b>Set</b> USB-CDC On Boot</span><span><b>Keep</b> setup errors</span></div></div></div>
+            </div>
           </article>
           <article id="exercise-03" class="exercise-card">
             <div class="exercise-index">03</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Shared code · account access</span><h2>Setup GitHub Access</h2></div>
-<span class="time-badge">10–15 min</span></div>
-<div class="teaching-brief"><p>Your team repository is the shared workspace for code, measurements, analysis, checkpoints, and reports. GitHub is an industry tool that allows for different versions of work to be maintained and developed by teams.  You will need to setup a GitHub account.  In the first teaching session, this task may be completed ahead of this exercise.</p>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Physical robot · recoverable baseline</span><h2>Prepare a Copy of the StampC3 Template</h2></div><span class="time-badge">10–15 min</span></div>
+              <div class="teaching-brief">
+              <p>Your supplied local course workspace contains <strong>StampC3_Template</strong>, <strong>DigitalTwin</strong>, and <strong>investigations</strong>. Preserve the supplied template as a known-working recovery point before changing code.</p></div>
+              <div class="exercise-grid"><div class="investigation"><h3>Workspace checklist</h3>
+              <ol>
+              <li>Copy the complete <strong>StampC3_Template</strong> folder to a new location on your computer.  It is best to decide a location on your computer storage where you will collect together all your work for this course.  We will refer to this as your <strong>working directory</strong>.</li>
+              <li>Rename the copied folder and its main <strong>.ino</strong> file to the same meaningful name, such as <strong>DemonstrationTest</strong>.</li>
+              <li>Open the copied <strong>.ino</strong> file in Arduino IDE.</li>
+              <li>We are going to make a small change so that you will be able to connect to your robot over WiFi to run the digital twin demonstration.  At the top of the opened file, you will see the line of code:
+              <blockquote><code>RobotWifiAP_c server("myAP", "myPassword", 80);</code></blockquote> Edit <code>myAP</code> to a new unique name and set <code>myPassword</code> to a password.  <strong>Do not use a password you use for other accounts!  You should never normally store a password in plain text.  </strong> In this case, we simply set a password to limit the access to your robot to you. </li>
+              <p align="center"><img src="./assets/images/setup/first_edit_and_compile.png" alt="" width="100%"></p>
+              <li>Finally, click the tick icon to compile the code.  If nothing else has changed, the code should compile without any errors.  In the black box area at the bottom of the Arduino IDE, you should see a message logged like:
+			<blockquote><code>Sketch uses 986377 bytes (75%) of program storage space. Maximum is 1310720 bytes.<br>
+Global variables use 38092 bytes (11%) of dynamic memory, leaving 289588 bytes for local variables. Maximum is 327680 bytes.</code></blockquote>             
+              </li></ol>
+              <strong>Troubleshooting:</strong>
+              <ol>
+              <li>Cannot compile:  If you see an error message like:
+              <blockquote><code> 
+exit status 1
+'class WiFiClass' has no member named 'mode'
+</code></blockquote>
+You have most likely not configured the Arduino IDE to use the correct board.  Please return to the previous exercise and ensure you've completed steps 4 and 5 ("Select Tools → Board → ...")</li></ol>
+              <div class="measure-row"><span><b>Copy</b> the complete template</span><span><b>Rename</b> folder and <code>.ino</code> together</span><span><b>Keep</b> the original unchanged</span></div></div></div>
             </div>
-<div class="exercise-grid">
-            <div class="investigation"><h3>Access checklist</h3><ol><li>Create a GitHub account using your university email address.</li><li>Send your GitHub username to teaching staff.   and accept the invitation to your pre-populated team repository.</li><li>Confirm you can view the repository in a browser and identify its clone address.</li></ol><div class="measure-row"><span><b>Check</b> team repository access</span><span><b>Know</b> your GitHub username</span><span><b>Keep</b> the clone address</span></div>
-</div>
-</div>
-</div>
           </article>
           <article id="exercise-04" class="exercise-card">
             <div class="exercise-index">04</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Development environment · source control</span><h2>Install and Configure VS Code</h2></div>
-<span class="time-badge">15–25 min</span></div>
-<div class="teaching-brief"><p>VS Code is the recommended editor for this coursework. It provides the editor, integrated terminal, Git interface, and access to the supplied Arduino CLI tasks.</p>
-</div>
-<div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3><ol><li>Install <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener">Visual Studio Code</a> and <a href="https://git-scm.com/downloads" target="_blank" rel="noopener">Git</a>.</li><li>Install the <strong>C/C++</strong> extension from the Extensions view. Click the small extensions icon on the left panel, select "C/C++ Intellisense, debugging and code browsing", and click install.</li>
-<p align="center"><img src="./assets/images/setup/vs_code_extensions_panel.png" alt="Screenshot of the extensions panel in VS Code" width="100%"></p>
-<li>Open a terminal, type into the terminal the following command: <code>git --version</code>.  If you see text like <code>git version 2.43.0</code> you have Git installed correctly.</li>
-<p align="center"><img src="./assets/images/setup/vs_code_new_terminal.png" alt="Screenshot opening a new terminal in VS Code" width="100%"></p>
-
-</ol><div class="measure-row"><span><b>Check</b> VS Code opens</span><span><b>Check</b> Git runs</span><span><b>Install</b> C/C++ extension</span></div>
-</div>
-</div>
-</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Physical robot · known baseline</span><h2>Upload to the StampC3</h2></div><span class="time-badge">20–30 min</span></div>
+              <div class="teaching-brief">
+              <p>In this step we will upload the code edited in the previous exercise to the StampC3.  This is an activity you will do very frequently in this course.  You will need to upload code to the StampC3 every time you wish to change the robot behaviour.  You will need to connect your computer to the StampC3 via a USB-C cable.</p>
+              <p>There are some common questions about this upload process:
+              <ol>
+              <li><strong>When does my code run?</strong> When you upload code to the StampC3, it will activate straight away and then run this code forever, until new code is uploaded. The current code completes some setup activities, and will then wait for you to press the button.</li>
+              <li><strong>How can I stop my code from running, or pause it?</strong> When code has been uploaded, there is no dedicated physical interface (e.g. a button) to stop the code from running.  If you want this behaviour, you will need to write the code to achieve it. The StampC3 does have one general purpose button available.</li> 
+              <li><strong>Can I get my code back off the StampC3?</strong>: No, you should regard this as a write-only process.  Technically, it is possible to recover the machine code and to try to translate this back into a human-readable format.  However, this is very difficult.  Instead, you should maintain versions of your code and keep duplicated back-ups.</li>
+				 </ol>   
+				 	<p align="center"><img src="./assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3_Annotated_Simple.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p>           
+               </p></div>
+              <div class="exercise-grid"><div class="investigation"><h3>Upload Steps</h3>
+              <ol>
+              <li>Connect the StampC3 to your computer by using a USB-C cable.</li>
+              <li>Configure the Arduino IDE to connect to the correct Serial Port.  Select <strong>Tools → Port → </strong> and then the available port.
+              <ol>
+              <li>On Windows, this is likely to be something like <strong>COM5</strong>, or the highest enumeration.</li>
+              <li>  On MacOS, this is likely to be something like <strong>/dev/cu.usbmodem</strong> or <strong>/dev/cu.usbserial</strong>.</li>
+              <li>  On a Linux OS, this is likely to be <strong>/dev/ttyACM0</strong> or <strong>/dev/TTYUSB0</strong>.</li>
+              <li><strong>Troubleshooting:</strong> If you cannot see any ports, you may need to install the USB device driver.  You can follow the steps <a href="https://docs.m5stack.com/en/arduino/m5stampc3/program#2usb-driver-installation">here</a></ol>
+              <li>Verify that <strong>M5StampC3</strong> is selected as the board, select <strong>Tools → Board → M5Stack Arduino → M5StampC3</strong>.</li>
+              <li>Click the arrow icon ( → ) to start the upload to the StampC3. The Arduino IDE will first compile the code.  If the code is being compiled for the first time, this may take a long time complete.  It should be quicker the next time. </li></ol><div class="measure-row"><span><b>Edit</b> your copied sketch</span><span><b>Compile</b> in Arduino IDE</span><span><b>Record</b> the upload result</span></div></div></div>
+            </div>
           </article>
           <article id="exercise-05" class="exercise-card">
             <div class="exercise-index">05</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Shared code · local workspace</span><h2>Clone the Team Repository</h2></div>
-<span class="time-badge">10–15 min</span></div>
-<div class="teaching-brief"><p>Cloning makes a complete local working copy of your team's supplied repository. This is where you will edit code, run tasks, record evidence, and later commit shared work.</p>
-</div>
-<div class="exercise-grid"><div class="investigation"><h3>Clone checklist</h3>
-<ol>
-<li>In VS Code, select <strong>Source Control → Clone Repository</strong> and sign in to GitHub if prompted.</li>
-<p align="center"><img src="./assets/images/setup/vs_code_source_control.png" alt="Screenshot of opening the source control panel in VS Code" width="100%"></p>
-<li>Select your team repository and choose a location on your computer where you can keep the workspace.</li>
-<li>Open the cloned folder in VS Code and choose <strong>Trust</strong>.</li>
-<p align="center"><img src="./assets/images/setup/vs_code_trust.png" alt="Screenshot of selecting Trust in VS Code" width="100%"></p>
-<li>Confirm the Explorer contains <strong>StampC3_Template</strong>, <strong>DigitalTwin</strong>, <strong>investigations</strong>, and <strong>.vscode</strong>.</li></ol><div class="measure-row"><span><b>Clone</b> the team repository</span><span><b>Open</b> its root folder</span><span><b>Check</b> supplied folders</span></div>
-</div>
-</div>
-</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Simulation environment · visual model</span><h2>Install and Configure Processing IDE</h2></div><span class="time-badge">10–20 min</span></div>
+              <div class="teaching-brief">
+              <p>Processing runs the supplied Digital Twin on your computer. Processing is a very convenient tool to generate graphical outputs that requires minimal setup and configuration.  The provided Processing code has been written to provide:
+              <ol>
+              <li>A simple simulation model of the robot.  This simulation can be used independently of the StampC3.</li>
+                            <li>To connect to the StampC3 (your robot) over WiFi.  When connected, to visualise the data sent back from your robot</li>
+                            <li>To run the same <strong>controller</strong> code on both the StampC3 and the simulated robot.  This will allow you to compare and investigate differences between the real robot and simulation. </li>
+              </ol>  
+              Processing is separate from Arduino IDE, which edits and uploads the StampC3 controller.</p></div>
+              <div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3>
+              <ol>
+              <li>Install <a href="https://processing.org/download/" target="_blank" rel="noopener">Processing 4</a>.
+              </li>
+              <li>Open the Processing application.</li>
+              <li>Select <strong>File → Open</strong>, then navigate to the <strong>DigitalTwin</strong> directory, then select <strong>DigitalTwin.pde</strong>.  The DigitalTwin directory should have been included in the download or repository provided to you as the StampC3_Template code.</li>
+              <li>Click the Play icon to run the simulation.  You should see a visualisation of a robot following a line.
+              <ol>
+              <li>Pressing the 'g' key will toggle the visibility of the plots.</li>
+              <li>Pressing the 't' key will toggle between following the robot or not.</li>              
+              <li>Pressing the '-' or '+' key will decrease or increase the zoom respectively.</li>
+              <li><strong>More guidance on the Digital Twin simulation is provided in the exercises for Phase 2 of this course</strong></li>
+              </ol></li></ol>
+              <p align="center"><img src="./assets/images/setup/processing_first_run.png" alt="Screen shot of the digital twin simulation." width="100%"></p>
+              <div class="measure-row"><span><b>Check</b> Processing opens</span><span><b>Identify</b> Run and console</span><span><b>Keep</b> launch errors</span></div></div></div>
+            </div>
           </article>
           <article id="exercise-06" class="exercise-card">
             <div class="exercise-index">06</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Individual Phase 1 work · recoverable code</span><h2>Prepare Your Individual Workspace</h2></div>
-<span class="time-badge">10–15 min</span></div>
-<div class="teaching-brief"><p>Prepare a personal working copy of the StampC3 template inside the code folder for your allocated Phase 1 specialism. The supplied top-level template remains unchanged as a recovery point.</p>
-</div>
-<div class="exercise-grid"><div class="investigation"><h3>Workspace checklist</h3><ol><li>Open your allocated folder under <code>investigations/phase-1/</code>, for example <code>student-1-motors</code>, then open its <code>code/</code> directory.</li><li>Copy the complete top-level <strong>StampC3_Template</strong> folder into that <code>code/</code> directory.</li><li>Rename the copied folder and its main <strong>.ino</strong> file to the same meaningful progress name, such as <strong>Test1</strong>.</li><li>Confirm your copied sketch is now inside your individual Phase 1 code folder and that the original top-level <strong>StampC3_Template</strong> is unchanged.</li></ol><div class="measure-row"><span><b>Copy</b> the complete template</span><span><b>Rename</b> folder and <code>.ino</code> together</span><span><b>Keep</b> the original unchanged</span></div>
-</div>
-</div>
-</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Common baseline · physical and simulated run</span><h2>Run the Digital Twin Demonstration</h2></div><span class="time-badge">30–40 min</span></div>
+              <div class="teaching-brief">
+              <p>We should now be ready to run the full demonstration of the Digital Twin robotic system.  Follow the steps below to verify that the full system works as expected.  When the demonstration works correctly, you should see an output from the Processing Digital Twin that looks like the following image:</p><p align="center"><img src="./assets/images/setup/digital_twin_output.png" alt="Screenshot of the Digital Twin system operating successfully" width="100%"></p><p>In the above image, we can observe:
+              <ol>
+              <li>The simulated robot as the blue circle.  Black dots represent the sensor placement.</li>              
+              <li>The real robot as the orange circle, without the black dots for sensor placement.</li>
+              <li>At the top, the status line <code>TCP: Connected to 192.168.4.1:80</code> indicating the simulator is connected to the real robot over WiFi.  The real robot should always have this address.</li>
+              <li>In the graph panel, multiple sets of data plot concurrently, for both the simulated robot and the real robot.</li>
+              </ol>
+              </p></div>
+              
+              <div class="exercise-grid"><div class="investigation"><h3>Run and observation checklist</h3>
+              <ol>
+              <li>Place your robot on the provided test map, at the start location indicated with grey markings</li>
+              <li>Turn on your robot by pressing the small on/off button once.  The StampC3 should illuminate the on board LED.  Your robot should not yet move.</li>
+              <li>Connect your computer via WiFi to the robot.  The robot should show up in the available WiFi networks with the name you provided in the previous exercise. Wait for your computer to connect.  Your operating system may notify you that the internet is not available - this is expected, not an error.  This may mean you have an unusual WiFi icon, such as a question mark.  </li>
+              <li>Open the Processing sketch in <strong>DigitalTwin</strong> and run it.  It should immediately start running the simulated controller.</li>
+              <li>Press the <strong>m</strong> key once to toggle the simulator mode to <strong>live</strong>.</li>
+              <li>Start the physical robot by pressing the button on top once.  The real robot should begin following the line.</li>
+              <li>Verify in the Digital Twin that the visualation for both the real robot and simulated robot are moving.</li>
+              <li><strong>The visualisation of the real robot and simulated robot will behave differently</strong> - this is expected. In fact, these differences represent the core matter of interest for this course.</li> 
+              </ol><div class="measure-row"><span><b>Run</b> physical and simulated examples</span><span><b>Separate</b> observation from explanation</span><span><b>Pose</b> one testable question</span></div></div></div>
+            </div>
           </article>
           <article id="exercise-07" class="exercise-card">
             <div class="exercise-index">07</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Physical robot · known baseline</span><h2>Edit, Compile and Upload to the StampC3</h2></div>
-<span class="time-badge">25–35 min</span></div>
-<div class="teaching-brief"><p>Use the VS Code tasks to prepare support for the M5StampC3, then edit, compile, and upload the individual sketch you prepared in Exercise 6.</p>
-</div>
-<div class="exercise-grid"><div class="investigation"><h3>Run checklist</h3><ol><li>Run <strong>StampC3: Install M5Stack board support</strong> from VS Code's task menu.</li><li>Run <strong>StampC3: Refresh IntelliSense configuration</strong> and enter the relative path to your individual sketch, for example <code>investigations/phase-1/student-1-motors/code/Test1</code>.</li><li>Edit <code>myAP</code> to a unique access-point name and set <code>myPassword</code> to a dedicated password that you do not reuse for an account, application, or service.</li><li>Run <strong>StampC3: Compile StampC3 sketch</strong>, entering the same individual sketch path, then run <strong>StampC3: Compile and upload StampC3 sketch</strong> and enter its serial port.</li><li>Use the 115200-baud serial-monitor task or Arduino IDE fallback to record the first visible output or error.</li></ol><div class="measure-row"><span><b>Edit</b> your individual sketch</span><span><b>Compile</b> the same path</span><span><b>Record</b> the upload result</span></div>
-</div>
-</div>
-</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Telemetry · direct connection</span><h2>Debugging: Take Measurements with Serial</h2></div><span class="time-badge">10–15 min</span></div>
+              <div class="teaching-brief">
+              <p>The StampC3 provides information via the Serial port connection.  During this course, using the Serial connection is likely to be the most effective way for you to <strong>debug</strong> your code.  Follow the next steps to test your Serial connection.</p></div>
+              <div class="exercise-grid"><div class="investigation"><h3>Measurement checklist</h3>
+              <ol>
+              <li>Connect your StampC3 to your computer using a USB-C cable.</li>
+              <li>Select <strong>Tools  → Port</strong> and select the port for the StampC3.</li>
+              <li>Select <strong>Tools  → Serial Monitor</strong>.  You may need to change the baud rate - use the drop-down list to select <code>115200</code>.
+              <p><img src="./assets/images/setup/serial_monitor.png" alt="Screenshot of the Serial Monitor" width="100%"></p>
+              <li>In the <strong>StampC3_Template</strong> code, navigate to the <strong>Robot.h</strong> tab, and search for the function named <strong>publishTelemetry(...)</strong>.
+<ol>
+<li>The functions <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> both report 13 variables.  Which aspect of the robot do you think each variable corresponds to? </li>
+<li>Both <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> has a string formatted like <code>%lu,%.2f,%.2f,%.5f,%d,%d,%ld,%ld,%u,%u,%u,%u,%u,%u</code>.  You might think this looks a bit strange - but you can also discover what these mean.  Use the internet to search for what each of these formatters means (e.g., <strong>%.5f</strong>). </li>
+</ol>              
+              </li>
+              </ol>
+				<strong>Troubleshooting</strong>
+				<ol>
+				<li><strong>I get the error <code>Board at XXXXXXXX is not available</code></strong>: Make sure your StampC3 is connected to your computer via a USB-C cable.</li>
+				<li><strong>I don't see any changing information on the Serial Monitor</strong>: Make sure that USB-CDC is disabled, select <strong>Tools → USB-CDC On Boot → Disabled</strong>.  You will need to upload the code again.</li>
+				</ol>              
+              <div class="measure-row"><span><b>Serial</b> inspect a direct record</span><span><b>Interpret</b> field, time, and source</span><span><b>Keep</b> an error if needed</span></div></div></div>
+            </div>
           </article>
           <article id="exercise-08" class="exercise-card">
             <div class="exercise-index">08</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Simulation environment · visual model</span><h2>Install and Configure Processing IDE</h2></div>
-<span class="time-badge">10–20 min</span></div>
-<div class="teaching-brief"><p>Processing runs the supplied Digital Twin on your computer. It is separate from VS Code, which edits and uploads the StampC3 controller.</p>
-</div>
-<div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3><ol><li>Install <a href="https://processing.org/download/" target="_blank" rel="noopener">Processing 4</a>.</li><li>Open Processing once and confirm the editor starts in Java mode.</li><li>Open the supplied Digital Twin sketch from the <strong>DigitalTwin</strong> folder in your cloned team repository.</li></ol><div class="measure-row"><span><b>Check</b> Processing opens</span><span><b>Identify</b> Run and console</span><span><b>Keep</b> launch errors</span></div>
-</div>
-</div>
-</div>
-          </article>
-          <article id="exercise-09" class="exercise-card">
-            <div class="exercise-index">09</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Common baseline · physical and simulated run</span><h2>Run the Digital Twin Demonstration</h2></div>
-<span class="time-badge">30–40 min</span></div>
-<div class="teaching-brief"><p>Run the supplied physical and simulated examples as parallel systems. The Digital Twin computes its own behaviour; it is not a display of robot telemetry. Observe the two systems before changing their code or constants.</p>
-</div>
-<div class="exercise-grid"><div class="investigation"><h3>Run and observation checklist</h3><ol><li>Open your copied StampC3 sketch in VS Code, compile it, and upload it.</li><li>Open the Processing sketch in <strong>DigitalTwin</strong> and run it.</li><li>Start the physical robot as directed and confirm both systems begin from the supplied baseline.</li><li>Describe both paths without explaining them yet.</li><li>Identify one agreement and one disagreement. State separately what you observed and what you inferred.</li><li>Choose one question that could be investigated by measuring motors, surface reflectance, or odometry on the real robot.</li><li>If either system fails, record the environment, visible symptom, and first relevant error before changing code.</li></ol><div class="measure-row"><span><b>Run</b> physical and simulated examples</span><span><b>Separate</b> observation from explanation</span><span><b>Pose</b> one testable question</span></div>
-</div>
-</div>
-</div>
-          </article>
-          <article id="exercise-10" class="exercise-card">
-            <div class="exercise-index">10</div>
-            <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Telemetry · shared data format</span><h2>Take Measurements: Serial and Wifi</h2></div>
-<span class="time-badge">20–30 min</span></div>
-<div class="teaching-brief"><p>The StampC3 provides information through direct Serial and the supplied WiFi server. The transport changes, but you should always ask what a received value represents and when it was measured.</p>
-</div>
-<div class="exercise-grid"><div class="investigation"><h3>Measurement checklist</h3><ol><li>Use Serial to identify a timestamp and one changing value before interpreting it.</li><li>Start the supplied WiFi/TCP server and simulator, then identify one telemetry record received by the Digital Twin.</li><li>Record a field name, units or range if known, timestamp, and whether it is a command, sensor reading, encoder count, or pose estimate.</li></ol><div class="measure-row"><span><b>Serial</b> inspect a direct record</span><span><b>WiFi</b> confirm a TCP record</span><span><b>Interpret</b> field, time, and source</span></div>
-</div>
-</div>
-</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Telemetry · optional live comparison</span><h2>Inspect WiFi Telemetry</h2></div><span class="time-badge">10–15 min</span></div>
+              <div class="teaching-brief">
+              <p>In an earlier exercise, we ran the full Digital Twin system demonstration.   As a part of this, the robot sent data to the Processing simulation over a WiFi connection, allowing for a visualisation of the real robot.  This final exercise will help you to configure some tools to read this information directly, rather than through the Processing simulation.  This may become useful for debugging or recording data.  When the robot was sending data to the Processing simulation, it had the exact same format as the output we viewed previously via the Serial Monitor.</p>
+              </div>
+              <div class="exercise-grid"><div class="investigation"><h3>Measurement checklist</h3>
+              <ol>
+              <li>Place your robot, then turn it on via the On/Off button.  You should see the on board LED illuminate.  The robot should not move.</li>
+              <li>On your computer, connect to the robot by selecting the WiFi network with the name you gave earlier.</li>
+              <li>If you are on <strong>MacOS</strong> or a <strong>Linux Operation System</strong>, open a Terminal instance (command line) and issue the following command:
+              <blockquote>nc 192.168.4.1 80</blockquote> You should see the data from the robot printing to the terminal window.  If you want to save this data to a file, you can use the following command: 
+              <blockquote>nc 192.168.4.1 80 > saved_data.csv</blockquote> where <code>saved.csv</code> is your chosen file name.  Simply press <code>ctrl+c</code> or <code>cmd+c</code> to end the process.</li>
+              <li>If you are on a <strong>Windows operating system</strong>, we recommend you download and install an application called PuTTY.  We will use this to create a connection to the robot and view the data output.  
+<ol>
+<li>Follow the installation instructions <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/">here</a>.</li>
+<li>Open PuTTY, then configure the connection to look like the below screenshot.  Note that you need to set the Host Name to <strong>192.168.4.1</strong>, the port to <strong>80</strong>, and the connection type to <strong>raw</strong>.  Then click <strong>Open</strong>.
+<p align="center"><img src="./assets/images/setup/putty_step1.png" alt="Screenshot of Putty configuration" width="100%"></p>
+              </ol> <div class="measure-row"><span><b>WiFi</b> confirm a TCP record</span><span><b>Compare</b> transport and timing</span><span><b>Interpret</b> field and source</span></div></div></div>
+            </div>
           </article>
         </div>
-        <section class="validation"><div><span class="section-kicker">Next</span><h2>Turn a working baseline into an investigation</h2><p>Use the questions raised by the demonstration to choose a Phase 1 subsystem specialism.</p>
-</div>
-<div class="validation-list"><a href="phase-1.html">Continue to Phase 1 →</a></div>
-</section>
+        <section class="validation"><div><span class="section-kicker">Next</span><h2>Turn a working baseline into an investigation</h2>
+        <p>Use the questions raised by the demonstration to choose a Phase 1 subsystem specialism.</p></div><div class="validation-list"><a href="phase-1.html">Continue to Phase 1 →</a></div></section>
         <footer><span>CW2026 · Getting Started</span><span>Tools, examples, and shared observations</span></footer>
       </main>
     </div>

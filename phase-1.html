@@ -8,7 +8,10 @@
       CW2026 · Phase 1: Characterising the Real Robot
     </title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=8" defer>
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=9" defer>
     </script>
   </head>
   <body>
@@ -37,7 +40,8 @@
         <!-- Paul: keeping this in case it is useful later
         <section class="orientation-card">
           <div class="orientation-icon">→</div>
-          <div><span class="section-kicker">Work as a team</span><h2>Choose complementary specialisms</h2><p>Each member of a team of three takes primary responsibility for one subsystem. Use <code>investigations/phase-1/student-1-motors/</code>, <code>student-2-sensors/</code>, and <code>student-3-odometry/</code> for the three allocated investigations. The student labels are placeholders: record the allocation in your Team Charter and rename them consistently if your team chooses to use member names or IDs.</p>
+          <div><span class="section-kicker">Work as a team</span><h2>Choose complementary specialisms</h2>
+          <p>Each member of a team of three takes primary responsibility for one subsystem. Use <code>investigations/phase-1/student-1-motors/</code>, <code>student-2-sensors/</code>, and <code>student-3-odometry/</code> for the three allocated investigations. The student labels are placeholders: record the allocation in your Team Charter and rename them consistently if your team chooses to use member names or IDs.</p>
 </div>
         </section>
         -->
@@ -47,15 +51,19 @@
 <p class="section-lead">To begin <strong>Phase 1</strong> each of your team members should agree their specialism for the course.  Each team member must have a different specialism based on the three available robot subsystems: motors, surface reflectance sensors, or odometry.  Click the below card for your specialism to follow the exercises.</p>
           
           <div class="subsystem-grid">
-            <a class="subsystem-card" href="motors.html"><span class="section-number">01</span><h3>Motors</h3><p>Investigate how commands become wheel motion, including thresholds, limits, response shape, asymmetry, noise, and dynamics.</p>
+            <a class="subsystem-card" href="motors.html"><span class="section-number">01</span><h3>Motors</h3>
+            <p>Investigate how commands become wheel motion, including thresholds, limits, response shape, asymmetry, noise, and dynamics.</p>
 <span class="card-link">Open motor investigation →</span></a>
-            <a class="subsystem-card" href="reflectance.html"><span class="section-number">02</span><h3>Surface Reflectance Sensors</h3><p>Investigate how surfaces, illumination, timing, and sensor characteristics become a five-channel measurement.</p>
+            <a class="subsystem-card" href="reflectance.html"><span class="section-number">02</span><h3>Surface Reflectance Sensors</h3>
+            <p>Investigate how surfaces, illumination, timing, and sensor characteristics become a five-channel measurement.</p>
 <span class="card-link">Open sensor investigation →</span></a>
-            <a class="subsystem-card" href="odometry.html"><span class="section-number">03</span><h3>Odometry</h3><p>Use encoder measurements and a differential-drive model to identify real geometry and predict robot pose.</p>
+            <a class="subsystem-card" href="odometry.html"><span class="section-number">03</span><h3>Odometry</h3>
+            <p>Use encoder measurements and a differential-drive model to identify real geometry and predict robot pose.</p>
 <span class="card-link">Open odometry investigation →</span></a>
           </div>
         </section>
-        <section class="validation"><div><span class="section-kicker">Looking ahead</span><h2>Carry evidence into the simulation</h2><p>Your measurements and model choices will become useful when you examine the Digital Twin's assumptions and decide what to revise.</p>
+        <section class="validation"><div><span class="section-kicker">Looking ahead</span><h2>Carry evidence into the simulation</h2>
+        <p>Your measurements and model choices will become useful when you examine the Digital Twin's assumptions and decide what to revise.</p>
 </div>
 <div class="validation-list"><a href="phase-2.html">Continue to Phase 2 →</a></div>
 </section>

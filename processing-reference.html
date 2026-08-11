@@ -6,14 +6,18 @@
     <meta name="description" content="CW2026 Processing Digital Twin reference" />
     <title>CW2026 · Processing Digital Twin Reference</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=8" defer></script>
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=9" defer></script>
   </head>
   <body data-exercise-default="open">
     <div class="site-shell">
       <aside class="sidebar" aria-label="Course navigation">
         <a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
         <div class="course-status"><span class="status-dot"></span>System reference</div>
-        <nav data-course-navigation><p class="nav-label">Course journey</p>
+        <nav data-course-navigation>
+        <p class="nav-label">Course journey</p>
 </nav>
       </aside>
       <main id="top" class="main-content">
@@ -26,7 +30,8 @@
         </section>
         <section class="orientation-card">
           <div class="orientation-icon">i</div>
-          <div><span class="section-kicker">How to use this page</span><h2>Trace a quantity from command to representation</h2><p>Start with the component you are investigating, locate its matching tab in <strong>DigitalTwin</strong>, and follow its inputs and outputs. The model describes an explicit hypothesis; physical measurements determine whether that hypothesis is useful.</p>
+          <div><span class="section-kicker">How to use this page</span><h2>Trace a quantity from command to representation</h2>
+          <p>Start with the component you are investigating, locate its matching tab in <strong>DigitalTwin</strong>, and follow its inputs and outputs. The model describes an explicit hypothesis; physical measurements determine whether that hypothesis is useful.</p>
 </div>
         </section>
         <div class="sequence-actions" aria-label="Reference section controls"><button type="button" data-exercise-action="collapse">Collapse all</button><button type="button" data-exercise-action="open">Open all</button></div>
@@ -35,7 +40,8 @@
             <div class="exercise-index">01</div>
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Code map · responsibilities</span><h2>Digital Twin sketch structure</h2></div>
 </div>
-            <div class="teaching-brief"><p>The <strong>DigitalTwin</strong> folder is a Processing sketch. The top-level tab creates one <code>Simulator</code>; that application owns time, rendering, TCP comparison, and graphing. <code>RobotSimulation_c</code> coordinates robot-only models without attempting to model the wider environment.</p>
+            <div class="teaching-brief">
+            <p>The <strong>DigitalTwin</strong> folder is a Processing sketch. The top-level tab creates one <code>Simulator</code>; that application owns time, rendering, TCP comparison, and graphing. <code>RobotSimulation_c</code> coordinates robot-only models without attempting to model the wider environment.</p>
 </div>
             <div class="api-table-wrap"><table class="api-table"><thead><tr><th>Tab</th><th>Responsibility</th><th>Physical counterpart or representation</th></tr></thead><tbody><tr><td><code>DigitalTwin.pde</code></td><td>Processing <code>settings()</code>, <code>setup()</code>, <code>draw()</code>, and keyboard forwarding.</td><td>Desktop application shell; no direct robot equivalent.</td></tr><tr><td><code>Simulator.pde</code></td><td>Fixed-step update loop, view, surface image, TCP client, live ghost, and graphs.</td><td>Represents a controlled experiment and optionally observes StampC3 telemetry.</td></tr><tr><td><code>RobotSimulation.pde</code></td><td>Coordinates motors, surface sensors, odometry, cached readings, and robot drawing.</td><td>Software representation of the robot, not the environment.</td></tr><tr><td><code>MotorsModel.pde</code>, <code>SurfaceSensorModel.pde</code>, <code>OdometryModel.pde</code></td><td>Independent ideal subsystem models.</td><td>Starting hypotheses for the corresponding physical subsystems.</td></tr><tr><td><code>Controller.pde</code></td><td>Nominal line-following controller using the simulated robot interface.</td><td>Conceptually parallels the supplied StampC3 controller.</td></tr><tr><td><code>TCPTelemetry.pde</code>, <code>Graphing.pde</code></td><td>Physical-data parsing and on-screen comparison.</td><td>Represents received StampC3 CSV records; graphing has no robot-side equivalent.</td></tr></tbody></table></div>
 </div>
@@ -44,16 +50,22 @@
             <div class="exercise-index">02</div>
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Runtime · time · coordinate frame</span><h2>How Processing represents a run</h2></div>
 </div>
-            <div class="teaching-brief"><p><code>draw()</code> may be called at a variable display rate, but <code>Simulator.updateRobotModel()</code> accumulates elapsed time and advances the controller and robot model in fixed 10 ms steps. This represents the intended fastest StampC3 control/acquisition cadence while keeping rendering separate.</p>
+            <div class="teaching-brief">
+            <p><code>draw()</code> may be called at a variable display rate, but <code>Simulator.updateRobotModel()</code> accumulates elapsed time and advances the controller and robot model in fixed 10 ms steps. This represents the intended fastest StampC3 control/acquisition cadence while keeping rendering separate.</p>
 </div>
-            <div class="investigation"><h3>Representation choices</h3><ul class="reference-list"><li><strong>World frame:</strong> positions are millimetres; +x is forward/right and +y is upward. Processing’s screen coordinates are transformed before drawing.</li><li><strong>Surface:</strong> <code>surface.png</code>, when supplied, represents the test surface at one pixel per millimetre. Otherwise Processing generates an A3-sized circular-line fallback for the demonstration.</li><li><strong>Robot view:</strong> <code>RobotSimulation_c.draw()</code> is a visual marker for the simulated pose and sensor locations, not a geometric replica of the hardware.</li><li><strong>Time:</strong> <code>RobotSimulation_c.getMillis()</code> supplies simulated milliseconds to <code>Controller_c</code>, mirroring the role of <code>Robot_c.getMillis()</code> on the StampC3.</li></ul></div>
+            <div class="investigation"><h3>Representation choices</h3><ul class="reference-list">
+            <li><strong>World frame:</strong> positions are millimetres; +x is forward/right and +y is upward. Processing’s screen coordinates are transformed before drawing.</li>
+            <li><strong>Surface:</strong> <code>surface.png</code>, when supplied, represents the test surface at one pixel per millimetre. Otherwise Processing generates an A3-sized circular-line fallback for the demonstration.</li>
+            <li><strong>Robot view:</strong> <code>RobotSimulation_c.draw()</code> is a visual marker for the simulated pose and sensor locations, not a geometric replica of the hardware.</li>
+            <li><strong>Time:</strong> <code>RobotSimulation_c.getMillis()</code> supplies simulated milliseconds to <code>Controller_c</code>, mirroring the role of <code>Robot_c.getMillis()</code> on the StampC3.</li></ul></div>
 </div>
           </article>
           <article id="processing-robot-api" class="exercise-card">
             <div class="exercise-index">03</div>
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">RobotSimulation_c · model façade</span><h2>Robot interface and cached state</h2></div>
 </div>
-            <div class="teaching-brief"><p><code>RobotSimulation_c</code> deliberately provides the subset of the StampC3 <code>Robot_c</code> interface used by <code>Controller_c</code>. This lets a controller request sensors, encoder data, pose, and motor commands in both settings, while the underlying source of those values is different.</p>
+            <div class="teaching-brief">
+            <p><code>RobotSimulation_c</code> deliberately provides the subset of the StampC3 <code>Robot_c</code> interface used by <code>Controller_c</code>. This lets a controller request sensors, encoder data, pose, and motor commands in both settings, while the underlying source of those values is different.</p>
 </div>
             <div class="api-table-wrap"><table class="api-table"><thead><tr><th>Member or method</th><th>Simulation meaning</th><th>StampC3 relationship</th></tr></thead><tbody><tr><td><code>surface</code></td><td>Five readings sampled from the Processing surface image.</td><td>Represents cached reflectance readings returned by the robot interface.</td></tr><tr><td><code>motors</code></td><td>Contains requested PWM and ideal wheel-speed state.</td><td>Represents requested PWM sent through <code>Robot_c.setMotorPWM(...)</code>; it is not measured motor speed.</td></tr><tr><td><code>odometry.pose</code>, <code>odometry.encoders</code></td><td>State integrated by the ideal differential-drive model.</td><td>Represents pose and encoder quantities exposed by the robot interface.</td></tr><tr><td><code>getMillis()</code>, <code>advanceTime(...)</code></td><td>Reads and advances the explicit simulation clock.</td><td>Emulates the controller’s use of the StampC3 millisecond clock.</td></tr><tr><td><code>getSurfaceSensors()</code></td><td>Updates <code>surface.reading[]</code> from the image.</td><td>Emulates requesting a fresh sensor snapshot.</td></tr><tr><td><code>getEncoders()</code>, <code>getPose()</code></td><td>Compatibility methods; values already update during each physics step.</td><td>Preserve the controller’s request sequence without an I2C transaction.</td></tr><tr><td><code>setMotorPWM(left, right)</code></td><td>Stores requested PWM in <code>MotorsModel_c</code>.</td><td>Emulates the command interface, not the middleware or physical response.</td></tr><tr><td><code>resetForRun(...)</code></td><td>Sets pose and encoder state, then clears PWM.</td><td>Used to align a simulated run with a received live starting record.</td></tr></tbody></table></div>
 </div>
@@ -62,19 +74,26 @@
             <div class="exercise-index">04</div>
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Expected development · MotorsModel</span><h2>Motor command and wheel-speed model</h2></div>
 </div>
-            <div class="teaching-brief"><p><code>MotorsModel_c</code> contains one <code>MotorModel_c</code> for each wheel. It is an intentionally ideal starting point: requested PWM is limited to −400 to +400, then mapped linearly to a maximum speed of ±0.5 mm/ms.</p>
+            <div class="teaching-brief">
+            <p><code>MotorsModel_c</code> contains one <code>MotorModel_c</code> for each wheel. It is an intentionally ideal starting point: requested PWM is limited to −400 to +400, then mapped linearly to a maximum speed of ±0.5 mm/ms.</p>
 </div>
-            <div class="investigation"><h3>What is represented, and what is left to improve</h3><ul class="reference-list"><li><strong>Represents:</strong> separate left/right requested commands, a hard request limit at ±400, and a wheel-speed value used by the odometry update.</li><li><strong>Does not represent:</strong> measured deadband, asymmetric gain, nonlinear response, output saturation beyond that request limit, noise, slew limiting, or first-order lag.</li><li><strong>Expected development:</strong> revise <code>MotorModel_c.setPWM(...)</code> and/or <code>MotorModel_c.update(...)</code> using measurements of the chosen robot.</li><li><strong>Check:</strong> compare a predicted trajectory or encoder change against a fresh physical observation rather than only fitting the measurements used to choose parameters.</li></ul></div>
+            <div class="investigation"><h3>What is represented, and what is left to improve</h3><ul class="reference-list">
+            <li><strong>Represents:</strong> separate left/right requested commands, a hard request limit at ±400, and a wheel-speed value used by the odometry update.</li>
+            <li><strong>Does not represent:</strong> measured deadband, asymmetric gain, nonlinear response, output saturation beyond that request limit, noise, slew limiting, or first-order lag.</li>
+            <li><strong>Expected development:</strong> revise <code>MotorModel_c.setPWM(...)</code> and/or <code>MotorModel_c.update(...)</code> using measurements of the chosen robot.</li>
+            <li><strong>Check:</strong> compare a predicted trajectory or encoder change against a fresh physical observation rather than only fitting the measurements used to choose parameters.</li></ul></div>
 </div>
           </article>
           <article id="processing-surface" class="exercise-card">
             <div class="exercise-index">05</div>
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Expected development · SurfaceSensorModel</span><h2>Surface-sensor representation</h2></div>
 </div>
-            <div class="teaching-brief"><p>Five <code>SurfaceSensorModel_c</code> objects are placed in the robot frame and transform their local positions into the world frame. Each samples one pixel from the Processing surface image and maps brightness from black to 2000 and white to 400.</p>
+            <div class="teaching-brief">
+            <p>Five <code>SurfaceSensorModel_c</code> objects are placed in the robot frame and transform their local positions into the world frame. Each samples one pixel from the Processing surface image and maps brightness from black to 2000 and white to 400.</p>
 </div>
             <div class="api-table-wrap"><table class="api-table"><thead><tr><th>Interface</th><th>Meaning</th><th>Physical counterpart</th></tr></thead><tbody><tr><td><code>SurfaceSensorModel_c(name, radiusMm, angleDegrees)</code></td><td>Defines one ideal sensor position in the robot frame.</td><td>Represents one of the five downward-facing reflectance channels.</td></tr><tr><td><code>sample(image, x, y, theta)</code></td><td>Transforms the sensor location, reads image brightness, and returns an ideal value.</td><td>Represents a reflectance measurement without electronic or optical imperfections.</td></tr><tr><td><code>RobotSurface_c.reading[5]</code></td><td>Cached five-channel result delivered to the controller.</td><td>Parallels the surface-reading array exposed by the StampC3 interface.</td></tr></tbody></table></div>
-            <div class="investigation"><h3>Expected development</h3><p>Improve <code>SurfaceSensorModel_c</code> when your investigation identifies an effect worth representing, such as offset, gain, saturation, nonlinearity, noise, timing response, or cross-talk. Keep the image as a controllable surface description; do not mistake its ideal brightness for a measured physical response.</p>
+            <div class="investigation"><h3>Expected development</h3>
+            <p>Improve <code>SurfaceSensorModel_c</code> when your investigation identifies an effect worth representing, such as offset, gain, saturation, nonlinearity, noise, timing response, or cross-talk. Keep the image as a controllable surface description; do not mistake its ideal brightness for a measured physical response.</p>
 </div>
 </div>
           </article>
@@ -82,19 +101,26 @@
             <div class="exercise-index">06</div>
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Expected development · OdometryModel</span><h2>Pose and encoder representation</h2></div>
 </div>
-            <div class="teaching-brief"><p><code>OdometryModel_c</code> converts left and right wheel travel into pose and encoder counts. It uses a differential-drive update with a shared wheel radius, wheel separation, and encoder resolution supplied when <code>RobotSimulation_c</code> is created.</p>
+            <div class="teaching-brief">
+            <p><code>OdometryModel_c</code> converts left and right wheel travel into pose and encoder counts. It uses a differential-drive update with a shared wheel radius, wheel separation, and encoder resolution supplied when <code>RobotSimulation_c</code> is created.</p>
 </div>
-            <div class="investigation"><h3>Expected development</h3><ul class="reference-list"><li><strong>Represents:</strong> wheel travel, the mean travel distance, heading change from wheel-travel difference, and encoder counts derived from wheel circumference.</li><li><strong>Assumption:</strong> the supplied geometry is ideal. The model does not separately represent left/right radii or separations.</li><li><strong>Where to revise:</strong> use <code>OdometryModel_c.update(...)</code> and its geometry/conversion parameters, with any corresponding changes in <code>RobotSimulation_c</code>.</li><li><strong>Evidence:</strong> use measured straight-line and turning behaviour to determine whether geometry changes improve prediction.</li></ul></div>
+            <div class="investigation"><h3>Expected development</h3><ul class="reference-list">
+            <li><strong>Represents:</strong> wheel travel, the mean travel distance, heading change from wheel-travel difference, and encoder counts derived from wheel circumference.</li>
+            <li><strong>Assumption:</strong> the supplied geometry is ideal. The model does not separately represent left/right radii or separations.</li>
+            <li><strong>Where to revise:</strong> use <code>OdometryModel_c.update(...)</code> and its geometry/conversion parameters, with any corresponding changes in <code>RobotSimulation_c</code>.</li>
+            <li><strong>Evidence:</strong> use measured straight-line and turning behaviour to determine whether geometry changes improve prediction.</li></ul></div>
 </div>
           </article>
           <article id="processing-controller" class="exercise-card">
             <div class="exercise-index">07</div>
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Expected development · Controller</span><h2>Controller contract and counterpart</h2></div>
 </div>
-            <div class="teaching-brief"><p><code>Controller_c</code provides the nominal line-following behaviour. It uses the same conceptual sequence as the StampC3 template: read cached quantities on a 10 ms interval, command left/right PWM, hold a start signal, and reserve a 50 ms telemetry task.</p>
+            <div class="teaching-brief">
+            <p><code>Controller_c</code provides the nominal line-following behaviour. It uses the same conceptual sequence as the StampC3 template: read cached quantities on a 10 ms interval, command left/right PWM, hold a start signal, and reserve a 50 ms telemetry task.</p>
 </div>
             <div class="api-table-wrap"><table class="api-table"><thead><tr><th>Method or state</th><th>Processing behaviour</th><th>Relation to StampC3 code</th></tr></thead><tbody><tr><td><code>update(RobotSimulation_c)</code></td><td>Samples model state, runs the controller, and calls the 50 ms telemetry placeholder.</td><td>Parallels <code>Controller_c.update(Robot_c, RobotWifiAP_c)</code>, but there is no I2C or network argument.</td></tr><tr><td><code>setSignal(...)</code>, <code>getSignal()</code></td><td>Starts/resets the controller state in sandbox or live comparison.</td><td>Represents the controller-owned start signal reported by the physical template.</td></tr><tr><td><code>runLineFollower(...)</code></td><td>Uses DN2 minus DN4 to create a PWM turn command and includes a recovery state.</td><td>Conceptually mirrors the supplied physical line-following example.</td></tr><tr><td><code>publishTelemetry(...)</code></td><td>Empty compatibility placeholder.</td><td>Physical CSV publication is handled by the StampC3 controller and WiFi helper; Processing receives it in <code>Simulator</code>.</td></tr></tbody></table></div>
-            <div class="investigation"><h3>Expected development</h3><p>Develop <code>Controller_c</code> when an improved model changes what a useful controller should command, or when you want to test a clear new control hypothesis. Keep controller changes distinct from model changes so that a prediction can be attributed to the appropriate assumption. Several baseline values are intentionally analogous to the physical template; inspect both source files when exact constants matter.</p>
+            <div class="investigation"><h3>Expected development</h3>
+            <p>Develop <code>Controller_c</code> when an improved model changes what a useful controller should command, or when you want to test a clear new control hypothesis. Keep controller changes distinct from model changes so that a prediction can be attributed to the appropriate assumption. Several baseline values are intentionally analogous to the physical template; inspect both source files when exact constants matter.</p>
 </div>
 </div>
           </article>
@@ -102,13 +128,15 @@
             <div class="exercise-index">08</div>
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">TCP comparison · Graphing</span><h2>Receiving and comparing physical telemetry</h2></div>
 </div>
-            <div class="teaching-brief"><p>In live-comparison mode, <code>Simulator</code> acts as a TCP client to the StampC3 access point. <code>TCPTelemetry_c</code> parses each 14-field CSV record, and <code>Graphing</code> draws simulation and recent physical values together. The orange ghost is a representation of robot-reported odometry, not ground truth.</p>
+            <div class="teaching-brief">
+            <p>In live-comparison mode, <code>Simulator</code> acts as a TCP client to the StampC3 access point. <code>TCPTelemetry_c</code> parses each 14-field CSV record, and <code>Graphing</code> draws simulation and recent physical values together. The orange ghost is a representation of robot-reported odometry, not ground truth.</p>
 </div>
             <div class="api-table-wrap"><table class="api-table"><thead><tr><th>Component</th><th>Role</th><th>Data relationship</th></tr></thead><tbody><tr><td><code>TCPTelemetry_c.parse(...)</code></td><td>Validates and stores timestamp, pose, requested PWM, encoders, five sensor values, and start signal.</td><td>Matches the CSV field order emitted by the StampC3 template controller.</td></tr><tr><td><code>Simulator.updateTcpConnection()</code></td><td>Connects to the default StampC3 access-point address and consumes input lines.</td><td>Represents a desktop observer; it does not control the physical robot.</td></tr><tr><td><code>updateLiveClock()</code></td><td>Advances the received ghost only to the corresponding simulation time.</td><td>Aligns a simulated run with the received physical timebase after a start-signal transition.</td></tr><tr><td><code>TimeSeriesGraph</code></td><td>Retains rolling motor, sensor, and encoder series for drawing.</td><td>Compares model output against received robot telemetry; it does not measure independently.</td></tr></tbody></table></div>
 </div>
           </article>
         </div>
-        <section class="validation"><div><span class="section-kicker">Use the reference well</span><h2>The Digital Twin is a testable explanation</h2><p>Use this structure to identify an assumption, revise it from physical evidence, and test whether the revised simulation predicts an observation that was not used to build it.</p>
+        <section class="validation"><div><span class="section-kicker">Use the reference well</span><h2>The Digital Twin is a testable explanation</h2>
+        <p>Use this structure to identify an assumption, revise it from physical evidence, and test whether the revised simulation predicts an observation that was not used to build it.</p>
 </div>
 <div class="validation-list"><a href="system-reference.html">Return to System Reference →</a></div>
 </section>

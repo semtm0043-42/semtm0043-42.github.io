@@ -6,14 +6,18 @@
     <meta name="description" content="CW2026 system reference library" />
     <title>CW2026 · System Reference</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=8" defer></script>
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=9" defer></script>
   </head>
   <body>
     <div class="site-shell">
       <aside class="sidebar" aria-label="Course navigation">
         <a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
         <div class="course-status"><span class="status-dot"></span>System reference</div>
-        <nav data-course-navigation><p class="nav-label">Course journey</p>
+        <nav data-course-navigation>
+        <p class="nav-label">Course journey</p>
 </nav>
       </aside>
       <main id="top" class="main-content">
@@ -26,7 +30,8 @@
         </section>
         <section class="orientation-card">
           <div class="orientation-icon">i</div>
-          <div><span class="section-kicker">How to use this library</span><h2>Start from the part of the system you are using</h2><p>Each reference is a technical companion to the files in your cloned repository. Follow its links into the source code, and treat the documented interface as a starting point for focused questions and experiments.</p>
+          <div><span class="section-kicker">How to use this library</span><h2>Start from the part of the system you are using</h2>
+          <p>Each reference is a technical companion to the files in your cloned repository. Follow its links into the source code, and treat the documented interface as a starting point for focused questions and experiments.</p>
 </div>
         </section>
         <section class="selection-section">
@@ -34,13 +39,16 @@
 </div>
           <p class="section-lead">The library will grow as more parts of the coursework are documented. It is deliberately organised by system component, so that the technical detail remains close to the question you are working on.</p>
           <div class="subsystem-grid">
-            <a class="subsystem-card" href="stampc3-reference.html"><span class="section-number">01</span><h3>StampC3 Template Code</h3><p>Find the public API for the robot interface, controller, WiFi transport, and packed I2C data exchanged with the middleware.</p>
+            <a class="subsystem-card" href="stampc3-reference.html"><span class="section-number">01</span><h3>StampC3 Template Code</h3>
+            <p>Find the public API for the robot interface, controller, WiFi transport, and packed I2C data exchanged with the middleware.</p>
 <span class="card-link">Open StampC3 reference →</span></a>
-            <a class="subsystem-card" href="processing-reference.html"><span class="section-number">02</span><h3>Processing Simulation</h3><p>Find the Digital Twin application structure, ideal motor, sensor and odometry models, controller, TCP comparison, and graphing interfaces.</p>
+            <a class="subsystem-card" href="processing-reference.html"><span class="section-number">02</span><h3>Processing Simulation</h3>
+            <p>Find the Digital Twin application structure, ideal motor, sensor and odometry models, controller, TCP comparison, and graphing interfaces.</p>
 <span class="card-link">Open Processing reference →</span></a>
           </div>
         </section>
-        <section class="validation"><div><span class="section-kicker">Keep the distinction clear</span><h2>Documentation narrows questions; evidence answers them</h2><p>A documented function can tell you what can be requested or observed. It cannot, by itself, establish the physical response, hidden model, or uncertainty of a measurement.</p>
+        <section class="validation"><div><span class="section-kicker">Keep the distinction clear</span><h2>Documentation narrows questions; evidence answers them</h2>
+        <p>A documented function can tell you what can be requested or observed. It cannot, by itself, establish the physical response, hidden model, or uncertainty of a measurement.</p>
 </div>
 <div class="validation-list"><a href="getting-started.html">Return to Getting Started →</a></div>
 </section>

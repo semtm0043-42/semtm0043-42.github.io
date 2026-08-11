@@ -8,7 +8,10 @@
       CW2026 · Phase 2: Updating the Digital Twin
     </title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=8" defer>
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=9" defer>
     </script>
   </head>
   <body>
@@ -35,22 +38,27 @@
         </section>
         <section class="orientation-card">
           <div class="orientation-icon">i</div>
-          <div><span class="section-kicker">Draft material</span><h2>Detailed update guidance will be developed here</h2><p>This page establishes the intended workflow. It will later point to the simulator components and provide practical exercises for revising and testing them.</p>
+          <div><span class="section-kicker">Draft material</span><h2>Detailed update guidance will be developed here</h2>
+          <p>This page establishes the intended workflow. It will later point to the simulator components and provide practical exercises for revising and testing them.</p>
 </div>
         </section>
         <section class="selection-section">
           <div class="section-heading"><span class="section-number">01—03</span><div><span class="section-kicker">Model revision loop</span><h2>Make assumptions testable</h2></div>
 </div>
           <div class="journey-grid journey-grid-three">
-            <article class="journey-card is-static"><span class="section-number">01</span><h3>Locate the assumption</h3><p>Read the supplied model and identify where its motor, sensor, geometry, surface, or timing assumptions are represented.</p>
+            <article class="journey-card is-static"><span class="section-number">01</span><h3>Locate the assumption</h3>
+            <p>Read the supplied model and identify where its motor, sensor, geometry, surface, or timing assumptions are represented.</p>
 </article>
-            <article class="journey-card is-static"><span class="section-number">02</span><h3>Revise from evidence</h3><p>Use your measurements to justify one change at a time. Record the value, method, and uncertainty rather than treating a fit as unquestionable truth.</p>
+            <article class="journey-card is-static"><span class="section-number">02</span><h3>Revise from evidence</h3>
+            <p>Use your measurements to justify one change at a time. Record the value, method, and uncertainty rather than treating a fit as unquestionable truth.</p>
 </article>
-            <article class="journey-card is-static"><span class="section-number">03</span><h3>Predict and compare</h3><p>Choose motion or sensing data not used to set the model, then compare the new simulation prediction with an independent observation.</p>
+            <article class="journey-card is-static"><span class="section-number">03</span><h3>Predict and compare</h3>
+            <p>Choose motion or sensing data not used to set the model, then compare the new simulation prediction with an independent observation.</p>
 </article>
           </div>
         </section>
-        <section class="validation"><div><span class="section-kicker">Useful disagreement</span><h2>Mismatch is evidence</h2><p>When the physical robot and simulation disagree, ask what the mismatch says about the model, measurement method, environment, or trajectory—not which system should be trusted by default.</p>
+        <section class="validation"><div><span class="section-kicker">Useful disagreement</span><h2>Mismatch is evidence</h2>
+        <p>When the physical robot and simulation disagree, ask what the mismatch says about the model, measurement method, environment, or trajectory—not which system should be trusted by default.</p>
 </div>
 </section>
         <footer><span>CW2026 · Phase 2</span><span>Updating the Digital Twin Simulation</span></footer>

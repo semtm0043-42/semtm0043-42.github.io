@@ -8,7 +8,10 @@
       CW2026 · Surface reflectance sensors
     </title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=8" defer>
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=9" defer>
     </script>
   </head>
   <body data-exercise-default="open">
@@ -61,7 +64,7 @@
             <span>
               02
             </span>
-            Offset
+            Baseline and channel offset
           </a>
           <a class="nav-item" href="#exercise-03">
             <span>
@@ -323,9 +326,9 @@
                 <p>In <strong>Robot.h</strong>, find the declaration: <blockquote><code>RobotSurface_t surface;</code></blockquote> This declares a public data member named <strong>surface</strong>, whose type is <strong>RobotSurface_t</strong>. The <strong>RobotSurface_t</strong> type is defined in <strong>i2c_datatypes.h</strong>. It contains a <strong>timestamp_us</strong> field and an array called <strong>reading</strong>, which holds five numeric sensor values.</p>
                 
                 <p>Returning to <strong>Controller.h</strong>, find a line where one of these cached readings is used by the line-following controller. Notice the syntax, for example:<blockquote>robot.surface.reading[0]</blockquote>  Each dot (<code>.</code>) can be understood as accessing something within the preceding object.  For example, reading the code from right-to-left: <code>reading[0]</code> is inside <code>surface</code>, and <code>surface</code> is inside <code>robot</code>.  </p>
-                <p>You may also not be familiar with an array construct.  Reviewing RobotSurface_t in i2c_datatypes.h, we can see that <code>reading</code> is declared as an array length <strong>5</strong>.  In C/C++, an array is indexed (accessed) from 0 upwards - in this case, to 4 - the set 0, 1, 2, 3, 4 is 5 elements in total, corresponding to the 5 surface reflectance sensors on the robot.</p>
+                <p>You may also not be familiar with an array construct.  Reviewing RobotSurface_t in i2c_datatypes.h, we can see that <code>reading</code> is declared as an array length <strong>5</strong>.  In C/C++, an array is indexed (accessed) from 0 upwards - in this case, to 4 - the set 0, 1, 2, 3, 4 is five elements in total, corresponding to the five surface reflectance sensors on the robot.</p>
                
-                <p>The data values of reading[...] are not voltages or direct percentages of surface reflectance. The sensor electronics first charge each output, then release it and measure how long it takes to discharge. The reported values are discharge times in microseconds (&micro;s): stronger reflected IR generally produces a shorter discharge time, while weaker reflected IR produces a longer discharge time. Pololu describes this RC-type measurement process in its <a href="https://www.pololu.com/docs/0J83/5.5" target="_blank" rel="noopener">3pi+ 32U4 line-sensor guide</a> and <a href="https://www.pololu.com/docs/0J13/2" target="_blank" rel="noopener">QTR RC-type sensor application note</a>.</p>
+                <p>The data values of reading[...] are not voltages or direct percentages of surface reflectance. The sensor electronics first charge a capacitor (a bit like a mini-battery), then release it and measure how long it takes to discharge. The reported values are discharge times in microseconds (&micro;s): stronger reflected IR generally produces a shorter discharge time, while weaker reflected IR produces a longer discharge time. Pololu describes this RC-type measurement process in its <a href="https://www.pololu.com/docs/0J83/5.5" target="_blank" rel="noopener">3pi+ 32U4 line-sensor guide</a> and <a href="https://www.pololu.com/docs/0J13/2" target="_blank" rel="noopener">QTR RC-type sensor application note</a>.</p>
                 
               </div>
               <figure class="motor-diagram">
@@ -367,32 +370,65 @@
                     <button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button>
                   </div>
                   <div class="context-panel active" data-panel="nonai">
-<h3>
+					<h3>
                     Investigation brief
                   </h3>
                   <ol>
                   <li><strong>Get familiar with the code:</strong> In the above description, the structure of the code is described as having a top level .ino file, which makes a call to the <strong>controller.update(...)</strong> function within Controller.h.  The Controller.h code makes function calls to the Robot.h file.  The code in Robot.h has dependency on i2c_datatypes.h.  
-                  <ol><li>As a first exercise, quickly sketch a block diagram of the organisation of the source code files. </li><li>Look to sketch the relationships, such as when code is nested within other code. </li><li> Don't worry too much about making this "correct" yet - as you continue to explore the code you can come back to correct your understanding.</li></ol></li>
+                  <ol>
+                  <li>As a first exercise, quickly sketch a block diagram of the organisation of the source code files. </li>
+                  <li>Look to sketch the relationships, such as when code is nested within other code. </li>
+                  <li> Don't worry too much about making this "correct" yet - as you continue to explore the code you can come back to correct your understanding.</li></ol></li>
                   
-                    <li><strong>General Knowledge:</strong> In <strong>i2c_datatypes.h</strong>, a surface reading is declared to have the datatype <strong>uint16_t</strong>.  <ol><li>Use the internet to discover what this datatype means.  Establish the range of possible values for this datatype.</li><li>  To go further, investigate why uint16_t may have been used instead of the native Arduino <strong>long</strong> type - this is a very difficult question, it isn't essential knowledge for this course, you should see it as a fun challenge. </li><li> Once you've done some research, or developed your own possible explanation, discuss this with a member of teaching staff.</li></ol></li>
+                    <li><strong>General Knowledge:</strong> In <strong>i2c_datatypes.h</strong>, a surface reading is declared to have the datatype <strong>uint16_t</strong>.
+                    <ol>
+                    <li>Use the internet to discover what this datatype means.  Establish the range of possible values for this datatype.</li>
+                    <li>  To go further, investigate why uint16_t may have been used instead of the native Arduino <strong>long</strong> type - this is a very difficult question, it isn't essential knowledge for this course, you should see it as a fun challenge. </li>
+                    <li> Once you've done some research, or developed your own possible explanation, discuss this with a member of teaching staff.</li></ol></li>
                     <li>			    <strong>Verify the example works:</strong> Before making any changes, it is best practice to first verify an example works.  This way, we will know if our changes have caused a fault or not.  Run the supplied line-following example and observe how the robot behaves when it is waiting, follows the line, and searches after losing it. You should be able to observe a sequence of behaviours.  Now inspect the example code.  Read the code to trace the execution path that reaches each <strong>robot.getSurfaceSensors(...)</strong> call.  Try to navigate each 'if' statement by considering possible alternative conditional values.  You can think of this as building a mental map of the logic of the code, and how it relates to robot behaviours.
                     </li>
+                    <li>
                     <strong>Start by modifying existing code:</strong> Using the runLineFollower(...) function as a template, create a new function with a new name, such as sensorTest(...).  You could start by copy-pasting the runLineFollower(..) function, renaming it, and then calling your new function from update().  Remember to remove the call in update() to the original runLineFollower(...) function, or both will run.  
                     <ol>
                     
                     <li><strong>Verify</strong> that the same line following behaviour is produced from the renamed function.</li> 
                     <li><strong>Modify this renamed function</strong>, remove the lines of code that cause the motors to move, leaving only the interaction with the sensors.</li>
-                    <li><strong>Debugging:</strong> Revise the code to use Serial.print(...), Serial.println(...), or Serial.printf(...) to repeatedly report all five reading values, keeping each value separated with a comma (<strong>CSV</strong>, comma separated values)</li><li>Remember to end the Serial Print with a <strong>new line</strong>.  We want the StampC3 to report one set of values per line.  You could use <code>Serial.println(...)</code> to automatically add the new line, or <code>Serial.print("\n");</code> to add a new line, or <code>Serial.printf("...\n");</code> to add a new line.</li>
-                    <li>  Connect to your StampC3 using the USB-C cable.  In the Arduino IDE, open the <strong>Serial Monitor</strong> and check that you can see 5 numeric values separated by commas.</li>		    
-                    <li><strong>Verify:</strong> Whilst the robot is reporting the sensor values, move the robot across a black and white surface.  Check whether the order of printed valued corresponds to the <strong>physical placement of the sensors</strong> as you might expect.</li>            
-                    <li><strong>Verify: </strong> Close the Serial Monitor.  In the Arduino IDE, open the Serial Plotter.  Whilst the robot is reporting the sensor values, move the robot across a black and white surface.  Check whether the sensor reading values are changing in relation to the reflectivity of the surface below</li></ol></li>
-                    <li><strong>General Knowledge:</strong> Revise your code to also report the RobotSurface_t <strong>timestamp_us</strong> value - this is the time in microseconds when the sensor reading was initiated.  Compare the values of the five readings and the spacing (time interval) between successive <strong>timestamp_us</strong> values. 
-                    <ol><li>There is a pattern between the timestamp interval and the reading values - what is it?</li>
+                    <li><strong>Debugging:</strong> Revise the code to use Serial.print(...), Serial.println(...), or Serial.printf(...) to report all five reading values, keeping each value separated with a comma (<strong>CSV</strong>, comma separated values).</li>
+                    <li>Note that the <strong>controller.update(...)</strong> is intended to always <strong>immediately return</strong>.  This means it will be called, run once, then finish.  From the top-level <code>.ino</code>, it will be called again from <strong>loop(...)</strong>.</li>
+                    <li>Remember to end the Serial Print with a <strong>new line</strong>.  We want the StampC3 to report one set of values per line.  You could use <code>Serial.println(...)</code> to automatically add the new line, or <code>Serial.print("\n");</code> to add a new line, or <code>Serial.printf("...\n");</code> to add a new line.</li>
+                    <li>  Connect to your StampC3 using the USB-C cable.  In the Arduino IDE, open the <strong>Serial Monitor</strong> and check that you can see 5 numeric values separated by commas.</li></ol></li>
+<li><strong>Verify: </strong> Close the Serial Monitor.  In the Arduino IDE, open the <strong>Serial Plotter</strong>.  Whilst the robot is reporting the sensor values, move the robot across a black and white surface.  Check whether the sensor reading values are changing in relation to the reflectivity of the surface below.
+<ol>
+<li>If your plot looks erratic or strange, you may have the wrong formatting for your Serial.print(...).  For the Plotter to work, you must only print numeric values separated by commas and ending with a newline.  This way, the Plotter will generate a line for each comma separated value, and each newline advances the time step.  If you add in text, the Plotter will get confused and generate strange output.</li>
+</ol></li>	    
+                    <li><strong>Verify:</strong> Whilst the robot is reporting the sensor values, move the robot across a black and white surface.  Check whether the order of printed valued corresponds to the <strong>physical placement of the sensors</strong> as you might expect.
+<ol><li>For example, does the first value correspond to sensor <code>DN1</code> or <code>DN5</code>? Is this the left or right sensor?</li>
+<li><strong>Hypothesise:</strong> You should see the same readings for each sensor being repeated many times before changing - what may be causing this effect?</li></ol> </li>            
+                    <li><strong>Verify:</strong> Revise your code to also report the RobotSurface_t <strong>timestamp_us</strong> value - this is the time in microseconds when the sensor reading was initiated.  Compare the values of the five readings and the spacing (time interval) between successive <strong>timestamp_us</strong> values. 
+                    <ol>
+                    <li>There is a pattern between the timestamp interval and the reading values - what is it?</li>
                     <li>Can you develop an explanation for why this pattern exists?  You can review the <a href="https://www.pololu.com/docs/0J83/5.5">official documentation</a> for how the surface reflectance sensors operate, and the <a href="https://www.pololu.com/docs/0J13/all">application note</a>.</li></ol></li>
+                    <li><strong>Hypothesise:</strong> It would be easier to understand the printed output if the StampC3 was programmed only to print a newer sensor reading.  What data have we already access that we could use to achieve this?
+                      <ol>
+                        <li>Implement variable within <code>private</code> area the <strong>Controller_c</strong> class that will store the most recent timestamp of surface sensor readings. What would be the better <code>datatype</code> for this variable?  You can review <strong>i2c_datatypes.h</strong> to find the answer.  </li>
+                        <li><strong>General Knowledge: </strong> Do some quick research on the internet to find out why <code>public</code> and <code>private:</code> areas exist within a class template.  The answer is not strict - it is more about a shared design philosophy between software engineers.</li>
+                        <li>Implement some logic in your test function that will compare the latest sensor reading data timestamp_us against the stored timestamp.  </li>
+                        <li>To complement the above operation, you will need to add code to store the most recent timestamp_us into your new variable when a new sensor reading has arrived.  If this logic is confusing to you, the best thing to do is to sketch out on paper a timeline, and note when data arrives, what is stored, and what is the outcome of the logical operation at each time step. </li>
+                        <li><strong>Hypothesise:</strong> In the motors subsystem exercises, students are given guidance to use a simple task scheduler (TaskTimer_c).  Why might using a task scheduler make this exercise more difficult?</li>
+                        <li><strong>Verify:</strong> Use the Serial monitor to check if only one instance of a new sensor reading is reported (e.g., we no longer have the same sensor readings being reported again and again).</li>
+                      </ol>
+                    </li>
+                    <li><strong>Verify: </strong> We want to review the sensor output on the Serial Plotter again.  Switching between the Serial Monitor and Serial Plotter might be a frequent activity.  Both should be considered only as <strong>debugging tools</strong> - the Plotter has some severe limitations.
+                      <ol>
+                        <li>Edit your Serial print statement to remove the reporting of the timestamp value.  If you are currently printing the timestamp value, this will make viewing the sensor readings difficult because the timestamp values will quickly rescale the y-axis beyond the sensor reading range.</li>
+                        <li>Review the sensor readings via the Serial Plotter</li>
+                        <li><strong>Hypothesise:</strong> Your sensor readings should no longer be repeating.  Your plotter should visually communicate this to you.  However, what is now problematic about this plot?  The answer to this is one of the core reasons we should not use a built-in tool like Plotter when reporting scientific results.</li>
+                      </ol>
+                    </li>
+
+                    
    
                   </ol>
-
-
 
                     <strong>Expected Outcome</strong>
                     <p>After following these exercises, you should have <strong>authored a simple controller</strong> that reports the latest available surface sensor readings via Serial.print(...), via a USB-C cable, to your computer.  You will have <strong>verified</strong> and <strong>understood</strong> the physical placement of the sensors and the enumeration of the sensors within the readings array. You will have <strong>verified</strong> that the sensors respond to the environment as you expect from the general theory.</p>
@@ -438,9 +474,10 @@
                   When reading a sensor, we might expect the sensor reading to have a minimum value of 0 and increase over a range of values. In practice, many sensors exhibit an offset bias. An offset bias is a <strong>systematic error</strong> that shifts each sequential sensor reading by a consistent amount. In an ideal world, two identical sensors observing the same controlled surface would report the same baseline after the experiment is repeated. In practice, optical alignment, phototransistor characteristics, board electronics, and the physical geometry of each sensor location will cause a different offset bias per sensor.
                 </p>
                 <p>
-                  You should anticipate that each of the five sensors will exhibit its own offset. Your task in this exercise is to collect data from the robot via the StampC3, and determine the characteristic of these offset values.  You are encouraged to question assumptions.  
+                  You should anticipate that each of the five sensors will exhibit its own offset. Your task in this exercise is to collect data from the robot via the StampC3, establish an individual reference-condition baseline for each sensor, and determine the characteristics of the differences between them. These measured baselines provide evidence of channel-to-channel bias, but a white-surface test cannot by itself reveal each hidden middleware offset separately from gain, geometry, illumination, nonlinearity, and other effects.  You are encouraged to question assumptions.
+                </p>
                 <p>
-                  Continue in the same copied sketch and <strong>Controller_c</strong> used in Exercise 1. Keep your working <strong>sensorTest(...)</strong> function as a reference, then create a new function for this experiment. The cached fields <strong>robot.surface.timestamp_us</strong> and <strong>robot.surface.reading[0]</strong> to <strong>[4]</strong> are the raw evidence you want to collect.  You should consider where the robot is placed, on what surfaces, and to collect repeated readings for further analysis.
+                  Continue in the same copied sketch and <strong>Controller_c</strong> used in Exercise 1. Keep your working <strong>sensorTest(...)</strong> function as a reference, then create a new function for this experiment. The cached fields <strong>robot.surface.timestamp_us</strong> and <strong>robot.surface.reading[0]</strong> to <strong>[4]</strong> are the raw evidence you want to collect.  You should consider where in the environment the robot is placed, on what surfaces, and aim to collect repeated readings for further analysis.
                 </p>
               </div>
               <figure class="motor-diagram">
@@ -489,7 +526,7 @@
               <div class="exercise-grid">
 
                 <div class="context-box" data-context-box>
-                  <div class="context-tabs" role="tablist" aria-label="Offset guidance">
+                  <div class="context-tabs" role="tablist" aria-label="Baseline and channel offset guidance">
                     <button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">
                       Self-Directed Route
                     </button>
@@ -511,50 +548,62 @@
                     </li>
                     </ol></li>
 
-                    <li><strong>Define the reference condition.</strong> Review the A3 black and white test sheet you have been provided.  This test sheet has many graphics designed for use across all Phase 1 subsystems.  Decide which graphic will be most useful for your offset tests.</li>
+                    <li><strong>Define the reference condition.</strong> Review the A3 black and white test sheet you have been provided.  This test sheet has many graphics designed for use across all Phase 1 subsystems.  Decide which graphic will be most useful for your offset tests. Treat the readings from each sensor as that sensor's own reference baseline; do not assume that the five sensors must share one numerical baseline.</li>
                     
                     <li><strong>Collect repeats.</strong> Adapt the CSV reporting pattern from Exercise 1 to record the timestamp and all five raw readings. Take at least 30 stationary snapshots, lift and replace the robot, then repeat. Reposition or rotate the surface as a check that a local mark is not being mistaken for a sensor offset.  For this set of measurements, do not significantly vary the surface.  <strong>Keep the surface being used entirely white</strong>.
                     <ol>
 <li><strong>Hypothesise:</strong> If the surface is being <strong>controlled</strong> as entirely white, what might be the benefit or reason for repositioning the robot?</li>
                     <li><strong>Best Practice:</strong> This is the first proper test measurement exercise.  It will be useful to adopt a convention for your CSV printing to make plotting data easier.  You are strongly encouraged to adopt the following format:
-							<blockquote><code><small>"name_of_test", "trial_number", "sample_number", "sensor_number", "sensor_reading"</small>  </code></blockquote> <strong>Notice: </strong> In the above recommendation, we are now reporting just 1 sensor reading per line, and it is provided with lots of qualifying labels that will be repeated per line.  Later, you may wish to extend the fields with more detailed qualifying information <strong>per row</strong>, such as angle, lighting, and so on.
-							<ol><li>When we previously reported all sensor values as CSV on one line, this was to allow us to use the Arduino built-in Serial Plotter.  You should recognise that the Serial Plotter is not an adequate tool for scientific communication.</li>
+							<blockquote><code><small>"test_name", "trial_num", "sample_num", "sample_time", "sensor_num", "sensor_reading"</small>  </code></blockquote> <strong>Notice: </strong> In the above recommendation, we are now reporting just 1 sensor reading per line, and it is provided with lots of qualifying labels that will be repeated per line.  Later, you may wish to extend the fields with more detailed qualifying information <strong>per row</strong>, such as angle, lighting, and so on.
+							<ol>
+							<li>When we previously reported all sensor values as CSV on one line, this was to allow us to use the Arduino built-in Serial Plotter.  You should recognise that the Serial Plotter is not an adequate tool for scientific communication.  Whlist the above format will not be viewable on the Serial Plotter, it is much more useful to retain as much information (data) as possible.</li>
 							<li>The guidance to plot one sensor value per line, associated to data labels, is given to allow you to use advanced Python processing tools.  Python tools will produce professional quality graphs and figures that are fit for scientific analysis.</li>
 							</ol>                                     
                     </li>
-                    <li><strong>Hypothesise:</strong> In the above CSV formatting recommendation, both trial_number and sample_number are suggested.  What might the different be between the two?  What are the potential implications or consequences between: 1 trial with 1000 samples, 10 trials with 100 samples?</li>
-                    <li><strong>Hypothesise:</strong> In the above CSV formatting recommendation, both name_of_test and  trial_number are likely to be listed with the same value for each sample collected (for example, "offsetTest_black", "6") - this seems like redundant labelling information to store.  
+					<li><strong>Hypothesise:</strong> In the above CSV formatting recommendation, both <strong>trial_num</strong> (number) and <strong>sample_num</strong> (number) are suggested.  What might the different be between the two?  What are the potential implications or consequences between: 1 trial with 1000 samples, 10 trials with 100 samples?
+					  <ol>
+						<li><strong>Hypothesise: </strong> Observe that we also record sample_time.  It would be possible to write some code to record 1000 samples, or to record samples for 10 seconds.  For this sensor specifically, what could cause an inconsistent dataset (e.g., an unfair set of data) if the quantity of samples was used as the <strong>stopping criteria</strong> for your protocol?</li>
+					  </ol>
+					</li>
+					<li><strong>Hypothesise:</strong> In the above CSV formatting recommendation, both test_name and  trial_num are likely to be listed with the same value for each sample collected (for example, "offsetTest_white", "6") - this seems like redundant labelling information to store.
                     <ol>
                     <li>What functional benefit might be gained by retaining this information per row?  </li>
-                    <li>Whilst redundant information may initially seem wasteful or unnecessary - for a computer, information is abundant, cheap to store, and process.  You don't want to regret a lack of information later.</li>
+                    <li>Whilst redundant information may initially seem wasteful or unnecessary - for a computer (relative to a human) information is abundant, cheap to store, and quick to process.  You don't want to regret a lack of information later, that might mean repeating lots of work.</li>
                     
                     </ol>                    
                     </li>
-                    <li><strong>Analyse: </strong> Review the <a href="">Google Colab notebook for this exercise</a>.  If you have followed the above CSV formatting suggestion, you should be able to copy-and-paste in your collected dataset.
-						  <ol><li><strong>General Knowledge:</strong> Review the Python script in the notebook code cell.  Learning to read and interpret code is a valuable skill.  Python is not a core language taught in this course.  However, Python is a particularly powerful tool to process data and plot results. </li>
+					<li><strong>Analyse: </strong> Review the <a class="placeholder-link" href="#" aria-disabled="true" onclick="return false;">Google Colab notebook for this exercise</a>.  If you have followed the above CSV formatting suggestion, you should be able to copy-and-paste in your collected dataset.
+						  <ol>
+						  <li><strong>General Knowledge:</strong> Review the Python script in the notebook code cell.  Learning to read and interpret code is a valuable skill.  Python is not a core language taught in this course.  However, Python is a particularly powerful tool to process data and plot results. </li>
 						  <li>Do not worry if at first the example Python code is scary, confusing, or hard to understand.  Often, learning to work with code has a lot to do with fixing errors and problems. Therefore, <strong>it takes time and repeated exposure to become comfortable</strong>. Nobody starts as an expert.</li>
-						  <li><strong>Research: </strong> The example Python code should process your data into a boxplot.  Do some quick research on the internet for how to read and interpret a boxplot.</li>
+							  <li><strong>Research: </strong> The example Python code should process your data into a boxplot.  Do some quick research on the internet for how to read and interpret a boxplot.
+						  <ol>
 						  <li>What do the extended lines ("whiskers") describe and represent?</li>
 						  <li>If you have some circles, what do they describe or represent?</li>						  
 						  <li>What does the box section describe or represent?</li>   
-						  <li>Identify which parts of the Python code have enabled a side-by-side plotting of several boxes.  Which label from your CSV data was used?</li>						  
+						  <li>Identify which parts of the Python code have enabled a side-by-side plotting of several boxes.  Which label from your CSV data was used?</li>
+						  						  
 						  </ol>                    
-                    </li>
-                    <li><strong>Summarise without deleting the raw data.</strong> In the same Google Colab notebook: insert new Python code to calculate the mean, median, variance and standard deviation.  
-						<ol><li>Make a decision on whether to start by calculating these simple statistics across all sensors (DN1 to DN5), or for an individual sensor.  Once you have done one, update the Python to do the other.</li>
+					</li>
+					</ol>
+					</li>
+					<li><strong>Summarise without deleting the raw data.</strong> In the same Google Colab notebook: insert new Python code to calculate the mean, median, variance and standard deviation.  In this case, we're not expecting a graphical output.  The code cell can also use the <code>print(...)</code> function to generate some immediate text output.
+						<ol>
+						<li>Start by calculating these simple statistics separately for each individual sensor (DN1 to DN5), so that each sensor retains its own reference baseline and spread. You may also calculate statistics across all sensors for comparison, but explain what that combined result means and do not use it to replace the five individual baselines.</li>
 						<li><strong>Record: </strong> Keep good notes and records.  Keep all data and all notes as you progress. This should include the plots produced by Google Colab (you can right-click, and save as), and any statistics outcomes.  If you do not sign-in to use Google Colab, any work you do will be lost when the web browser refreshes.</li>
-						<li><strong>Record: </strong> Write down your interpretation of the graphical plot and statistics.  For example, how does each sensor compare to the mean of all sensors?  Do any sensors have similarity to the others?  Does there appear to be a grouping of sensors? </li>
+						<li><strong>Record: </strong> Write down your interpretation of the graphical plot and statistics.  For example, how do the five individual baselines compare?  Do any sensors have similarity to the others?  Does there appear to be a grouping of sensors? </li>
 						</ol>                    
                     
                     </li>
-                    <li><strong>Going Further: </strong> It is very important to question assumptions.  In fact, some imagination,  creativity and understanding are required to <strong>identify possible assumptions</strong> that can be further investigated.  So far, you have been guided to collect a set of measurements for one <strong>controlled surface condition</strong> - either black or white.  This constitutes a test, not an experiment.
+                    <li><strong>Going Further: </strong> It is very important to question assumptions.  In fact, some imagination,  creativity and understanding are required to <strong>identify possible assumptions</strong> that can be further investigated.  So far, you have been guided to collect a set of measurements for one <strong>controlled surface condition</strong> - just a white surface.  This constitutes a test, not an experiment.
                     <ol>
-                    <li>Within the same context of measuring <strong>offset</strong>, consider how else to measure the system to establish whether the offset is generally stable, or can vary in relation to something else.  If you establish a set of tests that collect evidence to argue for a causal relationship, you will have developed an <strong>experiment methodology</strong>.</li>
+                    <li>Within the same context of measuring <strong>operational baselines and channel offset</strong>, consider how else to measure the system to establish whether each baseline is generally stable, or can vary in relation to something else.  If you establish a set of tests that collect evidence to argue for a causal relationship, you will have developed an <strong>experiment methodology</strong>.</li>
                     <li>What other factors may influence your measurements?  You are encouraged to look around you and to ask questions about your environment.  This can include the physical properties of the space around you, the materials your robot is interacting with, the situation of the robot, and even the code you have authored for the StampC3.
                     </li>
-                    <li><strong>Experimental variables</strong> are quantities or properties that can vary during an experiment and are relevant to the investigation.  A scientist designing an experiment must decide which variable is the subject of investigation (<strong>independent variable</strong>), which are measured (<strong>dependent variables</strong>) and which are held fixed (<strong>controlled variables</strong>).  So far, you have only conducted a test, not an experiment.  This is because no aspect was experimentally (i.e. intentionally) varied to test for a causal relationship.
+					<li><strong>Experimental variables</strong> are quantities or properties that can vary during an experiment and are relevant to the investigation.  A scientist designing an experiment must decide which variable is the subject of investigation (<strong>independent variable</strong>), which are measured (<strong>dependent variables</strong>) and which are held fixed (<strong>controlled variables</strong>).  So far, you have only conducted a test, not an experiment.  This is because no aspect was experimentally (i.e. intentionally) varied to test for a causal relationship.</li>
                     <li>The term <strong>independent variable</strong> can seem confusing. It is helpful to consider an ideal experiment. 
-                    <ol><li>In an ideal experiment, we would control (hold constant) every relevant factor except the one we deliberately choose to change. This quantity is called the independent variable <strong>because its value is determined independently by the experimenter</strong>.</li>
+                    <ol>
+                    <li>In an ideal experiment, we would control (hold constant) every relevant factor except the one we deliberately choose to change. This quantity is called the independent variable <strong>because its value is determined independently by the experimenter</strong>.</li>
                     <li>The quantities we measure are called the dependent variables because, in an ideal experiment, their values depend only on changes to the independent variable.  Therefore, a scientist looks to <strong>intentionally vary the independent variable</strong> to observe the effect.</li>
                     <li>By controlling all other relevant variables, we can isolate the relationship between the independent and dependent variables.  Therefore, our measurements become the evidence of the aspect we are investigating, because of their dependency.</li>
                     </ol></li>
@@ -582,10 +631,14 @@
         the system being investigated</strong> - this is an important skill to develop, both to design your own experiments, and to evaluate the work of others.
       </li>
     </ol>
-  </li>
+	  </li>
 
-                  </ol>
-                  <strong>Pseudocode before C++</strong>
+				  </ol>
+					</li>
+				  </ol>
+				</li>
+				  </ol>
+				  <strong>Pseudocode before C++</strong>
                   <pre><code>WHEN a fresh surface snapshot is available:
     print timestamp_us
     FOR channel 0 to 4:
@@ -596,19 +649,31 @@ AFTER the physical trial:
     group readings by channel and placement
     calculate baseline and spread for each group
     compare channels and repeated placements</code></pre>
-                  <div class="equation" role="img" aria-label="Operational offset for channel i equals its reference baseline minus the chosen common reference baseline">
-                    <span>operational offset<sub>i</sub></span><b>=</b><span>baseline<sub>i</sub> − common reference baseline</span>
+                  <div class="equation" role="img" aria-label="The white reference baseline for sensor i is the median of its repeated white-surface readings, and a baseline-adjusted reading is the reading from sensor i minus that sensor's own white reference baseline">
+                    \[
+                      b_i^{\mathrm{white}}
+                      = \operatorname{median}\!\left(r_{i,1}^{\mathrm{white}},\ldots,r_{i,N}^{\mathrm{white}}\right),
+                      \qquad
+                      \Delta r_i = r_i - b_i^{\mathrm{white}}
+                    \]
                   </div>
+                  <p>where:</p> 
+                  <ul>
+                  <li><strong>r<sub>i,k</sub><sup>white</sup></strong> is repeated sample <strong>\(k\)</strong> (with range \(1\) to \(N\)) from sensor <strong>\(i\)</strong> on the controlled white surface.</li>
+                  <li><strong>b<sub>i</sub><sup>white</sup></strong> is that sensor's operational reference baseline, established from the median of \(r_{i,k}^{white} \)</strong>.</li>
+                  </ul>  
+<p>The term <strong>operational reference baseline</strong> is used to represent the fact that the determined value is derived from the environmental and physical properties at the time the measurements were taken.  Later, if the operational reference baseline is applied to the system, it is very possible that the environment has become different - for example, a change in ambient light.</p>
+<p>\(\Delta{r_{i}}\) can be considered to mean "the corrected sensor reading, shifting the original white surface reading to be about zero".  The median is a robust starting choice; you may justify a different summary from your data. Subtracting each sensor's own baseline expresses later readings as a change from its white reference without forcing all five sensors to share a common value.</p>
                   <p><strong>Positioning-diagram placeholder:</strong> a large uniform reference surface, the five DN sensor locations, a marked robot pose, and a second placement used to test repeatability.</p>
                   <p><a class="template-link placeholder-link" href="#" aria-disabled="true" onclick="return false;">Example Python baseline and error-bar notebook — link to be added</a></p>
                   <strong>Expected outcome: </strong>
-                  <p>You should have a reusable test routine, raw repeated records, and five baseline estimates with uncertainty. You should also be able to explain why these are reference-condition measurements rather than hidden middleware values read directly from the code.</p>
+                  <p>You should have a reusable test routine, raw repeated records, and five separate sensor baseline estimates with uncertainty. You should also be able to compare the baselines without replacing them with one common reference, and explain why these are reference-condition measurements rather than hidden middleware values read directly from the code.</p>
                   </div>
                   <div class="context-panel" data-panel="ai" hidden>
                     <strong>AI-assisted option</strong>
-                    <p>Give AI the relevant declarations from <strong>Robot.h</strong> and <strong>i2c_datatypes.h</strong>, then ask it to draft pseudocode for a timestamped five-channel logger and a table for repeated placements. Check every proposed method against the supplied code before translating it into C++.</p>
-                    <div class="prompt-snippet">“Using only these supplied Robot.h methods and RobotSurface_t fields, help me plan a stationary five-channel offset experiment. Keep every raw timestamped reading, compare repeated placements, and distinguish an operational baseline from an unknowable true offset.”</div>
-                    <span class="ai-reminder">AI may organise or critique the test; only your controlled surface measurements establish the baselines.</span>
+                    <p>Give AI the relevant declarations from <strong>Robot.h</strong> and <strong>i2c_datatypes.h</strong>, then ask it to draft pseudocode for a timestamped five-channel logger and a table for repeated placements. Require it to keep and summarise each sensor separately rather than imposing one common baseline. Check every proposed method against the supplied code before translating it into C++.</p>
+                    <div class="prompt-snippet">“Using only these supplied Robot.h methods and RobotSurface_t fields, help me plan a stationary five-channel baseline and offset experiment. Keep every raw timestamped reading, calculate a separate white-reference baseline and uncertainty for each sensor, compare repeated placements, and distinguish these operational baselines from the hidden middleware offsets.”</div>
+                    <span class="ai-reminder">AI may organise or critique the test; only your controlled surface measurements establish the five individual baselines.</span>
                   </div>
                 </div>
                 <div class="investigation exercise-evidence">
@@ -629,7 +694,7 @@ AFTER the physical trial:
                       <b>
                         Report
                       </b>
-                      five offsets + uncertainty
+                      five baselines + uncertainty
                     </span>
                   </div>
                 </div>
@@ -656,14 +721,15 @@ AFTER the physical trial:
               </div>
               <div class="teaching-brief">
                 <p>
-                  A sensor saturates when a change in the physical input no longer produces a corresponding change in the reported reading. The input might be surface reflectance, distance, or infrared illumination. Once the electronics or phototransistor is at a limit, different physical conditions can become indistinguishable.
+                  A sensor saturates when a change in the physical input no longer produces a corresponding change in the reported reading. For the surface reflectance sensors, we can think of this as the maximum possible value.  However, it is important to understand that the saturation occurs when the sensor cannot possible achieve a higher value, whereas the maximum could be used to simply describe the largest value within a range of operation conditions.  If the operation conditions changed, it is possible a maximum value could change.  <strong>Saturation</strong> therefore has a specific meaning.</p>
+				  <p>Saturation can be caused by various changes to the sensor input.  The input might be the reflectivity of the surface, the distance between the sensor and surface, or infrared illumination. When we discuss the saturation effect on the resultant measurement signal, this is referred to as <strong>clipping</strong>.  For example, if using a more reflective surface does not cause a change in the sensor reading, the sensor must be at saturation and the signal is clipped. Once the electronics or phototransistor is at its limit, different physical conditions can become indistinguishable.
                 </p>
                 <p>
-                  Find the usable range before fitting gain or nonlinearity. The Pololu sensors use an emitter and phototransistor and measure a charge-decay time, so saturation can arise from the optical signal, the electrical timing circuit, or the available timing range.
+                  In the following exercise steps you should follow a very similar approach to the previous exercise.  Look to use the code you have produced in exercises 1 and 2 as a template to make further progress. In exercise 2 you were guided to produce a function called <strong>testOffset(...)</strong>.  This function acquired sensor readings from the robot, and produced labelled measurement output on the Serial port. </p>
+                  <p> For this exercise, testOffset(...) can probably be used again with only very minor changes - for example, changing the text strings used to label the measurements.  In which case, you are strongly encouraged to rename the function so that its intended application is more clear.  If the function is named testOffset(...) but you are using it to measure saturation, there is the potential for later confusion.  A subjective question is, what general name is provides clearer communication?</p>
+                  <p>  This may seem like a superficial change, but it will help your team members and yourself when you return to this code in a couple of weeks time.  You are encouraged to recognise that whilst computer code can be logical and described as optimal (or not), <strong>software engineering</strong> can become very subjective, requiring a supporting argument for the approach taken.  If you think it is more clear, you can create a new function such as <strong>testSaturation(...)</strong> and leave testOffset(...) intact.  Whilst this would preserve a record of both exercises, it would also create some duplication.
                 </p>
-                <p>
-                  Reuse the timestamped five-channel logger built in Exercises 1 and 2. Create a separate <strong>testSaturation(...)</strong> routine only if you need different trial labels or timing; otherwise keep the robot-facing acquisition code unchanged and vary the physical reference condition. This separation helps you tell a sensor effect from a software change.
-                </p>
+                <p>For the following exercises, we understand from theory that a black surface should produce lower reflection of IR light, and so produce a larger value reading on the sensor.  You should design an experiment to collect evidence to argue whether this is true, and to what extent - with a specific focus on identifying when the sensor saturates. After saturation, further changes to the surface (or other operating variables) are not useful to the system.</p>
               </div>
               <figure class="motor-diagram">
                 <figcaption>
@@ -703,20 +769,31 @@ AFTER the physical trial:
                     </button>
                   </div>
                   <div class="context-panel active" data-panel="nonai">
-<h3>
-                    Investigation brief
-                  </h3>
-                  <ol>
-                    <li><strong>Preserve the known-working logger.</strong> Keep the same CSV column order and raw units. If you add <strong>testSaturation(...)</strong>, call only that test from <strong>update(...)</strong>.</li>
-                    <li><strong>Construct an ordered input set.</strong> Choose several reproducible surface tones or materials spanning the lightest and darkest conditions you can make. Label them before looking at the results. Keep sensor height, pose, lighting, and sample count constant.</li>
-                    <li><strong>Measure all five channels.</strong> Collect repeated stationary snapshots for every condition. Randomise or reverse the order for a second pass so that time, heating, or changing ambient light is less likely to imitate saturation.</li>
-                    <li><strong>Look for a plateau.</strong> Plot each channel's typical reading with its spread against the ordered condition. Identify neighbouring conditions whose physical appearance changes but whose reading distributions are not meaningfully separated.</li>
-                    <li><strong>Test a competing explanation.</strong> Repeat a suspected plateau condition after changing only one controlled factor, such as illumination or position. Decide whether the result supports clipping, insufficient contrast in your surfaces, or poor experimental control.</li>
-                    <li><strong>State a usable range.</strong> Report limits as intervals supported by your tested conditions, not as exact hidden parameters. Retain clipped observations but exclude them from later gain fitting.</li>
-                  </ol>
-                  <div class="equation" role="img" aria-label="A response is operationally saturated when a change in controlled input produces a reading change too small to distinguish from repeated variation">
-                    <span>|change in typical reading|</span><b>≤</b><span>repeat-to-repeat variation</span>
-                  </div>
+                    <h3>
+                      Investigation brief
+                    </h3>
+                    <ol>
+                      <li>To begin, you may want to conduct some quick feasibility tests by going back to the code we used to produce a single line CSV to view on the Serial Plotter.  You can then quickly evaluate different surfaces, viewing the Serial Plotter output in real-time, to inform which surfaces appear most interesting.  This does not constitute sufficient evidence to argue any understanding.  However, it would be a preliminary study to <strong>make observations</strong>, from which we could <strong>articulate a hypothesis</strong>, to inform the <strong>design of your experiment methodology</strong>.</li>
+                      <li>For reporting measurements via the Serial port, keep the same CSV column order and raw units from the previous exercise on baseline and channel offset.  Make sure you change the text of the appropriate measurement labels.  If you choose to add a new <strong>testSaturation(...)</strong> function, call only that test function from <strong>update(...)</strong>.  Calling multiple functions from update(...) would be an easy mistake to make - what would be the consequence?</li>
+                      <li><strong>Review the A3 test sheet you have been provided.</strong> Choose which areas to measure spanning the lightest and darkest conditions available. It would be useful to keep a record of the areas you are investigating, which we can refer to as the <strong>conditions</strong> of your <strong>independent variable</strong>.  Keep sensor height, pose, lighting, and so on as consistent as you can - your <strong>controlled variables</strong>. It would also be <strong>best practice</strong> to keep a record of which experiment variables may be outside your control, and how you have attempted to mitigate their effects.</li>
+                      <li>Give some thought to how you can reliably place your robot, and then start the measurement process without potentially interfering with the sensor readings.  When we must employ a strict process of human activity within the experiment, this is referred to as <strong>experiment procedure</strong>. It may be useful to develop some surface markings, or external instruments, to help you place the robot.  It is important to recognise that what we do before and after an experiment can also have significant impact.</li>
+                      <li><strong>Measure all five channels.</strong> Collect repeated stationary snapshots for every condition. Randomise or reverse the order for a second pass so that time, changing ambient light, or other variables, are less likely to imitate saturation.</li>
+                      <li><strong>Look for a plateau.</strong> Review the <a class="placeholder-link" href="#" aria-disabled="true" onclick="return false;">Google Colab notebook</a> for this exercise.
+                        <ol>
+                          <li>Plot each channel's readings with its distribution against the condition.</li>
+                          <li>Try to ensure that you can plot multiple conditions side-by-side.  This makes interpreting any similarity or difference much easier.</li>
+                          <li>Try to ensure that the order of your conditions on the x axis has a rationale.  Or in otherwords, avoid a randomised order of conditions.  This will also help with the general readability of your plotting.</li>
+                          <li>Identify neighbouring conditions whose physical appearance changes but whose reading distributions are not meaningfully separated.  We can consider this as:
+                            <div class="equation" role="img" aria-label="A response is operationally saturated when a change in controlled input produces a reading change too small to distinguish from repeated variation">
+                              <span>|change in typical reading|</span><b>≤</b><span>repeat-to-repeat variation</span>
+                            </div>
+                          </li>
+                        </ol>
+                      </li>
+                      <li><strong>Test a competing explanation.</strong> Repeat a suspected plateau condition (i.e., the experiment trial that appeared to produce saturation) after changing only one controlled factor, such as illumination or position. Decide whether the result supports saturation, insufficient contrast in your surfaces, or poor experimental control.</li>
+                      <li><strong>State a usable range.</strong> Report limits as intervals supported by your tested conditions, not as exact hidden parameters. Retain clipped observations but exclude them from later gain fitting.</li>
+                    </ol>
+
                   <p><strong>Response-plot placeholder:</strong> controlled surface condition on the horizontal axis, raw discharge time on the vertical axis, five channel curves, uncertainty bars, and shaded lower and upper plateau regions.</p>
                   <p><a class="template-link placeholder-link" href="#" aria-disabled="true" onclick="return false;">Example Python saturation-plot notebook — link to be added</a></p>
                   <strong>Expected outcome: a defensible usable range</strong>
@@ -774,13 +851,46 @@ AFTER the physical trial:
               </div>
               <div class="teaching-brief">
                 <p>
-                  Gain describes the scale of a sensor’s response: how much the reading changes when the physical input changes. A high-gain sensor is more sensitive over its usable range, but sensitivity is not the same as accuracy and can reduce the range before saturation.
+                  Gain describes the scale of a sensor’s response: how much the reading changes when the physical input changes. A high-gain sensor is more sensitive over its usable range.  However, sensitivity is not the same as accuracy or precision - a sensitive sensor is not necessarily "better".  Sensitivity, or a gain factor, can also reduce the effective range of a sensors readings.
                 </p>
+                <p>To explain this further, it is useful to explore some technical concepts typical to microcontroller systems. Imagine we are using a sensor to measure a voltage.  Our sensor has a configurable gain which provides a continuous transformation from input to output.  The microcontroller will then sample the sensor output through an <a href="https://en.wikipedia.org/wiki/Analog-to-digital_converter">analog-to-digital converter (ADC)</a> to create a digital (discrete) representation of the voltage.   Suppose our voltage sensor converts the input \(x\) to an output \(y\), approximately as:</p>
+<div class="equation" role="img" aria-label="conceptual equation for a gain applied to a sensor input influencing the sensor output">
+\[y=Gx\]
+</div>
+
+<p>where \(G\) is the sensor's gain. A larger \(G\) means a small change in the input produces a larger change in the sensor output. This is what is meant by more sensitive.  For example:  
+                </p>    
+                <div class="equation" role="img" aria-label="">
+                \[G = 1.0, x = 0.1 \rightarrow y = 0.1\\
+                G = 5.0, x = 0.1 \rightarrow y = 0.5\\
+                \]
+                </div>
+                <p>Suppose that our microcontroller can only represent sensor readings across the voltage range 0 to 3.3 Volts.  With a low gain ( \(G=1.0\)), and assuming the sensor will be exposed to an input in the range 0 to 3.3 volts:</p>
+                <div class="equation" role="img" aria-label="">
+                \[y = x \]
+                </div>
+                <p>the sensor could theoretically map all input values to an output across the digital representation range 0 to 3.3 volts.  With a gain of 5:</p>
+             
+                <div class="equation" role="img" aria-label="">
+                \[ y = 5x \]
+                </div>
+                <div class="equation" role="img" aria-label="">
+                \[x = \frac{3.3}{5} = 0.66 \]
+                </div>
+                <p>Therefore, any input values above 0.66 volts will generate an output that is beyond the representation range of 3.3 Volts. This would mean the effect of the \(G=5\) would be to saturate the sensor with any input larger than 0.66 volts - the signal would be clipped when measured. In this way, the gain or sensitivity of a sensor can impact the effective range of measurements.</p>
+                <p>A high gain value may be valuable in some circumstances.  For example, if we knew that within a full input range (e.g., 0 to 3.3 Volts) we are expecting to only measure a much smaller range of values (e.g. 0 to 1.5 volts).  In which case, a higher gain serves to map a smaller sensor input range (0 to 1.5 Volts) to the fuller 0 to 3.3 Volt measurement range.  
                 <p>
-                  Each of the five sensors has a unique gain. Compare channels carefully and fit gain only after accounting for their individual offsets and after excluding saturated observations.
+Accuracy and precision are specialist terms applied to other characteristics of measurements.  If our sensor conversion included an offset value:
                 </p>
-                <p>
-                  Continue with the same timestamped logger and controlled surface set. At this stage, the code should be becoming familiar: create and select a named <strong>testGain(...)</strong> routine if the trial needs new sequencing, but do not rewrite <strong>getSurfaceSensors()</strong> or invent a second storage format. Most of this exercise is now experimental design and analysis.
+                <div class="equation" role="img" aria-label="">
+                \[y = Gx + b\]
+                </div>
+                <p>The offset \(b\) would mean the sensor output was always "off target" from the true input value \(x\).  How close a measured sensor reading is to the true value is the <strong>accuracy</strong>. Typically, accuracy can be mitigated by <strong>calibration</strong>: employing a process to identify the systematic error and then remove it from future readings.</p>
+                
+                <p>If we took successive sensor readings under the same conditions and discovered that the sensor output varies each time, this variation would relate to the sensor's <strong>precision</strong>. When discussing sensor performance in robotics, precision describes the closeness of repeated measurements, rather than the statistical definition of precision as <a href="https://en.wikipedia.org/wiki/Precision_(statistics)">reciprocal variance</a>. Standard deviation is a useful way to quantify sensor precision because it expresses the spread of repeated measurements in the same units as the sensor readings. A smaller standard deviation therefore indicates greater precision. Importantly, the precision of a sensor can vary independently of its gain.</p>
+                <p>Signal noise that lowers precision can be regarded as a <strong>random error</strong>. To mitigate the effect of random error, a <strong>filter</strong> can be designed to reduce the influence of measurement-to-measurement variation, for example by combining information from successive readings. More sophisticated filters can use a statistical model of the expected measurement variance to determine how much confidence to place in each new reading (for example, the <a href="https://en.wikipedia.org/wiki/Kalman_filter">Kalman Filter</a>).</p>
+                <p></p>
+                  <p>In our system, each of the five sensors may have a unique gain. Our task is to establish what gain may exist for each sensor.  At this stage, adapting code should be becoming a familiar process.  The following exercise steps will guide you with further considerations to make.
                 </p>
               </div>
               <figure class="motor-diagram">
@@ -949,7 +1059,7 @@ AFTER the physical trial:
                     Investigation brief
                   </h3>
                   <ol>
-                    <li><strong>Increase the resolution of the static test.</strong> Collect repeated readings across enough controlled conditions to reveal shape rather than only endpoints. Stay inside the usable range and include the offset convention already established.</li>
+                    <li><strong>Increase the resolution of the static test.</strong> Collect repeated readings across enough controlled conditions to reveal shape rather than only endpoints. Stay inside the usable range and include the per-sensor baseline convention already established.</li>
                     <li><strong>Plot before choosing a model.</strong> Show every channel and its repeated variation. Look for systematic curvature in the residuals from the linear model fitted in Exercise 4.</li>
                     <li><strong>Choose two plausible models.</strong> Compare the existing straight line with one simple curved alternative, such as a second-order polynomial or a power law. State why its parameters can be estimated from your experiment.</li>
                     <li><strong>Separate effect from confound.</strong> Repeat selected conditions in a different order and check height, illumination, saturation, and surface texture before attributing curvature to the sensing model.</li>
@@ -1548,7 +1658,8 @@ WHEN the stop condition is reached:
                     <li>Plot surface tone against timestamp interval or rate. Reserve at least one tone for evaluation, and state whether a lookup table, a simple fit, or a constant timing assumption is justified by the data.</li>
                   </ol>
 
-<strong>Separate timing measures</strong><p>Decide before testing whether you will model interval, rate, or both. Explain why timestamp spacing is a snapshot-level observation and why the largest of five readings is a useful explanatory candidate rather than a complete timing model.</p>
+<strong>Separate timing measures</strong>
+<p>Decide before testing whether you will model interval, rate, or both. Explain why timestamp spacing is a snapshot-level observation and why the largest of five readings is a useful explanatory candidate rather than a complete timing model.</p>
                   <strong>Pseudocode for the analysis</strong>
                   <pre><code>FOR each pair of consecutive snapshots:
     interval_us = current timestamp_us - previous timestamp_us
@@ -1565,7 +1676,8 @@ PREDICT the held-back tone before measuring it</code></pre>
                   <strong>Expected outcome: a scene-dependent timing model</strong>
                   <p>You should have a reproducible calculation from raw timestamps to interval and rate, a checked relationship with the slowest channel, and a prediction error for a surface tone not used to choose the model.</p>
 </div>
-                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to help calculate timestamp differences, summarise repeated intervals, and compare a lookup table with a simple fit. Check that it does not mistake the timestamp interval for an individual sensor’s discharge time.</p>
+                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong>
+                  <p>Ask AI to help calculate timestamp differences, summarise repeated intervals, and compare a lookup table with a simple fit. Check that it does not mistake the timestamp interval for an individual sensor’s discharge time.</p>
 <div class="prompt-snippet">“Help me analyse these timestamped five-channel RC readings by surface tone. Separate the maximum discharge time from the observed interval between snapshot starts, and reserve one tone for validation.”</div>
 <span class="ai-reminder">The timing map must be built and tested from your own timestamped data.</span></div>
                 </div>
@@ -1620,8 +1732,13 @@ PREDICT the held-back tone before measuring it</code></pre>
                   </ol>
 
                   <h3>Other useful approaches</h3>
-                  <ul class="reference-list"><li><strong>Moving edge:</strong> translate a sharp black/white boundary across the sensor. This is often the simplest way to estimate where the response changes most rapidly.</li><li><strong>Raster scan:</strong> move a small, fixed dot over a two-dimensional grid. This reveals whether the footprint is circular, elongated, or asymmetric.</li><li><strong>Narrow line:</strong> sweep a black line of known width and orientation across the sensor. Rotating the line can reveal directional sensitivity.</li><li><strong>Operational observation:</strong> the normal robot geometry keeps the sensor height approximately fixed, so do not map height as a separate experiment here. Instead, observe whether abrupt stopping causes the robot to pitch forward and briefly alter the sensor-to-surface geometry. This is a useful later question for a Digital Twin model.</li></ul>
-<strong>Define a measurable footprint</strong><p>Choose the response criterion before collecting data. A 50% response width and a 90% response width answer different questions, so record which one you use and why.</p>
+                  <ul class="reference-list">
+                  <li><strong>Moving edge:</strong> translate a sharp black/white boundary across the sensor. This is often the simplest way to estimate where the response changes most rapidly.</li>
+                  <li><strong>Raster scan:</strong> move a small, fixed dot over a two-dimensional grid. This reveals whether the footprint is circular, elongated, or asymmetric.</li>
+                  <li><strong>Narrow line:</strong> sweep a black line of known width and orientation across the sensor. Rotating the line can reveal directional sensitivity.</li>
+                  <li><strong>Operational observation:</strong> the normal robot geometry keeps the sensor height approximately fixed, so do not map height as a separate experiment here. Instead, observe whether abrupt stopping causes the robot to pitch forward and briefly alter the sensor-to-surface geometry. This is a useful later question for a Digital Twin model.</li></ul>
+<strong>Define a measurable footprint</strong>
+<p>Choose the response criterion before collecting data. A 50% response width and a 90% response width answer different questions, so record which one you use and why.</p>
                   <div class="equation" role="img" aria-label="Normalised dark response equals the current reading minus the white reference divided by the black reference minus the white reference">
                     <span>normalised dark response</span><b>=</b><span>(reading − white reference) / (black reference − white reference)</span>
                   </div>
@@ -1631,7 +1748,8 @@ PREDICT the held-back tone before measuring it</code></pre>
                   <strong>Expected outcome: an operational footprint</strong>
                   <p>You should have a stated spatial criterion, measured target geometry, repeated raw readings, and a validated one-dimensional profile or footprint estimate that can be implemented in the Digital Twin.</p>
 </div>
-                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to help plan dot sizes, normalise the black-to-white response range, or plot a spatial profile. Check that it preserves dot diameter, position, height, and lighting as separate variables.</p>
+                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong>
+                  <p>Ask AI to help plan dot sizes, normalise the black-to-white response range, or plot a spatial profile. Check that it preserves dot diameter, position, height, and lighting as separate variables.</p>
 <div class="prompt-snippet">“Help me analyse this black-dot field-of-view experiment. Normalise readings using white and black references, define a stated footprint criterion, and keep partial coverage distinct from a uniformly grey surface.”</div>
 <span class="ai-reminder">The footprint is an experimental definition supported by your spatial measurements.</span></div>
                 </div>
@@ -1686,7 +1804,8 @@ PREDICT the held-back tone before measuring it</code></pre>
                     <li>Record the limits of the routine: ambient lighting, sensor height, partial coverage, saturation, noise, timing, and cross talk may all make a calibration valid only for particular conditions.</li>
                   </ol>
 
-<strong>Specify the reference procedure</strong><p>Write a short calibration-surface specification before coding: regions, dimensions, material, placement method, readings to collect, and the condition you will hold back for evaluation.</p>
+<strong>Specify the reference procedure</strong>
+<p>Write a short calibration-surface specification before coding: regions, dimensions, material, placement method, readings to collect, and the condition you will hold back for evaluation.</p>
                   <strong>Interface pseudocode</strong>
                   <pre><code>CALIBRATE from labelled stationary reference records:
     retain every raw timestamp and five-channel reading
@@ -1709,7 +1828,8 @@ VALIDATE on a held-back condition:
                   <strong>Expected outcome: a reproducible calibration contract</strong>
                   <p>You should have a documented stationary procedure, raw and transformed five-channel data, separately stored channel parameters, a held-back validation result, and a clear statement of which offset, gain, saturation, noise, timing, field-of-view, and interaction effects remain.</p>
 </div>
-                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to help structure a calibration-data table or implement a per-channel normalisation, but supply the physical surface design and raw readings yourself. Require it to retain raw values and identify conditions outside the calibration range.</p>
+                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong>
+                  <p>Ask AI to help structure a calibration-data table or implement a per-channel normalisation, but supply the physical surface design and raw readings yourself. Require it to retain raw values and identify conditions outside the calibration range.</p>
 <div class="prompt-snippet">“Help me design a stationary five-channel calibration routine. Keep raw timestamped readings, use separate channel references, and reserve one surface condition for validation. Do not add robot movement.”</div>
 <span class="ai-reminder">The surface design, placement procedure, and held-back measurements justify the calibration.</span></div>
                 </div>
@@ -1725,9 +1845,11 @@ VALIDATE on a held-back condition:
 </div>
           <p class="section-lead">These extensions are not part of the core characterisation sequence. Choose one when it connects to a question your team wants to pursue, and retain the same discipline of controlled measurements and held-back validation.</p>
           <div class="subsystem-grid">
-            <article class="subsystem-card is-static"><span class="section-number">01</span><h3>Line-position estimation</h3><p>Keep the robot stationary and place a line at known lateral positions beneath the five-sensor array. Use calibrated readings to estimate line position, then validate the estimator at positions not used to construct it. This combines channel calibration, field of view, and cross talk into an array-level sensing task.</p>
+            <article class="subsystem-card is-static"><span class="section-number">01</span><h3>Line-position estimation</h3>
+            <p>Keep the robot stationary and place a line at known lateral positions beneath the five-sensor array. Use calibrated readings to estimate line position, then validate the estimator at positions not used to construct it. This combines channel calibration, field of view, and cross talk into an array-level sensing task.</p>
 <span class="card-link">From five readings to line position</span></article>
-            <article class="subsystem-card is-static"><span class="section-number">02</span><h3>Ambient-light effects</h3><p>Repeat a controlled reference measurement under different documented lighting conditions and compare the raw five-channel readings, variation, and calibration validity. Treat ambient IR as an environmental condition to measure, not as a nuisance to dismiss; explain whether your calibration remains useful when the lighting changes.</p>
+            <article class="subsystem-card is-static"><span class="section-number">02</span><h3>Ambient-light effects</h3>
+            <p>Repeat a controlled reference measurement under different documented lighting conditions and compare the raw five-channel readings, variation, and calibration validity. Treat ambient IR as an environmental condition to measure, not as a nuisance to dismiss; explain whether your calibration remains useful when the lighting changes.</p>
 <span class="card-link">Test environmental robustness</span></article>
           </div>
         </section>

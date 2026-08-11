@@ -8,7 +8,10 @@
       CW2026 · Motor characterisation
     </title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=8" defer>
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=9" defer>
     </script>
   </head>
   <body data-exercise-default="open">
@@ -192,11 +195,14 @@
             <img src="assets/images/motors/motor_encoder.png" alt="Illustration of a disassembled motor" width="100%" />
           </figure>
           <p class="lead">
-            Your first job is to construct an evidence-backed explanation of the motors subsystem response.  This means you will need to investigate how each motor behaves, take measurements, and plot graphs.
-            <br><br>
-           In these exercises, the code you will write will be very simple: you will need to activate a motor for some time and record some measurements.  Some aspects could be automated with <strong>iteration</strong> (e.g., loops).  However, it will be important to think about whether using iteration may also impact the observed motor performance.  You will need to design and write different test cases to measure different characteristics.  You will need to think carefully about any assumptions.
-           <br><br>
-           To get started writing code for your robot, the first exercise will guide you to review the <strong>StampC3_Template</strong> code that has the example behaviour of line following.<br><br>
+            Your first job is to construct an evidence-backed explanation of the motors subsystem response.  This means you will need to investigate how each motor behaves, take measurements, and plot graphs.</p>
+            <p>
+           In these exercises, the code you will write will be very simple: you will need to activate a motor for some time and record some measurements.  Some aspects could be automated with <strong>iteration</strong> (e.g., loops).  However, it will be important to think about whether using iteration may also impact the observed motor performance.  You will need to design and write different test cases to measure different characteristics.  You will need to think carefully about any assumptions.</p>
+           <p>
+           To get started writing code for your robot, the first exercise will guide you to review the <strong>StampC3_Template</strong> code that has the example behaviour of line following.</p>
+           <p>It might surprise you that, even though we are focusing on <strong>motor output</strong>, we are still going to learn to use a <strong>sensor</strong>.  </p>
+           <p>The simplest way to determine the speed of the robot might be to set the motor power, allow the robot to travel a known fixed distance, and record the time it takes from beginning to end.  We would then divide the distance by the time to work out the velocity, for example, in meters per second.  </p>
+           <p>Taking <strong>external measurements</strong> like this (external to the robot) are perfectly valid, and sometimes essential.  However, a robotic system will also have many sensors which can be used to take more <strong>internal measurements</strong> (internal to the robot), with very good control of time and other aspects. In the following exercises, we will learn to command the motors and to measure their activity via <strong>quadrature rotary encoder sensors</strong>.</p>
           </p>
         </section>
         <section class="orientation-card">
@@ -257,10 +263,11 @@
               </div>
               <div class="teaching-brief">
                 <p>
-                  <strong>Goal:</strong> establish that you can deliberately produce and stop simple, observable movements.<br><br> 
+                  <strong>Goal:</strong> establish that you can use code to deliberately start and stop simple motor movements.<br><br> 
                   
-                  After following the <a href="getting-started.html">Getting Started</a> exercises, you should have a renamed copy of the <strong>StampC3_Template</strong> on your computer - this is a good starting point.  Reviewing the files, the <code>.ino</code> file is the <strong>top-level</strong> file - this means it essentially contains and structures all other code used.  Therefore, the .ino file is the correct starting point to review and understand the code.  <br><br>The original StampC3_Template has an example line-following controller that uses surface-sensor information to make decisions to one command each motor.  When we develop our later test routines we will also need to decide when to start and stop the motors.  As a first exercise, the easiest way to start is to edit existing code.  We want to build some familiarity with the code used to operate the robot. 
-                </p>
+                  After following the <a href="getting-started.html">Getting Started</a> exercises, you should have a renamed copy of the <strong>StampC3_Template</strong> on your computer - this is a good starting point.  Reviewing the files, the <code>.ino</code> file is the <strong>top-level</strong> file - this means it essentially contains and structures all other code used.  Therefore, the .ino file is the correct starting point to review and understand the code.</p>
+                  <p>The original StampC3_Template has an example line-following controller that uses surface-sensor information to make decisions to one command each motor.  This is more complicated than we currently need, but it serves as a good example to recognise how to use functions, and the patterns of code that produce robot control.</p>
+                  <p>When we develop our later test routines we will also need to decide when to start and stop the motors.  As a first exercise, the easiest way to start is to edit existing code.  We want to build some familiarity with the code used to operate the robot. </p>
                 <p>
                   In <strong>Controller.h</strong>, find every call to <strong>robot.setMotorPWM(...)</strong>. Follow the path from <strong>update(...)</strong> into <strong>runLineFollower(...)</strong>. Compare the commands used while the robot is waiting, following the line, searching for it, and stopped. <br><br>
                   
@@ -295,7 +302,9 @@
 			    <li><strong>Verify</strong> that the same line following behaviour is produced from the renamed function.  <strong>Modify this renamed function</strong>, look to demonstrate a controlled start and stop.  It is recommended to keep the button press and signal functionality to start the robot in a controlled manner.
 			    
 			    <li>An easy first approach is the use the Arduino function <code>delay(...)</code> (<a href="https://docs.arduino.cc/language-reference/en/functions/time/delay/">reference page</a>) between your two motor command calls.  For example, to send power to the motors, delay for 2 seconds, then to send 0 power to the motors to stop.  However, this will <strong>block</strong> your code - meaning that your robot will not run any other code until delay(...) has finished.  Using this approach will make things difficult later: you won't be able to easily report the measurements you need back to your computer.</li>
-			    <li>A better approach is to adopt a <strong>non-blocking</strong> convention.  Review the example code and find where <strong>TaskTimer_c</strong> has been setup and used.  TaskTimer_c has been provided to you to help your write non-blocking code.  You can also review the technical reference for TaskTimer_c <a href="./stampc3-reference.html#task-timer">here</a>.  Review the example code to discover the implementation pattern when using TaskTimer_c: <ol><li>Create an instance of TaskTimer_c.</li>
+			    <li>A better approach is to adopt a <strong>non-blocking</strong> convention.  Review the example code and find where <strong>TaskTimer_c</strong> has been setup and used.  TaskTimer_c has been provided to you to help your write non-blocking code.  You can also review the technical reference for TaskTimer_c <a href="./stampc3-reference.html#task-timer">here</a>.  Review the example code to discover the implementation pattern when using TaskTimer_c:
+			    <ol>
+			    <li>Create an instance of TaskTimer_c.</li>
 			    <li>How to configure the time interval of the TaskTimer_c instance.</li>
 			    <li>How to check if the TaskTimer_c is ready, run a function, and reset the TaskTimer_c.</li></ol> </li>
 			    </ol>
@@ -304,10 +313,18 @@
 			    <li>Update your code from the previous task to make the robot rotate on the spot for approximately ten seconds before stopping it deliberately.  This should not be difficult.  In these first exercises, we are just looking to explore and understand how the robot.setMotorPWM(...) function behaves.  In this case, explore what happens if a mix of positive and negative values are sent to the motors.  When does the robot rotate on the spot?  What other behaviours does the robot exhibit?
                     </li>
                     <li>
-                      Demonstrate a speed ramp: issue a sequence of increasing motor-command magnitudes, then decreasing magnitudes, then a stop command. Similar to the previous task, you ideally want to achieve <strong>non-blocking</strong> code.  To achieve this, you will need to create some variables so that your controller can "remember" information between calls to the update(...) function.  Review the example code: the Controller_c class has some variables declared in both the <strong>public</strong> and <strong>private</strong> sections of the class template.  <ol><li>Create either a public or private variable to "remember" the last power value sent to the motors.</li><li>Use your controller function to increment this value periodically, by using a TaskTimer_c instance</li><li>Create another public or private variable to "remember" if the power value should be going up each time, or down.</li><li>Choose the command levels, timing, and what counts as a safe test.  Implement if statements to ensure the robot stays within these constraints.</li>
+                      Demonstrate a speed ramp: issue a sequence of increasing motor-command magnitudes, then decreasing magnitudes, then a stop command. Similar to the previous task, you ideally want to achieve <strong>non-blocking</strong> code.  To achieve this, you will need to create some variables so that your controller can "remember" information between calls to the update(...) function.  Review the example code: the Controller_c class has some variables declared in both the <strong>public</strong> and <strong>private</strong> sections of the class template.
+                      <ol>
+                      <li>Create either a public or private variable to "remember" the last power value sent to the motors.</li>
+                      <li>Use your controller function to increment this value periodically, by using a TaskTimer_c instance</li>
+                      <li>Create another public or private variable to "remember" if the power value should be going up each time, or down.</li>
+                      <li>Choose the command levels, timing, and what counts as a safe test.  Implement if statements to ensure the robot stays within these constraints.</li>
                       </ol>
                     </li>
-                    <li>If update() did call runLineFollower(...) and your new function, what would you expect to see?  If you are curious, you can try this and observe what happens.  <ol><li>Try switching the order of runLineFollower(...) and your new function - what happens then?</li><li>If the result is surprising to you, discuss it with your peers and a member of teaching staff.</li></ol>
+                    <li>If update() did call runLineFollower(...) and your new function, what would you expect to see?  If you are curious, you can try this and observe what happens.
+                    <ol>
+                    <li>Try switching the order of runLineFollower(...) and your new function - what happens then?</li>
+                    <li>If the result is surprising to you, discuss it with your peers and a member of teaching staff.</li></ol>
 </li>                  
                   </ol>
 
@@ -1803,7 +1820,8 @@ FOR each low-speed test request:
                   <strong>Expected outcome: a tested low-speed correction</strong>
                   <p>You should be able to show whether the correction makes low-speed motion more reliable and quantify the discontinuity or other trade-off it introduces.</p>
 </div>
-                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to help express your proposed piecewise mapping, but provide your own thresholds and require it to preserve an exact zero command. Check the resulting implementation against raw encoder data.</p>
+                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong>
+                  <p>Ask AI to help express your proposed piecewise mapping, but provide your own thresholds and require it to preserve an exact zero command. Check the resulting implementation against raw encoder data.</p>
 <div class="prompt-snippet">“Help me express a zero-preserving deadband compensation rule from these measured thresholds. State every assumption and do not invent threshold values.”</div>
 <span class="ai-reminder">Measurements select the thresholds; a fresh run tests the compensation.</span></div>
                 </div>
@@ -1870,7 +1888,8 @@ COMPARE against an equal-PWM baseline</code></pre>
                   <strong>Expected outcome: a validated feed-forward pairing</strong>
                   <p>You should finish with a transparent rule for choosing two commands that aim for one common speed, plus evidence showing where that rule succeeds and where it does not.</p>
 </div>
-                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to plot your two response curves or interpolate candidate commands. Independently check units, direction, and the data point held back for evaluation.</p>
+                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong>
+                  <p>Ask AI to plot your two response curves or interpolate candidate commands. Independently check units, direction, and the data point held back for evaluation.</p>
 <div class="prompt-snippet">“Given these labelled left and right encoder-speed measurements, estimate PWM values for a common target speed and identify one target to reserve for validation.”</div>
 <span class="ai-reminder">The robot decides whether matched predicted speeds are achieved.</span></div>
                 </div>
@@ -1939,7 +1958,8 @@ VALIDATE with the reserved target or sequence</code></pre>
                   <strong>Expected outcome: a portable, evidence-bounded interface</strong>
                   <p>You should be able to request speed through one inspectable mapping, compare physical and simulated outcomes in common units, and state honestly where the mapping is unsupported.</p>
 </div>
-                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong><p>Ask AI to compare a simple fit, piecewise rule, and lookup-table interpolation for your measurements. Require a plot of residuals and test the selected rule on held-back data.</p>
+                  <div class="context-panel" data-panel="ai" hidden><strong>AI-assisted option</strong>
+                  <p>Ask AI to compare a simple fit, piecewise rule, and lookup-table interpolation for your measurements. Require a plot of residuals and test the selected rule on held-back data.</p>
 <div class="prompt-snippet">“Compare inverse-model options for these PWM and encoder-speed measurements. Do not extrapolate beyond the measured range, and show how to validate with held-back data.”</div>
 <span class="ai-reminder">A smooth plot is not validation unless it predicts new measurements.</span></div>
                 </div>

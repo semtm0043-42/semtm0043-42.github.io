@@ -1,3 +1,14 @@
+if (typeof window.renderMathInElement === 'function') {
+  window.renderMathInElement(document.body, {
+    delimiters: [
+      { left: '\\[', right: '\\]', display: true },
+      { left: '\\(', right: '\\)', display: false },
+    ],
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
+    throwOnError: false,
+  });
+}
+
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 const phaseOnePages = [
   ['motors.html', 'Motors'],
