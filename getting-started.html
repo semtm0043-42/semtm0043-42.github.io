@@ -1,231 +1,469 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="CW2026 Getting Started setup and demonstration guide" />
-    <title>CW2026 · Getting Started</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
-    <script src="vendor/katex/katex.min.js" defer></script>
-    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
-    <script src="app.js?v=9" defer></script>
-  </head>
-  <body>
-    <div class="site-shell">
-      <aside class="sidebar" aria-label="Course navigation">
-        <a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
-        <div class="course-status"><span class="status-dot"></span>Course learning journey</div>
-        <nav data-course-navigation></nav>
-      </aside>
-      <main id="top" class="main-content">
-        <header class="topbar"><div class="breadcrumb"><a href="index.html">CW2026</a><b>/</b><strong>Getting Started</strong></div><span class="save-state"><span class="save-dot"></span>Core route</span></header>
-        <section id="overview" class="intro">
-          <div class="eyebrow"><span class="eyebrow-line"></span>Core route</div>
-          <h1>Prepare the tools,<br /><em>verify the demonstration.</em></h1>
-          <p class="lead">This shared sequence uses Arduino IDE, Processing, the supplied local course workspace, and the physical robot before you begin investigating the Digital Twin.</p>
-        </section>
-        <section class="orientation-card">
-          <div class="orientation-icon">✓</div>
-          <div><span class="section-kicker">Keep the route simple</span><h2>Use the supplied local workspace.</h2>
-          <p>You do not need GitHub, Git, VS Code, or Arduino CLI to follow this route. Those tools remain available as optional extensions in <a href="going-further.html">Going Further</a>.</p></div>
-        </section>
-        <div class="sequence-actions" aria-label="Exercise section controls"><button type="button" data-exercise-action="collapse">Collapse all</button><button type="button" data-exercise-action="open">Open all</button></div>
-        <div class="exercise-sequence">
-          <article id="exercise-01" class="exercise-card">
-            <div class="exercise-index">01</div>
-            <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Hardware orientation · robot and controller</span><h2>Meet the 3Pi+ and StampC3</h2></div><span class="time-badge">10–15 min</span></div>
-              <div class="teaching-brief">
-                <figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3.png" alt="Top view of the Pololu 3Pi+ robot with the StampC3 controller mounted at its centre" width="100%" /></figure>
-                <p>Your physical system combines a <a href="https://www.pololu.com/docs/0J83">Pololu 3Pi+ 32U4 mobile robot</a> with an <a href="https://docs.m5stack.com/en/core/stamp_c3">M5Stack StampC3 controller</a>. Inspect the system to identify the parts that sense, move, and communicate.</p>
-                <p>For this coursework, you will program the <strong>StampC3 controller</strong>. The Pololu 3Pi+ runs supplied middleware that operates its motors and sensors; the StampC3 requests sensor information and sends motor commands.</p>
-                <figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3_Annotated_Simple.png" alt="Annotated top view of the robot labelling the StampC3, reset button, on-off button, push-button input, and USB-C programming port" width="100%" /></figure>
-              </div>
-            </div>
-          </article>
-          <article id="exercise-02" class="exercise-card">
-            <div class="exercise-index">02</div>
-            <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Development environment · hardware</span><h2>Install and Configure the Arduino IDE</h2></div><span class="time-badge">20–30 min</span></div>
-              <div class="teaching-brief">
-              <p>We will use the Arduino framework to program the StampC3. Arduino IDE is the core editor, compiler, and upload tool for the supplied robot program.</p></div>
-              <div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3>
-              <ol>
-              <li>Download and Install <a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener">Arduino IDE</a>.</li>
-              <li>In Preferences, add M5Stack's Board Manager URL by copying-and-pasting the following line into the blank text input area: <blockquote><code>https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json</code></blockquote><figure class="orientation-figure"><img src="assets/images/setup/arduino_preferences.png" alt="Screenshot of the preferences panel in Arduino IDE" width="100%" /></figure></li>
-              <li>Whilst the Preferences window is open, tick the checkbox <strong>Display Line Numbers</strong>. Close the preferences window by clicking "OK".</li>
-              <li>Select <strong>Tools  → Board  → Board Manager... </strong>.  In Board Manager, type <strong>StampC3</strong> into the blank text input area, wait for the list to update.  Click "install" on the entry for the M5Stack board package.  This is a large package and may take some time to download and install. Once installed, click "close". <figure class="orientation-figure"><img src="assets/images/setup/arduino_boards_manager.png" alt="Screenshot of the boards manager panel in Arduino IDE" width="100%" /></figure></li>
-              <li>Select <strong>Tools → Board → M5Stack Arduino → M5StampC3</strong>.</li>
-              <li>Set <strong>Tools → USB-CDC On Boot → Disabled</strong>.</li></ol><div class="measure-row"><span><b>Check</b> M5StampC3 is selected</span><span><b>Set</b> USB-CDC On Boot</span><span><b>Keep</b> setup errors</span></div></div></div>
-            </div>
-          </article>
-          <article id="exercise-03" class="exercise-card">
-            <div class="exercise-index">03</div>
-            <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Physical robot · recoverable baseline</span><h2>Prepare a Copy of the StampC3 Template</h2></div><span class="time-badge">10–15 min</span></div>
-              <div class="teaching-brief">
-              <p>Your supplied local course workspace contains <strong>StampC3_Template</strong>, <strong>DigitalTwin</strong>, and <strong>investigations</strong>. Preserve the supplied template as a known-working recovery point before changing code.</p></div>
-              <div class="exercise-grid"><div class="investigation"><h3>Workspace checklist</h3>
-              <ol>
-              <li>Copy the complete <strong>StampC3_Template</strong> folder to a new location on your computer.  It is best to decide a location on your computer storage where you will collect together all your work for this course.  We will refer to this as your <strong>working directory</strong>.</li>
-              <li>Rename the copied folder and its main <strong>.ino</strong> file to the same meaningful name, such as <strong>DemonstrationTest</strong>.</li>
-              <li>Open the copied <strong>.ino</strong> file in Arduino IDE.</li>
-              <li>We are going to make a small change so that you will be able to connect to your robot over WiFi to run the digital twin demonstration.  At the top of the opened file, you will see the line of code:
-              <blockquote><code>RobotWifiAP_c server("myAP", "myPassword", 80);</code></blockquote> Edit <code>myAP</code> to a new unique name and set <code>myPassword</code> to a password.  <strong>Do not use a password you use for other accounts!  You should never normally store a password in plain text.  </strong> In this case, we simply set a password to limit the access to your robot to you. </li>
-              <p align="center"><img src="./assets/images/setup/first_edit_and_compile.png" alt="" width="100%"></p>
-              <li>Finally, click the tick icon to compile the code.  If nothing else has changed, the code should compile without any errors.  In the black box area at the bottom of the Arduino IDE, you should see a message logged like:
-			<blockquote><code>Sketch uses 986377 bytes (75%) of program storage space. Maximum is 1310720 bytes.<br>
-Global variables use 38092 bytes (11%) of dynamic memory, leaving 289588 bytes for local variables. Maximum is 327680 bytes.</code></blockquote>             
-              </li></ol>
-              <strong>Troubleshooting:</strong>
-              <ol>
-              <li>Cannot compile:  If you see an error message like:
-              <blockquote><code> 
-exit status 1
-'class WiFiClass' has no member named 'mode'
-</code></blockquote>
-You have most likely not configured the Arduino IDE to use the correct board.  Please return to the previous exercise and ensure you've completed steps 4 and 5 ("Select Tools → Board → ...")</li></ol>
-              <div class="measure-row"><span><b>Copy</b> the complete template</span><span><b>Rename</b> folder and <code>.ino</code> together</span><span><b>Keep</b> the original unchanged</span></div></div></div>
-            </div>
-          </article>
-          <article id="exercise-04" class="exercise-card">
-            <div class="exercise-index">04</div>
-            <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Physical robot · known baseline</span><h2>Upload to the StampC3</h2></div><span class="time-badge">20–30 min</span></div>
-              <div class="teaching-brief">
-              <p>In this step we will upload the code edited in the previous exercise to the StampC3.  This is an activity you will do very frequently in this course.  You will need to upload code to the StampC3 every time you wish to change the robot behaviour.  You will need to connect your computer to the StampC3 via a USB-C cable.</p>
-              <p>There are some common questions about this upload process:
-              <ol>
-              <li><strong>When does my code run?</strong> When you upload code to the StampC3, it will activate straight away and then run this code forever, until new code is uploaded. The current code completes some setup activities, and will then wait for you to press the button.</li>
-              <li><strong>How can I stop my code from running, or pause it?</strong> When code has been uploaded, there is no dedicated physical interface (e.g. a button) to stop the code from running.  If you want this behaviour, you will need to write the code to achieve it. The StampC3 does have one general purpose button available.</li> 
-              <li><strong>Can I get my code back off the StampC3?</strong>: No, you should regard this as a write-only process.  Technically, it is possible to recover the machine code and to try to translate this back into a human-readable format.  However, this is very difficult.  Instead, you should maintain versions of your code and keep duplicated back-ups.</li>
-				 </ol>   
-				 	<p align="center"><img src="./assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3_Annotated_Simple.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p>           
-               </p></div>
-              <div class="exercise-grid"><div class="investigation"><h3>Upload Steps</h3>
-              <ol>
-              <li>Connect the StampC3 to your computer by using a USB-C cable.</li>
-              <li>Configure the Arduino IDE to connect to the correct Serial Port.  Select <strong>Tools → Port → </strong> and then the available port.
-              <ol>
-              <li>On Windows, this is likely to be something like <strong>COM5</strong>, or the highest enumeration.</li>
-              <li>  On MacOS, this is likely to be something like <strong>/dev/cu.usbmodem</strong> or <strong>/dev/cu.usbserial</strong>.</li>
-              <li>  On a Linux OS, this is likely to be <strong>/dev/ttyACM0</strong> or <strong>/dev/TTYUSB0</strong>.</li>
-              <li><strong>Troubleshooting:</strong> If you cannot see any ports, you may need to install the USB device driver.  You can follow the steps <a href="https://docs.m5stack.com/en/arduino/m5stampc3/program#2usb-driver-installation">here</a></ol>
-              <li>Verify that <strong>M5StampC3</strong> is selected as the board, select <strong>Tools → Board → M5Stack Arduino → M5StampC3</strong>.</li>
-              <li>Click the arrow icon ( → ) to start the upload to the StampC3. The Arduino IDE will first compile the code.  If the code is being compiled for the first time, this may take a long time complete.  It should be quicker the next time. </li></ol><div class="measure-row"><span><b>Edit</b> your copied sketch</span><span><b>Compile</b> in Arduino IDE</span><span><b>Record</b> the upload result</span></div></div></div>
-            </div>
-          </article>
-          <article id="exercise-05" class="exercise-card">
-            <div class="exercise-index">05</div>
-            <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Simulation environment · visual model</span><h2>Install and Configure Processing IDE</h2></div><span class="time-badge">10–20 min</span></div>
-              <div class="teaching-brief">
-              <p>Processing runs the supplied Digital Twin on your computer. Processing is a very convenient tool to generate graphical outputs that requires minimal setup and configuration.  The provided Processing code has been written to provide:
-              <ol>
-              <li>A simple simulation model of the robot.  This simulation can be used independently of the StampC3.</li>
-                            <li>To connect to the StampC3 (your robot) over WiFi.  When connected, to visualise the data sent back from your robot</li>
-                            <li>To run the same <strong>controller</strong> code on both the StampC3 and the simulated robot.  This will allow you to compare and investigate differences between the real robot and simulation. </li>
-              </ol>  
-              Processing is separate from Arduino IDE, which edits and uploads the StampC3 controller.</p></div>
-              <div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3>
-              <ol>
-              <li>Install <a href="https://processing.org/download/" target="_blank" rel="noopener">Processing 4</a>.
-              </li>
-              <li>Open the Processing application.</li>
-              <li>Select <strong>File → Open</strong>, then navigate to the <strong>DigitalTwin</strong> directory, then select <strong>DigitalTwin.pde</strong>.  The DigitalTwin directory should have been included in the download or repository provided to you as the StampC3_Template code.</li>
-              <li>Click the Play icon to run the simulation.  You should see a visualisation of a robot following a line.
-              <ol>
-              <li>Pressing the 'g' key will toggle the visibility of the plots.</li>
-              <li>Pressing the 't' key will toggle between following the robot or not.</li>              
-              <li>Pressing the '-' or '+' key will decrease or increase the zoom respectively.</li>
-              <li><strong>More guidance on the Digital Twin simulation is provided in the exercises for Phase 2 of this course</strong></li>
-              </ol></li></ol>
-              <p align="center"><img src="./assets/images/setup/processing_first_run.png" alt="Screen shot of the digital twin simulation." width="100%"></p>
-              <div class="measure-row"><span><b>Check</b> Processing opens</span><span><b>Identify</b> Run and console</span><span><b>Keep</b> launch errors</span></div></div></div>
-            </div>
-          </article>
-          <article id="exercise-06" class="exercise-card">
-            <div class="exercise-index">06</div>
-            <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Common baseline · physical and simulated run</span><h2>Run the Digital Twin Demonstration</h2></div><span class="time-badge">30–40 min</span></div>
-              <div class="teaching-brief">
-              <p>We should now be ready to run the full demonstration of the Digital Twin robotic system.  Follow the steps below to verify that the full system works as expected.  When the demonstration works correctly, you should see an output from the Processing Digital Twin that looks like the following image:</p><p align="center"><img src="./assets/images/setup/digital_twin_output.png" alt="Screenshot of the Digital Twin system operating successfully" width="100%"></p><p>In the above image, we can observe:
-              <ol>
-              <li>The simulated robot as the blue circle.  Black dots represent the sensor placement.</li>              
-              <li>The real robot as the orange circle, without the black dots for sensor placement.</li>
-              <li>At the top, the status line <code>TCP: Connected to 192.168.4.1:80</code> indicating the simulator is connected to the real robot over WiFi.  The real robot should always have this address.</li>
-              <li>In the graph panel, multiple sets of data plot concurrently, for both the simulated robot and the real robot.</li>
-              </ol>
-              </p></div>
-              
-              <div class="exercise-grid"><div class="investigation"><h3>Run and observation checklist</h3>
-              <ol>
-              <li>Place your robot on the provided test map, at the start location indicated with grey markings</li>
-              <li>Turn on your robot by pressing the small on/off button once.  The StampC3 should illuminate the on board LED.  Your robot should not yet move.</li>
-              <li>Connect your computer via WiFi to the robot.  The robot should show up in the available WiFi networks with the name you provided in the previous exercise. Wait for your computer to connect.  Your operating system may notify you that the internet is not available - this is expected, not an error.  This may mean you have an unusual WiFi icon, such as a question mark.  </li>
-              <li>Open the Processing sketch in <strong>DigitalTwin</strong> and run it.  It should immediately start running the simulated controller.</li>
-              <li>Press the <strong>m</strong> key once to toggle the simulator mode to <strong>live</strong>.</li>
-              <li>Start the physical robot by pressing the button on top once.  The real robot should begin following the line.</li>
-              <li>Verify in the Digital Twin that the visualation for both the real robot and simulated robot are moving.</li>
-              <li><strong>The visualisation of the real robot and simulated robot will behave differently</strong> - this is expected. In fact, these differences represent the core matter of interest for this course.</li> 
-              </ol><div class="measure-row"><span><b>Run</b> physical and simulated examples</span><span><b>Separate</b> observation from explanation</span><span><b>Pose</b> one testable question</span></div></div></div>
-            </div>
-          </article>
-          <article id="exercise-07" class="exercise-card">
-            <div class="exercise-index">07</div>
-            <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Telemetry · direct connection</span><h2>Debugging: Take Measurements with Serial</h2></div><span class="time-badge">10–15 min</span></div>
-              <div class="teaching-brief">
-              <p>The StampC3 provides information via the Serial port connection.  During this course, using the Serial connection is likely to be the most effective way for you to <strong>debug</strong> your code.  Follow the next steps to test your Serial connection.</p></div>
-              <div class="exercise-grid"><div class="investigation"><h3>Measurement checklist</h3>
-              <ol>
-              <li>Connect your StampC3 to your computer using a USB-C cable.</li>
-              <li>Select <strong>Tools  → Port</strong> and select the port for the StampC3.</li>
-              <li>Select <strong>Tools  → Serial Monitor</strong>.  You may need to change the baud rate - use the drop-down list to select <code>115200</code>.
-              <p><img src="./assets/images/setup/serial_monitor.png" alt="Screenshot of the Serial Monitor" width="100%"></p>
-              <li>In the <strong>StampC3_Template</strong> code, navigate to the <strong>Robot.h</strong> tab, and search for the function named <strong>publishTelemetry(...)</strong>.
-<ol>
-<li>The functions <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> both report 13 variables.  Which aspect of the robot do you think each variable corresponds to? </li>
-<li>Both <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> has a string formatted like <code>%lu,%.2f,%.2f,%.5f,%d,%d,%ld,%ld,%u,%u,%u,%u,%u,%u</code>.  You might think this looks a bit strange - but you can also discover what these mean.  Use the internet to search for what each of these formatters means (e.g., <strong>%.5f</strong>). </li>
-</ol>              
-              </li>
-              </ol>
-				<strong>Troubleshooting</strong>
-				<ol>
-				<li><strong>I get the error <code>Board at XXXXXXXX is not available</code></strong>: Make sure your StampC3 is connected to your computer via a USB-C cable.</li>
-				<li><strong>I don't see any changing information on the Serial Monitor</strong>: Make sure that USB-CDC is disabled, select <strong>Tools → USB-CDC On Boot → Disabled</strong>.  You will need to upload the code again.</li>
-				</ol>              
-              <div class="measure-row"><span><b>Serial</b> inspect a direct record</span><span><b>Interpret</b> field, time, and source</span><span><b>Keep</b> an error if needed</span></div></div></div>
-            </div>
-          </article>
-          <article id="exercise-08" class="exercise-card">
-            <div class="exercise-index">08</div>
-            <div class="exercise-content">
-              <div class="exercise-heading"><div><span class="concept-tag">Telemetry · optional live comparison</span><h2>Inspect WiFi Telemetry</h2></div><span class="time-badge">10–15 min</span></div>
-              <div class="teaching-brief">
-              <p>In an earlier exercise, we ran the full Digital Twin system demonstration.   As a part of this, the robot sent data to the Processing simulation over a WiFi connection, allowing for a visualisation of the real robot.  This final exercise will help you to configure some tools to read this information directly, rather than through the Processing simulation.  This may become useful for debugging or recording data.  When the robot was sending data to the Processing simulation, it had the exact same format as the output we viewed previously via the Serial Monitor.</p>
-              </div>
-              <div class="exercise-grid"><div class="investigation"><h3>Measurement checklist</h3>
-              <ol>
-              <li>Place your robot, then turn it on via the On/Off button.  You should see the on board LED illuminate.  The robot should not move.</li>
-              <li>On your computer, connect to the robot by selecting the WiFi network with the name you gave earlier.</li>
-              <li>If you are on <strong>MacOS</strong> or a <strong>Linux Operation System</strong>, open a Terminal instance (command line) and issue the following command:
-              <blockquote>nc 192.168.4.1 80</blockquote> You should see the data from the robot printing to the terminal window.  If you want to save this data to a file, you can use the following command: 
-              <blockquote>nc 192.168.4.1 80 > saved_data.csv</blockquote> where <code>saved.csv</code> is your chosen file name.  Simply press <code>ctrl+c</code> or <code>cmd+c</code> to end the process.</li>
-              <li>If you are on a <strong>Windows operating system</strong>, we recommend you download and install an application called PuTTY.  We will use this to create a connection to the robot and view the data output.  
-<ol>
-<li>Follow the installation instructions <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/">here</a>.</li>
-<li>Open PuTTY, then configure the connection to look like the below screenshot.  Note that you need to set the Host Name to <strong>192.168.4.1</strong>, the port to <strong>80</strong>, and the connection type to <strong>raw</strong>.  Then click <strong>Open</strong>.
-<p align="center"><img src="./assets/images/setup/putty_step1.png" alt="Screenshot of Putty configuration" width="100%"></p>
-              </ol> <div class="measure-row"><span><b>WiFi</b> confirm a TCP record</span><span><b>Compare</b> transport and timing</span><span><b>Interpret</b> field and source</span></div></div></div>
-            </div>
-          </article>
-        </div>
-        <section class="validation"><div><span class="section-kicker">Next</span><h2>Turn a working baseline into an investigation</h2>
-        <p>Use the questions raised by the demonstration to choose a Phase 1 subsystem specialism.</p></div><div class="validation-list"><a href="phase-1.html">Continue to Phase 1 →</a></div></section>
-        <footer><span>CW2026 · Getting Started</span><span>Tools, examples, and shared observations</span></footer>
-      </main>
-    </div>
-  </body>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="CW2026 Getting Started setup and demonstration guide" />
+		<title>CW2026 · Getting Started</title>
+		<link rel="stylesheet" href="styles.css" />
+		<link rel="stylesheet" href="vendor/katex/katex.min.css" />
+		<script src="vendor/katex/katex.min.js" defer></script>
+		<script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+		<script src="app.js?v=10" defer></script>
+	</head>
+	<body>
+		<div class="site-shell">
+			<aside class="sidebar" aria-label="Course navigation">
+				<a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
+				<div class="course-status"><span class="status-dot"></span>Course learning journey</div>
+				<nav data-course-navigation></nav>
+			</aside>
+			<main id="top" class="main-content">
+				<header class="topbar"><div class="breadcrumb"><a href="index.html">CW2026</a><b>/</b><strong>Getting Started</strong></div><span class="save-state"><span class="save-dot"></span>Core route</span></header>
+				<section id="overview" class="intro">
+					<div class="eyebrow"><span class="eyebrow-line"></span>Core route</div>
+					<h1>Prepare the tools,<br /><em>verify the demonstration.</em></h1>
+
+
+					<p class="lead">This shared sequence uses Arduino IDE, Processing, the supplied local course workspace, and the physical robot before you begin investigating the Digital Twin.</p>
+				</section>
+				<section class="orientation-card">
+					<div class="orientation-icon">✓</div>
+					<div><span class="section-kicker">Keep the route simple</span><h2>Use the supplied local workspace.</h2>
+						<p>You do not need GitHub, Git, VS Code, or Arduino CLI to follow this route. Those tools remain available as optional extensions in <a href="going-further.html">Going Further</a>.</p></div>
+				</section>
+				<div class="sequence-actions" aria-label="Exercise section controls"><button type="button" data-exercise-action="collapse">Collapse all</button><button type="button" data-exercise-action="open">Open all</button></div>
+				<div class="exercise-sequence">
+					<article id="exercise-01" class="exercise-card">
+						<div class="exercise-index">01</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Hardware orientation · robot and controller</span><h2>Meet the 3Pi+ and StampC3</h2></div><span class="time-badge">10–15 min</span></div>
+							<div class="teaching-brief">
+								<figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3.png" alt="Top view of the Pololu 3Pi+ robot with the StampC3 controller mounted at its centre" width="100%" /></figure>
+								<p>Your physical system combines a <a href="https://www.pololu.com/docs/0J83">Pololu 3Pi+ 32U4 mobile robot</a> with an <a href="https://docs.m5stack.com/en/core/stamp_c3">M5Stack StampC3 controller</a>. Inspect the system to identify the parts that sense, move, and communicate.</p>
+								<p>For this coursework, you will program the <strong>StampC3 controller</strong>. The Pololu 3Pi+ runs supplied middleware that operates its motors and sensors; the StampC3 requests sensor information and sends motor commands.</p>
+								<figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3_Annotated_Simple.png" alt="Annotated top view of the robot labelling the StampC3, reset button, on-off button, push-button input, and USB-C programming port" width="100%" /></figure>
+							</div>
+						</div>
+					</article>
+					<article id="exercise-02" class="exercise-card">
+						<div class="exercise-index">02</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Development environment · hardware</span><h2>Install and Configure the Arduino IDE</h2></div><span class="time-badge">20–30 min</span></div>
+							<div class="teaching-brief">
+								<p>We will use the Arduino framework to program the StampC3. Arduino IDE is the core editor, compiler, and upload tool for the supplied robot program. We will also install some software libraries to operate some sensors on the robot.</p></div>
+							<div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3>
+									<ol>
+										<li>Download and Install <a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener">Arduino IDE</a>.</li>
+										<li>In Preferences, add M5Stack's Board Manager URL by copying-and-pasting the following line into the blank text input area: <blockquote><code>https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json</code></blockquote><figure class="orientation-figure"><img src="assets/images/setup/arduino_preferences.png" alt="Screenshot of the preferences panel in Arduino IDE" width="100%" /></figure></li>
+										<li>Whilst the Preferences window is open, tick the checkbox <strong>Display Line Numbers</strong>. Close the preferences window by clicking "OK".</li>
+										<li>Select <strong>Tools  → Board  → Board Manager... </strong>.  In Board Manager, type <strong>StampC3</strong> into the blank text input area, wait for the list to update.  Click "install" on the entry for the M5Stack board package.  This is a large package and may take some time to download and install. Once installed, click "close". <figure class="orientation-figure"><img src="assets/images/setup/arduino_boards_manager.png" alt="Screenshot of the boards manager panel in Arduino IDE" width="100%" /></figure></li>
+										<li>Select <strong>Tools → Board → M5Stack Arduino → M5StampC3</strong>.</li>
+										<li>Set <strong>Tools → USB-CDC On Boot → Disabled</strong>.</li>
+										<li><strong>Install Libraries:</strong> We also require two library packages to operate the IMU sensor on board the Pololu 3Pi+ robot.  These are <strong>LIS3MDL</strong> and <strong>LSM6</strong>.
+											<ul>
+										<li>Select <strong>Sketch → Include Library → Manage Libraries</strong>. <figure class="orientation-figure"><img src="assets/images/setup/arduino_tools_libraries.png" alt="Screenshot of the libraries manager panel in Arduino IDE" width="100%" /></figure></li>
+										<li>In the search field, enter LIS3MDL, wait for the list panel to update. Find the library named "lis3mdl" and click install.<figure class="orientation-figure"><img src="assets/images/setup/install_lis3mdl.png" alt="Screenshot of the libraries manager panel in Arduino IDE" width="100%" /></figure>
+										</li>
+<li>In the search field, enter LIS3MDL, wait for the list panel to update. Find the library named "lsm6" and click install.<figure class="orientation-figure"><img src="assets/images/setup/install_lsm6.png" alt="Screenshot of the libraries manager panel in Arduino IDE" width="100%" /></figure>
+										</li>
+										<li>Click close to finish installing libraries.</li>
+									</ol>
+									<div class="measure-row"><span><b>Check</b> M5StampC3 is selected</span><span><b>Set</b> USB-CDC On Boot</span><span><b>Keep</b> setup errors</span></div></div></div>
+						</div>
+					</article>
+					<article id="exercise-03" class="exercise-card">
+						<div class="exercise-index">03</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Physical robot · recoverable baseline</span><h2>Prepare a Copy of the StampC3 Template</h2></div><span class="time-badge">10–15 min</span></div>
+							<div class="teaching-brief">
+								<p>Your supplied local course workspace contains <strong>StampC3_Template</strong>, <strong>DigitalTwin</strong>, and <strong>investigations</strong>. Preserve the supplied template as a known-working recovery point before changing code.</p></div>
+							<div class="exercise-grid"><div class="investigation"><h3>Workspace checklist</h3>
+									<ol>
+										<li>Copy the complete <strong>StampC3_Template</strong> folder to a new location on your computer.  It is best to decide a location on your computer storage where you will collect together all your work for this course.  We will refer to this as your <strong>working directory</strong>.</li>
+										<li>Rename the copied folder and its main <strong>.ino</strong> file to the same meaningful name, such as <strong>DemonstrationTest</strong>.</li>
+										<li>Open the copied <strong>.ino</strong> file in Arduino IDE.</li>
+										<li>We are going to make a small change so that you will be able to connect to your robot over WiFi to run the digital twin demonstration.  At the top of the opened file, you will see the line of code:
+											<blockquote><code>RobotWifiAP_c server("myAP", "myPassword", 80);</code></blockquote> Edit <code>myAP</code> to a new unique name and set <code>myPassword</code> to a password.  <strong>Do not use a password you use for other accounts!  You should never normally store a password in plain text.  </strong> In this case, we simply set a password to limit the access to your robot to you. </li>
+										<p align="center"><img src="./assets/images/setup/first_edit_and_compile.png" alt="" width="100%"></p>
+										<li>Finally, click the tick icon to compile the code.  If nothing else has changed, the code should compile without any errors.  In the black box area at the bottom of the Arduino IDE, you should see a message logged like:
+											<blockquote><code>Sketch uses 986377 bytes (75%) of program storage space. Maximum is 1310720 bytes.<br>
+													Global variables use 38092 bytes (11%) of dynamic memory, leaving 289588 bytes for local variables. Maximum is 327680 bytes.</code></blockquote>             
+										</li></ol>
+										<strong>Troubleshooting:</strong>
+										<ol>
+											<li>Cannot compile:  If you see an error message like:
+												<blockquote><code> 
+														exit status 1
+														'class WiFiClass' has no member named 'mode'
+													</code></blockquote>
+													You have most likely not configured the Arduino IDE to use the correct board.  Please return to the previous exercise and ensure you've completed steps 4 and 5 ("Select Tools → Board → ...")</li></ol>
+										<div class="measure-row"><span><b>Copy</b> the complete template</span><span><b>Rename</b> folder and <code>.ino</code> together</span><span><b>Keep</b> the original unchanged</span></div></div></div>
+						</div>
+					</article>
+					<article id="exercise-04" class="exercise-card">
+						<div class="exercise-index">04</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Physical robot · known baseline</span><h2>Upload to the StampC3</h2></div><span class="time-badge">20–30 min</span></div>
+							<div class="teaching-brief">
+								<p>In this step we will upload the code edited in the previous exercise to the StampC3.  This is an activity you will do very frequently in this course.  You will need to upload code to the StampC3 every time you wish to change the robot behaviour.  You will need to connect your computer to the StampC3 via a USB-C cable.</p>
+								<p>There are some common questions about this upload process:
+								<ol>
+									<li><strong>When does my code run?</strong> When you upload code to the StampC3, it will activate straight away and then run this code forever, until new code is uploaded. The current code completes some setup activities, and will then wait for you to press the button.</li>
+									<li><strong>How can I stop my code from running, or pause it?</strong> When code has been uploaded, there is no dedicated physical interface (e.g. a button) to stop the code from running.  If you want this behaviour, you will need to write the code to achieve it. The StampC3 does have one general purpose button available.</li> 
+									<li><strong>Can I get my code back off the StampC3?</strong>: No, you should regard this as a write-only process.  Technically, it is possible to recover the machine code and to try to translate this back into a human-readable format.  However, this is very difficult.  Instead, you should maintain versions of your code and keep duplicated back-ups.</li>
+								</ol>   
+								<p align="center"><img src="./assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3_Annotated_Simple.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p>           
+								</p></div>
+								<div class="exercise-grid"><div class="investigation"><h3>Upload Steps</h3>
+										<ol>
+											<li>Connect the StampC3 to your computer by using a USB-C cable.</li>
+											<li>Configure the Arduino IDE to connect to the correct Serial Port.  Select <strong>Tools → Port → </strong> and then the available port.
+												<ol>
+													<li>On Windows, this is likely to be something like <strong>COM5</strong>, or the highest enumeration.</li>
+													<li>  On MacOS, this is likely to be something like <strong>/dev/cu.usbmodem</strong> or <strong>/dev/cu.usbserial</strong>.</li>
+													<li>  On a Linux OS, this is likely to be <strong>/dev/ttyACM0</strong> or <strong>/dev/TTYUSB0</strong>.</li>
+													<li><strong>Troubleshooting:</strong> If you cannot see any ports, you may need to install the USB device driver.  You can follow the steps <a href="https://docs.m5stack.com/en/arduino/m5stampc3/program#2usb-driver-installation">here</a></ol>
+												<li>Verify that <strong>M5StampC3</strong> is selected as the board, select <strong>Tools → Board → M5Stack Arduino → M5StampC3</strong>.</li>
+												<li>Click the arrow icon ( → ) to start the upload to the StampC3. The Arduino IDE will first compile the code.  If the code is being compiled for the first time, this may take a long time complete.  It should be quicker the next time. </li></ol><div class="measure-row"><span><b>Edit</b> your copied sketch</span><span><b>Compile</b> in Arduino IDE</span><span><b>Record</b> the upload result</span></div></div></div>
+						</div>
+					</article>
+					<article id="exercise-05" class="exercise-card">
+						<div class="exercise-index">05</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Simulation environment · visual model</span><h2>Install and Configure Processing IDE</h2></div><span class="time-badge">10–20 min</span></div>
+							<div class="teaching-brief">
+								<p>Processing runs the supplied Digital Twin on your computer. Processing is a very convenient tool to generate graphical outputs that requires minimal setup and configuration.  The provided Processing code has been written to provide:
+								<ol>
+									<li>A simple simulation model of the robot.  This simulation can be used independently of the StampC3.</li>
+									<li>To connect to the StampC3 (your robot) over WiFi.  When connected, to visualise the data sent back from your robot</li>
+									<li>To run the same <strong>controller</strong> code on both the StampC3 and the simulated robot.  This will allow you to compare and investigate differences between the real robot and simulation. </li>
+								</ol>  
+								Processing is separate from Arduino IDE, which edits and uploads the StampC3 controller.</p></div>
+							<div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3>
+									<ol>
+										<li>Install <a href="https://processing.org/download/" target="_blank" rel="noopener">Processing 4</a>.
+										</li>
+										<li>Open the Processing application.</li>
+										<li>Select <strong>File → Open</strong>, then navigate to the <strong>DigitalTwin</strong> directory, then select <strong>DigitalTwin.pde</strong>.  The DigitalTwin directory should have been included in the download or repository provided to you as the StampC3_Template code.</li>
+										<li>Click the Play icon to run the simulation.  You should see a visualisation of a robot following a line.
+											<ol>
+												<li>Pressing the 'g' key will toggle the visibility of the plots.</li>
+												<li>Pressing the 't' key will toggle between following the robot or not.</li>              
+												<li>Pressing the '-' or '+' key will decrease or increase the zoom respectively.</li>
+												<li><strong>More guidance on the Digital Twin simulation is provided in the exercises for Phase 2 of this course</strong></li>
+											</ol></li></ol>
+											<p align="center"><img src="./assets/images/setup/processing_first_run.png" alt="Screen shot of the digital twin simulation." width="100%"></p>
+											<div class="measure-row"><span><b>Check</b> Processing opens</span><span><b>Identify</b> Run and console</span><span><b>Keep</b> launch errors</span></div></div></div>
+						</div>
+					</article>
+					<article id="exercise-06" class="exercise-card">
+						<div class="exercise-index">06</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Common baseline · physical and simulated run</span><h2>Run the Digital Twin Demonstration</h2></div><span class="time-badge">30–40 min</span></div>
+							<div class="teaching-brief">
+								<p>We should now be ready to run the full demonstration of the Digital Twin robotic system.  Follow the steps below to verify that the full system works as expected.  When the demonstration works correctly, you should see an output from the Processing Digital Twin that looks like the following image:</p><p align="center"><img src="./assets/images/setup/digital_twin_output.png" alt="Screenshot of the Digital Twin system operating successfully" width="100%"></p><p>In the above image, we can observe:
+								<ol>
+									<li>The simulated robot as the blue circle.  Black dots represent the sensor placement.</li>              
+									<li>The real robot as the orange circle, without the black dots for sensor placement.</li>
+									<li>At the top, the status line <code>TCP: Connected to 192.168.4.1:80</code> indicating the simulator is connected to the real robot over WiFi.  The real robot should always have this address.</li>
+									<li>In the graph panel, multiple sets of data plot concurrently, for both the simulated robot and the real robot.</li>
+								</ol>
+								</p></div>
+
+								<div class="exercise-grid"><div class="investigation"><h3>Run and observation checklist</h3>
+										<ol>
+											<li>Place your robot on the provided test map, at the start location indicated with grey markings</li>
+											<li>Turn on your robot by pressing the small on/off button once.  The StampC3 should illuminate the on board LED.  Your robot should not yet move.</li>
+											<li>Connect your computer via WiFi to the robot.  The robot should show up in the available WiFi networks with the name you provided in the previous exercise. Wait for your computer to connect.  Your operating system may notify you that the internet is not available - this is expected, not an error.  This may mean you have an unusual WiFi icon, such as a question mark.  </li>
+											<li>Open the Processing sketch in <strong>DigitalTwin</strong> and run it.  It should immediately start running the simulated controller.</li>
+											<li>Press the <strong>m</strong> key once to toggle the simulator mode to <strong>live</strong>.</li>
+											<li>Start the physical robot by pressing the button on top once.  The real robot should begin following the line.</li>
+											<li>Verify in the Digital Twin that the visualation for both the real robot and simulated robot are moving.</li>
+											<li><strong>The visualisation of the real robot and simulated robot will behave differently</strong> - this is expected. In fact, these differences represent the core matter of interest for this course.</li> 
+										</ol><div class="measure-row"><span><b>Run</b> physical and simulated examples</span><span><b>Separate</b> observation from explanation</span><span><b>Pose</b> one testable question</span></div></div></div>
+						</div>
+					</article>
+					<article id="exercise-07" class="exercise-card">
+						<div class="exercise-index">07</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Telemetry · direct connection</span><h2>Debugging: Take Measurements with Serial</h2></div><span class="time-badge">10–15 min</span></div>
+							<div class="teaching-brief">
+								<p>The StampC3 provides information via the Serial port connection.  During this course, using the Serial connection is likely to be the most effective way for you to <strong>debug</strong> your code.  Follow the next steps to test your Serial connection.</p></div>
+							<div class="exercise-grid"><div class="investigation"><h3>Measurement checklist</h3>
+									<ol>
+										<li>Connect your StampC3 to your computer using a USB-C cable.</li>
+										<li>Select <strong>Tools  → Port</strong> and select the port for the StampC3.</li>
+										<li>Select <strong>Tools  → Serial Monitor</strong>.  You may need to change the baud rate - use the drop-down list to select <code>115200</code>.
+											<p><img src="./assets/images/setup/serial_monitor.png" alt="Screenshot of the Serial Monitor" width="100%"></p>
+											<li>In the <strong>StampC3_Template</strong> code, navigate to the <strong>Robot.h</strong> tab, and search for the function named <strong>publishTelemetry(...)</strong>.
+												<ol>
+													<li>The functions <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> both report 13 variables.  Which aspect of the robot do you think each variable corresponds to? </li>
+													<li>Both <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> has a string formatted like <code>%lu,%.2f,%.2f,%.5f,%d,%d,%ld,%ld,%u,%u,%u,%u,%u,%u</code>.  You might think this looks a bit strange - but you can also discover what these mean.  Use the internet to search for what each of these formatters means (e.g., <strong>%.5f</strong>). </li>
+												</ol>              
+											</li>
+									</ol>
+									<strong>Troubleshooting</strong>
+									<ol>
+										<li><strong>I get the error <code>Board at XXXXXXXX is not available</code></strong>: Make sure your StampC3 is connected to your computer via a USB-C cable.</li>
+										<li><strong>I don't see any changing information on the Serial Monitor</strong>: Make sure that USB-CDC is disabled, select <strong>Tools → USB-CDC On Boot → Disabled</strong>.  You will need to upload the code again.</li>
+									</ol>              
+									<div class="measure-row"><span><b>Serial</b> inspect a direct record</span><span><b>Interpret</b> field, time, and source</span><span><b>Keep</b> an error if needed</span></div></div></div>
+						</div>
+					</article>
+					<article id="exercise-08" class="exercise-card">
+						<div class="exercise-index">08</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Telemetry · optional live comparison</span><h2>Inspect WiFi Telemetry</h2></div><span class="time-badge">10–15 min</span></div>
+							<div class="teaching-brief">
+								<p>In an earlier exercise, we ran the full Digital Twin system demonstration.   As a part of this, the robot sent data to the Processing simulation over a WiFi connection, allowing for a visualisation of the real robot.  This exercise will help you to configure some tools to read this information directly, rather than through the Processing simulation.  This may become useful for debugging or recording data.  When the robot was sending data to the Processing simulation, it had the exact same format as the output we viewed previously via the Serial Monitor.</p>
+							</div>
+							<div class="exercise-grid"><div class="investigation"><h3>Measurement checklist</h3>
+									<ol>
+										<li>Place your robot, then turn it on via the On/Off button.  You should see the on board LED illuminate.  The robot should not move.</li>
+										<li>On your computer, connect to the robot by selecting the WiFi network with the name you gave earlier.</li>
+										<li>If you are on <strong>MacOS</strong> or a <strong>Linux Operation System</strong>, open a Terminal instance (command line) and issue the following command:
+											<blockquote>nc 192.168.4.1 80</blockquote> You should see the data from the robot printing to the terminal window.  If you want to save this data to a file, you can use the following command: 
+											<blockquote>nc 192.168.4.1 80 > saved_data.csv</blockquote> where <code>saved.csv</code> is your chosen file name.  Simply press <code>ctrl+c</code> or <code>cmd+c</code> to end the process.</li>
+										<li>If you are on a <strong>Windows operating system</strong>, we recommend you download and install an application called PuTTY.  We will use this to create a connection to the robot and view the data output.  
+											<ol>
+												<li>Follow the installation instructions <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/">here</a>.</li>
+												<li>Open PuTTY, then configure the connection to look like the below screenshot.  Note that you need to set the Host Name to <strong>192.168.4.1</strong>, the port to <strong>80</strong>, and the connection type to <strong>raw</strong>.  Then click <strong>Open</strong>.
+													<p align="center"><img src="./assets/images/setup/putty_step1.png" alt="Screenshot of Putty configuration" width="100%"></p>
+											</ol> <div class="measure-row"><span><b>WiFi</b> confirm a TCP record</span><span><b>Compare</b> transport and timing</span><span><b>Interpret</b> field and source</span></div></div></div>
+						</div>
+					</article>
+					<article id="exercise-09" class="exercise-card">
+						<div class="exercise-index">09</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Beginner support</span><h2>Learning by Modifying, Exploring and Playing</h2></div><span class="time-badge">Time to be confirmed</span></div>
+							<div class="teaching-brief">
+								<p>This exercise is intended to help anyone very new to programming, or who needs a refresher for programming in C/C++. In this exercise, we will start with some very simple example code that flashes an LED between colours. We will start by making some very simple modifications to establish how changing code can help us to understand how it operates, as well as how to find out more information.  
+								As you progress, you are encouraged to explore and make up your own modifications.  If you encouunter an error message, see if you can work out what it means.  Remember that, if  something goes wrong, you can also change the code back again.  
+								</p>
+							</div>
+							<div class="exercise-grid"><div class="investigation"><h3>Exercises:</h3>
+									<p>
+									<ol>
+										<li>Start within the StampC3_Template code.  Within the top-level file StampC3_Template.ino (the first tab in the Arduino IDE), replace the existing loop code:
+											<blockquote><code><pre>
+void loop() {
+  // Accept or maintain the optional Processing telemetry connection. The
+  // controller continues to run even when no client is connected.
+  server.update();
+
+  // Run an iteration of the robot controller code.
+  // You shoul develop further code within Controller.h
+  controller.update(robot, server);
+
+}</pre></code></blockquote>
+													with the following example code:
+													<blockquote><code><pre>
+void loop() {
+
+  robot.setLED( 255, 0, 0, 100 ); // red
+  delay(500);
+  robot.setLED( 0, 0, 0, 0 );   // off
+  delay(500);
+  robot.setLED( 0, 255, 0, 100 ); // green
+  delay(500);
+  robot.setLED( 0, 0, 0, 0 );   // off
+  delay(500);
+  robot.setLED( 0, 0, 255, 100 ); // blue
+  delay(500);
+  robot.setLED( 0, 0, 0, 0 );   // off
+  delay(500);
+
+
+  bool button_state = robot.isButtonPressed();
+  if( button_state == true ) {
+    robot.playTone( 440, 50 );
+
+  }
+}</pre></code>											
+
+													</blockquote>
+										</li>
+										<li>Compile and upload the adjusted code to the StampC3. </li>
+										<li>Reading the code, how long (how much time) does the StampC3 light flash for? How much time is the light on for in total?<ul><li> For most commands coloured orange in the Arduino IDE, you can read about how they operate in the Arduino Reference (for example, <a href="https://docs.arduino.cc/language-reference/en/functions/time/delay/">delay()</a>).</li></ul>
+											<li>Reading the lines <code>robot.setLED(...)</code>, what does each of the numbers between the brackets mean or determine?  Quick comments in C/C++ code can be made by using the characters <code>//</code>. <ul><li>Here, by reading the comments and the lines of code, you can probably infer what each of the numbers mean. </li>
+													<li>The <strong>function</strong> setLED() can be identified as a <strong>member</strong> of <code>robot</code>,  because it is written after the dot (<code>.</code>) operator.  This also provides a clue about where to find more information on the numbers used as <strong>arguments</strong> (inputs) to the function.  You can find the code for this function within <strong>Robot.cpp</strong>. Don't worry if you cannot understand the code in Robot.cpp at the moment - it is good to simply explore the code.</li>
+													<li> A <strong>.cpp</strong> will contain the implementation code, whilst a <strong>.h</strong> file will contain the interface code.  That means, a quick way to find out what else can be done with Robot.cpp is to review the list of functions within <strong>Robot.h</strong>. It is worthwhile to think of this like a book, the .h file is the contents page or index.</li></ul></li>
+											<li>Try changing the numbers within <code>robot.setLED(...);</code>.  To see what happens, you will need to compile and upload the code to the StampC3 again.  Does the light on the StampC3 change as you'd expect?</li>
+											<li>The line of code <code>bool button_state = robot.isButtonPressed();</code> can be read from right-to-left to understand what it does:
+												<ol>
+													<li><code>isButtonPressed()</code> is a function to check if the button on the StampC3 has been pressed.  Importantly, the empty brackets () mean that the function does not require any input parameters or data.</li>
+													<li><code>robot.isButtonPressed()</code> tells us that the function is buttonPressed() is a member (can be found within) robot.</li>
+													<li><code> = robot.isButtonPressed()</code> tells us that the function robot.isButtonPressed() is expected to return some data.  The <code>=</code> is called the <strong>assignment operator</strong> - it takes data from one place and assigns it to another.  It is <strong>not</strong> an equivalence operator, it is not checking if something is equal.   In our current right-to-left reading, we still don't know what data the function is providing (called, <strong>returning</strong>).</li>
+													<li><code>bool button_pressed</code> is a declaration of a <strong>variable</strong>.  In this case, because we also have <code>= robot.isButtonPressed()</code>, we would also say that the variable has been initialised (given a value, in this case returned from the function).
+														<ul><li><code>bool</code> is the data <strong>type</strong>.  We can think of variables a bit like buckets to contain data.  In C/C++, variables are given an explicit type, which you can think of as determining the size and shape of the bucket.  In computer terms, the data type is a definition of how much computer memory is used. Different data types will occupy different amounts of memory.   This is especially important when we work with embedded systems (microcontrollers, microprocessors) because they typically have a very limited quantity of memory available compared to desktop computers.  In this coursework, you should find that the StampC3 has enough memory - so you do not need to be especially worried about it.  In the Arduino language, the set of data types available to you are listed <a href="https://docs.arduino.cc/language-reference/#variables">in the language reference</a>.
+																<li><code>button_pressed</code> is the <strong>name</strong> given to the variable, which is then used to access the variable.  Thinking about the above, if we can create buckets to store data, we need to give them names to keep track of them.</li>
+														</ul>
+															</li>
+															<li>Use the Arduino Language Reference to find out what values are represented by the <code>bool</code> data type.</li>
+															<li>Use the Arduino Language Reference to find out how much memory a bool occupies. This might surprise you - why? </li>
+												</ol>
+												<li>Whilst the StampC3 is on, try holding down the button.  You should find that the robot makes a beep sound, but not very often.  If you press the button momentarily (press it once, quickly), you'll likely find that it does not produce any beep.  Why might this be?<ul>
+														<li><strong>Hint:</strong> Generally speaking, code within a function is run from top to bottom, line by line.  What is the sequence of lines of code within loop()?</li>
+											</li>
+													</ul>
+											<li>Modify the example code so that the LED flashes only when the button is held down.<ul><li><strong>Hint:</strong> The line of code <code>if( button_pressed == true ) </code> is called a <strong>conditional statement</strong>.  This line asks the computer to check if the <strong>condition</strong> is true - in this case, the condition is <code>button_pressed == true</code>.  After this, the curly-braces <code>{ }</code> <strong>encapsulate</strong> all the code that should be run if the condition evaulates as true. </li>
+													<li>Once you have achieved this, invert the logic.  Modify the code so that the LED flashes only when the button is not pressed.  There are several was to achieve this.</li>
+											</li>
+									</ol>
+									</p>
+								</div></div>
+						</div>
+					</article>
+					
+					<article id="exercise-10" class="exercise-card">
+						<div class="exercise-index">10</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Beginner support · placeholder</span><h2>Error Messages are your Friends</h2></div><span class="time-badge">Time to be confirmed</span></div>
+							<div class="teaching-brief">
+								<p>When learning to write code, error messages can be scary and frustrating.  Often, error messages seem cryptic and not helpful. In robotics, we have a more significant and frustrating problem: when there are no error messages.</p>
+								<p>Consider this: you feel good about your code, and it compiles without any errors.  You upload your code to your robot.  You watch your robot operating for 1 minute, but then it does something unexpected and strange.  When you reset your robot to try it again, it works fine with no problems.  However, now you've lost confidence in your code.   So you reset your robot and try it again - this time, it also does something unexpected.  At this point, you definitely have a problem, but you don't have any clues about where to start looking for the problem.  If only there was an error message!</p>
+								<p>It is still true that error messages can be cryptic and confusing. However, over time and with practice you will start to recognise what causes error messages, and you will learn the patterns.  By solving error messages, you will develop a much deeper understanding of computer code.  In fact, debugging code (diagnosing problems, finding solutions) is probably one of the most defining aspects of skill between programmers.  A really good programmer writes code and catches bugs before they even compile or run the code.</p>
+								<p>When writing code, it is extremely like that a significant problem can be introduced that doesn't get recognised as an error by the compiler.  These are generally called <strong>bugs</strong>.  This is the same issue as the example of the unreliable robot above - it will seem like your code <i>should</i> work, but for some reason it behaves unexpectedly and without an error message.  The skill of solving bugs depends upon your exposure and practice solving error messages.</p>
+								<p>Presently, Generative AI has shown itself to be exceptionally good at generating source code - often without errors.  However, the responsibility for whether or not code is safe and reliable rests with us - people operating the AI.  It is therefore still an extremely valuable skill to be able to spot patterns and recognise errors.  In this course, you are encouraged to use Generative AI.  However, it is strongly recommended that you take the time to solve some bugs and errors on your own, or to ensure that you ask Generative AI to explain what the problem was, and to record the information somewhere yourself to help develop your expertise.</p>
+								<p>The following exercises take an unusual form.  Using the same example code from the previous exercise, see if you can generate the same error message or bug.  Some parts of the error messages have been obscured where line number, function name, and so on, are not strictly necessary to create the intended problem. For each error message, you can simply modify the code in simple ways (e.g., removing parts, moving lines of code within the file, etc).  For each error, make a note of what caused the error message. In some cases, the error message provided suggests a solution, but it is incorrect - you will know this is the case because you intentionally caused that error.<p>
+								
+							</div>
+							<div class="exercise-grid"><div class="investigation"><h3>Modify the code to recreate the following error messages:</h3>
+									<ol>
+									<li><code>sketch/Robot.h:xxx:xx: note:   candidate expects 4 arguments, 5 provided
+exit status 1</code></li>
+<li><code>expected '}' at end of input</code></li>
+<li><code>'button_state' was not declared in this scope</code></li>
+<li><code>invalid conversion from 'const char*' to 'uint8_t' {aka 'unsigned char'} [-fpermissive]</code></li>
+<li><code>too few arguments to function 'void xxxxx(uint32_t)'</code></li>
+<li><code>redefinition of 'void loop()'</code></li>
+<li><code>no matching function for call to 'Robot_c::isButtonPressed(int)'</code></li>
+<li><code>expected ';' before 'delay'</code></li>
+<li><code>'class Robot_c' has no member named 'setLed'; did you mean 'setLED'?</code></li>
+<li><code>'robot' was not declared in this scope; did you mean 'Robot_c'?</code></li>
+<li><code>'Robot_c' does not name a type; did you mean 'RobotIMU_c'?</code></li>
+<li>What is the bug in the following code extract?
+<blockquote><code><pre>
+  bool button_state = robot.isButtonPressed();
+  if( button_state = true ) {
+    robot.playTone(440,50);
+  }</pre></code></blockquote></li>
+
+									
+									</ol>
+								</div></div>
+						</div>
+					</article>
+					
+					<article id="exercise-11" class="exercise-card">
+						<div class="exercise-index">11</div>
+						<div class="exercise-content">
+							<div class="exercise-heading"><div><span class="concept-tag">Beginner support · placeholder</span><h2>Blocking and Non-Blocking Code</h2></div><span class="time-badge">Time to be confirmed</span></div>
+							<div class="teaching-brief">
+								<p>In the previous exercise, we realised that the button is only activating a beep sound infrequently.  The reason for this is that the example code in the previous exercise is <strong>blocking</strong>.  In particular, it is the function <code>delay()</code> that blocks.  The <code>delay()</code> function stops the progression of your code for a quantity of milliseconds provided as an input, for example, <code>delay(1000);</code> will stop the progression of your code for 1 second.</p>
+								<p>In robotics, blocking code is very problematic.  For example, if we want our robot to drive around and avoid obstacles, we need the robot to be able to continuously read the sensors, decide an action, and then activate it's motors.  The robot will need to do this repeatedly and quickly to respond to changes in the environment.  If we also wanted to flash an LED every second, blocking code would stop the robot from being able to read it's sensors if it must wait for <code>delay()</code> to run for 1 second. The robot could travel very far in 1 second, and without reading sensors, crash.</p>
+								
+								<p>In this exercise, you'll be guided to use a <strong>class</strong> provided for you to help write non-blocking code.  By using this class, we'll also learn more about <strong>objects</strong> as variables, <strong>scope</strong> and non-blocking code. </p>
+								
+								<p>Core to this exercise is a class type called TaskTimer_c.  This class can be thought of as a stopwatch or simple scheduling system.  A TaskTimer_c is setup with a time period that it must count up to.  TaskTimer_c can be queried to see if it has finished counting.  If it has finished counting, an operation can be run, and the TaskTimer_c reset to count up from 0 again.  This way, we achieve functionality similar to <code>delay(...)</code>, but without blocking the execution of the rest of the code.</p>
+							</div>
+							<div class="exercise-grid"><div class="investigation"><h3>Exercises:</h3>
+									<p>
+									<ol>
+									<li>Find the line of code:
+									<blockquote><code>#include "Controller.h"</code></blockquote>
+									Beneath this, add the following two lines of code:																				<blockquote><code><pre>#include "TaskTimer.h"
+TaskTimer_c LED_timer;</code></blockquote>
+									<ul>
+									
+									<li>The line <code>#include "TaskTimer.h"</code> is an important clue.  This line tells the compiler that the code within TaskTimer.h will be used, and that it should look for further code within that file (and the associated .cpp file).</li>
+									<li>The line of code <code>TaskTimer_c LED_timer;</code> is a <strong>variable declaration</strong>.  However, it is a type of variable called an <strong>object</strong>.  Previously, we discussed that <code>bool button_pressed</code> creates a variable of <strong>type</strong> <code>bool</code>, and with name <code>button_pressed</code>. In this case, the data type is <code>TaskTimer_c</code> and the name given to this variable is <code>LED_timer</code>.  If this is confusing, it might help to think about variables as buckets.  We could create multiple "buckets" of type TaskTimer_c, and to tell them apart, we would need to give them different names.</li>
+
+									<li>Similar to <code>bool</code>, we can think of the data type <code>TaskTimer_c</code> as simply defining how much memory is occupied by the variable. In this case, the type TaskTimer_c has been invented by the author of the code.  The <code>_c</code> suffix has been added so that, when we read the code, we can know quickly that this is a class data type.  Elsewhere in the code, <code>_s</code> is suffixed to mean "structure", and other such conventions can be used.</li>
+									<li>TaskTimer_c is a class type, and so it is considered an <strong>object</strong>.  A class can be thought of as a "collection of variables and functions", or as a container.  You can review TaskTimer.h to see what variables and functions exist within TaskTimer_c.</li>
+									<li>Because the line of code <code>TaskTimer_c LED_timer;</code> is at the very top of the StampC3_Template file, it is considered to have <strong>global scope</strong>.  This means that this variable will exist whilst the StampC3 remains powered on.  It is therefore <strong>persistent</strong>, meaning that it will retain any data values whilst the StampC3 remains powered on. </li>
+									
+									</ul>
+									
+									</li>
+									<li>At the end of the function <code>setup()</code>, add the line of code:
+									<blockquote><code><pre>LED_timer.setIntervalMS(500);
+									</pre></code></blockquote>
+									<ul><li>This line of code configures our <strong>instance</strong> of TaskTimer_c to operate with a time interval of 500milliseconds.</li>
+									<li>The dot operator (.) tells us that the function <code>setIntervalMS(500)</code> is a member function of LED_timer. You can read <strong>TaskTimer.cpp</strong> to see the source code implementation, or you can review <strong>TaskTimer.h</strong> to find out what other functions are available within TaskTimer_c.</li>
+									<li>Note that,  we are using the dot operator against the object name, not the type.  Once we have declared an instance of a class, the variable inherits the structure, variables and functions defined within TaskTimer_c.  We can therefore think of the TaskTimer_c as like a template, and declaring instances of this type creates separate copies of all the variables and functions.</li>
+									<li>Note that, we are able to access <code>LED_timer</code> even though it was not declared inside this function <code>setup()</code>.  This is because <code>LED_timer</code> was declared outside setup(), in global scope.  Earlier, <code>bool button_pressed</code> was used within loop() - this means <code>button_pressed</code> was a variable with <strong>local scope</strong>.  Variables with local scope can only be accessed directly within their block of encapsulation, defined by curly braces {}.</li>  
+									</ul>
+									</li>
+									<li>Replace your current loop() function with the following:
+									<blockquote><code><pre>void loop() {
+
+  // Has the user pressed the button?
+  bool button_state = robot.isButtonPressed();
+  if ( button_state == true ) {
+    // beep!
+    robot.playTone(440, 50);
+    
+  }
+
+  // Has timer finished counting?
+  if ( LED_timer.isReady() ) {
+
+    // Set red, with brightness 100
+    robot.setLED( 255, 0, 0, 100 );
+
+    // Reset timer count to 0
+    LED_timer.resetTimer();
+    
+  }
+
+}
+									</pre></code></blockquote>
+									<ol>
+									<li>Compile and upload the code to the StampC3.  You should now find that you can press the button at any time and hear a beep.  However, the LED is always on with the colour red.  That means half of the problem has been solved. The next steps are intended to guide you to restoring the functionality of the LED blinking every 500ms without using <code>delay(...)</code>.</li>
+									<li>To also control the LED status, we will use the concepts we have just learnt about scope:
+									<ul>
+									<li>At the top of the StampC3_Template file, beneath the <code>#include ...</code> lines, create a new integer variable.  For example, <code>int led_brightness</code></li>
+									<li>Within <code>setup()</code>, set your integer variable to a known initial value.  For example, 0.  Note that, we can assign a value to this variable because it has been declared with <strong>global scope</strong>.</li>
+									<li>Inside <code>loop()</code>, use a similar conditional statement to toggle the value of your led brightness integer variable between two values.  A useful conditional statement structuure may be:
+									<blockquote><code><pre>
+if(...) {
+  // assign a led brightness value
+} else {
+  // assign a different led brightness value
+}</pre></code></blockquote>
+</li>
+<li>In the above conditional statement construct, you can use the current value of your LED brightness variable to decide what the new value should be.</li>
+<li>Think about where to place the above conditional statement.  You can also explore what happens if you place this in different locations within loop().</li>
+<li>You may need to update the function call to setLED(...) to use your brightness variable, for example:
+<blockquote><code><pre>
+robot.setLED( 255, 0, 0, led_brightness );
+</pre></code></blockquote>
+</li>
+									</ul>
+									</li>
+									</ol>
+									<li>Now go further: use more variables declared in global scope to restore the functionality of flashing through the sequence of red, green and blue.</li>
+									<li>Update your code to now use the button to achieve different effects.  Try to achieve the following:
+									<ul>
+									<li>Pause and resume the flashing of the LED.</li>
+									<li>Toggle which colour is currently being used.</li>
+									<li>Increase the speed of the flashing, but to reset to a low value when a limit is reached.</li>
+									<li>Increase the brightness of the flashing, but to reset to a low value when a limit is reached.</li>
+									</ul>
+									</li>
+									</ol>
+									</p>
+								</div></div>
+						</div>
+					</article>
+					
+				</div>
+				<section class="validation"><div><span class="section-kicker">Next</span><h2>Turn a working baseline into an investigation</h2>
+						<p>Use the questions raised by the demonstration to explore the available project directions with your team.</p></div><div class="validation-list"><a href="select-a-project.html">Continue to Select a Project →</a></div></section>
+				<footer><span>CW2026 · Getting Started</span><span>Tools, examples, and shared observations</span></footer>
+			</main>
+		</div>
+	</body>
 </html>

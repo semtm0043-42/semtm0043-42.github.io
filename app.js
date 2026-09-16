@@ -36,7 +36,9 @@ document.querySelectorAll('[data-course-navigation]').forEach((navigation) => {
   navigation.innerHTML = `
     <p class="nav-label">Course journey</p>
     ${navigationLink('index.html', '00', 'Course overview', currentPage === 'index.html')}
+    ${navigationLink('course-introduction.html', 'Intro', 'Course Introduction', currentPage === 'course-introduction.html')}
     ${navigationLink('getting-started.html', 'Start', 'Getting Started', currentPage === 'getting-started.html')}
+    ${navigationLink('select-a-project.html', 'Project', 'Select a Project', currentPage === 'select-a-project.html')}
     <div class="nav-tree-group">
       <div class="nav-tree-row">
         ${navigationLink('phase-1.html', '01', 'Characterise the robot', currentPage === 'phase-1.html')}

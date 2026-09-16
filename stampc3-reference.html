@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="vendor/katex/katex.min.css" />
     <script src="vendor/katex/katex.min.js" defer></script>
     <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
-    <script src="app.js?v=9" defer>
+    <script src="app.js?v=10" defer>
     </script>
   </head>
   <body data-exercise-default="open">
@@ -319,6 +319,7 @@
                     <tr><td><code>pose</code></td><td><code>RobotPose_t</code></td><td>Most recent interface-provided pose estimate; not an independent physical reference.</td></tr>
                     <tr><td><code>motors</code></td><td><code>RobotMotors_t</code></td><td>Most recent requested ordinary motor-PWM pair.</td></tr>
                     <tr><td><code>motion_status</code></td><td><code>RobotMotionStatus_t</code></td><td>Most recent status snapshot for a distance or rotation helper request.</td></tr>
+                    <tr><td><code>self_test</code></td><td><code>RobotSelfTestResult_t</code></td><td>Most recent motor, encoder, and surface-sensor activity-test result.</td></tr>
                     <tr><td><code>buzzer</code></td><td><code>RobotBuzzer_t</code></td><td>Cached buzzer command structure.</td></tr>
                   </tbody>
                 </table>
@@ -344,6 +345,9 @@
                 <p>
                   Named left/right getters follow the shared convention: channel <code>0</code> is left and channel <code>1</code> is right for both motor commands and encoder counts.
                 </p>
+                <p>
+                  Every method below which performs an I2C transaction returns a Boolean success value. Read caches change only after a complete response of the expected size; write caches change only after the register and payload are both acknowledged. Command success confirms delivery, not physical completion.
+                </p>
               </div>
               <div class="api-table-wrap">
                 <table class="api-table">
@@ -361,10 +365,15 @@
                     <tr><td><code>getPose()</code></td><td>Requests one pose estimate and writes it to <code>pose</code>.</td></tr>
                     <tr><td><code>getMotionStatus()</code></td><td>Requests one helper-motion status snapshot and writes it to <code>motion_status</code>.</td></tr>
                     <tr><td><code>isMotionHelperRunning()</code></td><td>Returns true only when the cached <code>motion_status.state</code> is <code>MOTION_STATUS_RUNNING</code>.</td></tr>
+                    <tr><td><code>startSelfTest()</code></td><td>Starts a two-second on-the-spot rotation which checks both wheel channels and variation in the five raw surface readings. Clear the robot's swept area first.</td></tr>
+                    <tr><td><code>getSelfTestResult()</code></td><td>Requests the current or most recent result and writes it to <code>self_test</code>.</td></tr>
+                    <tr><td><code>isSelfTestRunning()</code></td><td>Returns true only when the cached result state is <code>SELF_TEST_STATUS_RUNNING</code>.</td></tr>
+                    <tr><td><code>didMotorPassSelfTest(uint8_t)</code><br /><code>didEncoderPassSelfTest(uint8_t)</code></td><td>Returns a cached left/right pass bit using index 0/1. Both results use encoder movement and therefore cannot distinguish a motor fault from an encoder fault without external evidence.</td></tr>
+                    <tr><td><code>didSurfaceSensorPassSelfTest(uint8_t)</code></td><td>Returns the cached DN1–DN5 variation result using index 0–4. Use a surface containing reflectance variation.</td></tr>
                     <tr><td><code>getLeftEncoderCount()</code><br /><code>getRightEncoderCount()</code></td><td>Returns named values from the cached encoder snapshot.</td></tr>
                     <tr><td><code>getLeftMotorPWM()</code><br /><code>getRightMotorPWM()</code></td><td>Returns named values from the cached requested-PWM pair for telemetry.</td></tr>
                     <tr><td><code>setTeamname(char*)</code></td><td>Stores and sends a null-terminated team name; long values are truncated to fit the payload.</td></tr>
-                    <tr><td><code>setMotorPWM(float l, float r)</code></td><td>Sends requested left/right PWM through I2C. A new ordinary motor command cancels a running helper motion.</td></tr>
+                    <tr><td><code>setMotorPWM(float l, float r)</code></td><td>Sends requested left/right PWM through I2C. A new ordinary motor command cancels a running helper motion or self-test.</td></tr>
                     <tr><td><code>startMoveDistance(float distance_mm)</code></td><td>Starts a relative nominal straight-line helper request. Negative distance requests backward travel.</td></tr>
                     <tr><td><code>startRotateAngle(float angle_rad)</code></td><td>Starts a relative nominal in-place rotation request. Positive angle requests a left turn; negative requests a right turn.</td></tr>
                     <tr><td><code>setPose(float x, float y, float theta)</code></td><td>Sends a requested interface pose; useful for a controlled demonstration, not a physical measurement.</td></tr>
@@ -457,10 +466,13 @@
                     <tr><td><code>RobotMotionDistance_t</code></td><td>One relative <code>distance_mm</code> request.</td></tr>
                     <tr><td><code>RobotMotionRotation_t</code></td><td>One relative <code>angle_rad</code> request; positive is left.</td></tr>
                     <tr><td><code>RobotMotionStatus_t</code></td><td>State, mode, and elapsed milliseconds. Record encoder observations separately through <code>RobotEncoders_t</code>.</td></tr>
+                    <tr><td><code>RobotSelfTestCommand_t</code></td><td>Two-byte start payload. The reserved byte keeps it distinct from a one-byte register selection.</td></tr>
+                    <tr><td><code>RobotSelfTestResult_t</code></td><td>Status, pass masks, elapsed time, signed encoder deltas, and raw DN1–DN5 ranges. Its packed size is 26 bytes.</td></tr>
                     <tr><td><code>RobotBuzzer_t</code></td><td><code>freq</code>, <code>duration_ms</code>, and <code>volume</code>.</td></tr>
                     <tr><td><code>RobotTeamname_t</code></td><td>32-byte null-terminated team-name payload, with up to 31 content characters.</td></tr>
-                    <tr><td><code>REGISTER_GET_...</code></td><td>Requests surface, encoder, pose, or motion-status snapshots.</td></tr>
+                    <tr><td><code>REGISTER_GET_...</code></td><td>Requests surface, encoder, pose, motion-status, or self-test snapshots.</td></tr>
                     <tr><td><code>REGISTER_SET_...</code></td><td>Sends pose, motor, buzzer, team-name, distance-helper, or rotation-helper requests.</td></tr>
+                    <tr><td><code>REGISTER_START_SELF_TEST</code></td><td>Starts or restarts the built-in two-second activity test.</td></tr>
                   </tbody>
                 </table>
               </div>

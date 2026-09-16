@@ -6,7 +6,10 @@
     <meta name="description" content="CW2026 Getting Started setup and demonstration guide" />
     <title>CW2026 · Getting Started</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=8" defer></script>
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=9" defer></script>
   </head>
   <body>
     <div class="site-shell">
@@ -20,7 +23,9 @@
         <section id="overview" class="intro">
           <div class="eyebrow"><span class="eyebrow-line"></span>Core route</div>
           <h1>Prepare the tools,<br /><em>verify the demonstration.</em></h1>
-          <p class="lead">This shared sequence uses Arduino IDE, Processing, the supplied local course workspace, and the physical robot before you begin investigating the Digital Twin.</p>
+          
+          
+          <<p class="lead">This shared sequence uses Arduino IDE, Processing, the supplied local course workspace, and the physical robot before you begin investigating the Digital Twin.</p>
         </section>
         <section class="orientation-card">
           <div class="orientation-icon">✓</div>

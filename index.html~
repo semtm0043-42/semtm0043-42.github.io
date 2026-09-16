@@ -8,7 +8,10 @@
       CW2026 · Robotics Science and Systems
     </title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="app.js?v=8" defer>
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=9" defer>
     </script>
   </head>
   <body>
@@ -27,11 +30,13 @@
             </small>
           </span>
         </a>
+        <!--
         <div class="course-status">
           <span class="status-dot">
           </span>
           Course learning journey
         </div>
+        -->
         <nav data-course-navigation>
           <p class="nav-label">
             Start here
@@ -57,6 +62,7 @@
         </nav>
       </aside>
       <main id="top" class="main-content">
+		 <!--        
         <header class="topbar">
           <div class="breadcrumb">
             <strong>
@@ -68,68 +74,46 @@
             Robotics Science &#38; Systems
           </div>
         </header>
+        -->
         <section id="overview" class="intro">
           <div class="eyebrow">
             <span class="eyebrow-line">
             </span>
-            SEMTM0043/42: Robotics Science &#38; Systems
+            SEMTM0043/SEMTM42:
           </div>
           <h1>
-            Understand the robot
+            Robotics Science &amp;
             <br />
             <em>
-              as a system.
+              Systems.
             </em>
           </h1>
+          <!--
           <div class="principles">
             <div><span>1</span><strong>Phase 1</strong><small>Measure the subsystems of a real robot.</small></div>
             <div><span>2</span><strong>Phase 2</strong><small>Improve the subsystem models of a digital twin simulation.</small></div>
-            <div><span>3</span><strong>Outcome</strong><small>Evaluate the full system against a task.</small></div>
+            <div><span>3</span><strong>Outcome</strong><small>Use evidence to evaluate the full system against a task.</small></div>
           </div>
-          <div class="lead">
-                <h2>Phase 1</h2>
-                <p>In <strong>Phase 1</strong> of this course you will design tests and experiments to measure the performance characteristics of the real robot.  You will use a microcontroller on top of the robot called a StampC3 as the primary tool to take measurements.  You will write code for the StampC3 to collect sensor information and send sequences of motor commands to the Pololu 3Pi+ robot. The StampC3 and the Pololu 3Pi+ robot operate together as a pair.  The relationship between the StampC3 and the Pololu 3Pi+ robot is similar to a rider and a horse:</p>
-                <figure class="orientation-figure">
-                  <img src="assets/images/pololu3pi_stampc3/horse_and_rider_highlighted.png" alt="Horse-and-rider analogy highlighting the rider as the StampC3 controller and the horse as the Pololu 3Pi+ robot" width="100%"/>
-                </figure>
-                <ol>
-                  <li><strong>The horse (Pololu 3Pi+)</strong> provides movement and perception. Its supplied middleware operates the motor and sensor electronics.  You will not be writing code the robot itself or programming it directly.</li>
-                  <li><strong>The rider (StampC3)</strong> responds to the robot's information and decides what to request or command next. You will program this controller.</li>
-                </ol>
-                <p>Your main objective in Phase 1 will be to collect measurements to understand the performance of a subsystem of your real robot.  This will be either the <strong>motors</strong> subsystem, <strong>surface reflectance sensors</strong> subsystem, or <strong>odometry</strong> subsystem.  Each team member is required to select one distinct subsystem, so that you can combine your findings in Phase 2.</p>
-<p>Your learning outcomes in Phase 1 will be a greater technical understanding of how robotic subsystems function, how their performance can vary, and how we can approach characterising them.  You will establish an understanding of designing an experimental methodology relative to known technical and functional expectations.</p>                
-                
-                <h2>Phase 2</h2>
-                <p>In <strong>Phase 2</strong> of this course, you will transfer your findings from Phase 1 into a simulation of the robot, referred to as a <strong>Digital Twin</strong>.  Your objective is to make your simulator better match the reality of your robot - referred to as <strong>correspondence</strong>.  Making a perfect model is not possible - instead, you will want to improve the aspects that matter most. To decide what matters, you will need to select a task for your robot to complete both in reality and in simulation.  You can then be selective about which measurements to transfer from Phase 1 to model in Phase 2, and the selected task will allow you to observe, measure, and evaluate the degree of correspondence.</p>
-<p align="center"><img src="./assets/images/pololu3pi_stampc3/phase1_to_phase2.png" width="100%" alt="An illustration of transferring measurements between the real robot and the digital twin simulation"></p>
-                <p>
-  Your learning outcome in Phase 2 is to construct an <strong>evidence-informed argument</strong>
-  for which aspects of the robot's behaviour are most important to model in the digital twin,
-  and to evaluate how and why discrepancies remain between reality and simulation.  This will include a critical reflection on the experimental approach undertaken.
-</p>
-
-<p>
-  If you observe little or no discrepancy, this may indicate that the robot task selected was too simplistic,
-  or that the experiment was controlled so tightly that it was no longer representative of
-  real-world behaviour.  In Phase 2 you will employ experiment methodology to acquire new knowledge under <strong>uncertainty and complexity</strong>. 
-</p>
-
-<p>
-  You will therefore demonstrate the critical thinking required to design experiments that are
-  both <strong>scientifically rigorous</strong> and sufficiently <strong>representative of the
-  behaviour you wish to understand</strong>.
-</p>
-                
-                                <p align="center"><img src="./assets/images/pololu3pi_stampc3/robot_and_digitaltwin.png" width="100%" alt="Illustration of comparing the real robot and digital twin system to learn more"></p>
-<br>
-  <p>In this course, we are not expecting a perfect solution.  We are looking for an evidence-informed argument for the merits and insights of the approaches you have taken.  </p>
-
-            </div>
-        </section>
+          -->
+          </section>
         <section id="journey" class="selection-section">
           <div class="section-heading">
           </div>
           <div class="journey-grid journey-path">
+            <a class="journey-card" href="course-introduction.html">
+              <span class="section-number">
+                Introduction
+              </span>
+              <h3>
+                Course Introduction
+              </h3>
+              <p>
+                Understand the two coursework phases, how individual subsystem specialisms combine, and what your team is working towards.
+              </p>
+              <span class="card-link">
+                Read the course introduction →
+              </span>
+            </a>
             <a class="journey-card" href="getting-started.html">
               <span class="section-number">
                 Start
@@ -146,7 +130,7 @@
             </a>
             <a class="journey-card journey-phase" href="phase-1.html">
               <span class="section-number">
-                Phase 1
+                Phase 1 (Individual Work)
               </span>
               <h3>
                 Characterising the Real Robot
@@ -160,7 +144,7 @@
             </a>
             <a class="journey-card journey-phase" href="phase-2.html">
               <span class="section-number">
-                Phase 2
+                Phase 2 (Group Work)
               </span>
               <h3>
                 Updating the Digital Twin Simulation
@@ -184,6 +168,20 @@
               </p>
               <span class="card-link">
                 Explore extensions →
+              </span>
+            </a>
+            <a class="journey-card" href="system-reference.html">
+              <span class="section-number">
+                Reference
+              </span>
+              <h3>
+                System Reference
+              </h3>
+              <p>
+                Find the StampC3 hardware-facing API, I2C data types, WiFi and TCP transport, and Digital Twin code structure.
+              </p>
+              <span class="card-link">
+                Open system reference →
               </span>
             </a>
           </div>
@@ -218,31 +216,9 @@
             </span>
           </div>
         </section>
-        <section class="reference-callout">
-          <div class="orientation-icon">
-            ?
-          </div>
-          <div>
-            <span class="section-kicker">
-              Reference, when you need it
-            </span>
-            <h2>
-              Explore the StampC3 system
-            </h2>
-            <p>
-              The supplied template is deliberately real code with real interfaces. Use the system reference to find the StampC3 hardware-facing API, I2C data types, WiFi/TCP transport, and code structure without treating the reference as a substitute for physical evidence.
-            </p>
-          </div>
-          <a class="reference-callout-link" href="system-reference.html">
-            Open system reference →
-          </a>
-        </section>
         <footer>
           <span>
-            CW2026 · AI-integrated robotics education
-          </span>
-          <span>
-            Evidence makes a model useful
+            Designed and written by Paul O'Dowd for the University of Bristol, UK (2026)
           </span>
         </footer>
       </main>

@@ -1215,10 +1215,7 @@ footer a {
   font: 10px 'DM Mono';
 }
 .deadband-illustration,
-.saturation-illustration,
-.gain-illustration,
-.nonlinearity-illustration,
-.dynamics-illustration {
+.saturation-illustration {
   display: block;
   width: 100%;
   height: auto;
