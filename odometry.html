@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="en">
+    <head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="CW2026 odometry characterisation exercises" />
+	<title>
+	    CW2026 · Odometry
+	</title>
+	<link rel="stylesheet" href="styles.css" />
+	<link rel="stylesheet" href="odometry.css" />
+	<link rel="stylesheet" href="vendor/katex/katex.min.css" />
+	<script src="vendor/katex/katex.min.js" defer></script>
+	<script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+	<script src="app.js?v=11" defer>
+	</script>
+    </head>
+    <body data-exercise-default="collapsed">
+	<div class="site-shell">
+	    <aside class="sidebar" aria-label="Course navigation">
+		<a class="brand" href="index.html">
+		    <span class="brand-mark">CW</span>
+		    <span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span>
+		</a>
+		
+		<nav data-course-navigation>
+		</nav>
+		<nav aria-label="Odometry investigation sequence">
+		    <p class="nav-label">Investigation sequence</p>
+		    <a class="nav-item active" href="#overview"><span>00</span>Brief &amp; setup</a>
+		    <a class="nav-item" href="#exercise-01"><span>01</span>Encoders and pose</a>
+		    <a class="nav-item" href="#exercise-02"><span>02</span>Wheel radius</a>
+		    <a class="nav-item" href="#exercise-03"><span>03</span>Wheel separation</a>
+		    <a class="nav-item" href="#exercise-04"><span>04</span>Square benchmark</a>
+		    <a class="nav-item" href="#exercise-05"><span>05</span>Gyroscope drift</a>
+		</nav>
+	    </aside>
+	    <main id="top" class="main-content">
+		
+		<section id="overview" class="intro">
+		    <h1>Subsystem:<br /><em>Odometry.</em></h1>
+		    <!--<p class="lead">Odometry estimates position and heading from measurements collected over time. Begin with the editable Euler model supplied in StampC3_Template: acquire encoder readings, use the supplied printed measurement sheet to calibrate wheel radius and separation, and test each change against physical observations. Then challenge the calibrated model with a bidirectional square benchmark, investigate gyroscope heading and, as a Going Further exercise, displacement from acceleration.</p>-->
+		    <h3>Familiarising with the Odometry Model</h3>
+		    <p>Your copy of StampC3_Template contains OdometryModel.cpp/.h, which has the source code for a complete but simple kinematic model using <strong>Euler integration</strong>. Euler integration approximates continuous-time motion using discrete time steps - we update the model once during each time step. The simple model provided also approximates the continuous motion of the robot using two sequential operations within each update. First, <strong>translation</strong> - moving the robot forwards or backwards along its current heading. Second, <strong>rotation</strong> - changing the robot's orientation, which then becomes the heading used for the next update. </p>
+		    <figure class="plot"><img src="./assets/images/odometry/discrete_updates_sketch.png" width="50%" alt="" /><figcaption>Figure 1. An illustration of how a continuous curve trajectory is estimated by a discrete straight-line approximation.  The discrete nature of the approximation has been greatly exaggerated to illustrate the concept.</figcaption></figure>
+
+		    <p> When the robot is powered on, its initial position is configured as the origin (\(x = 0, y = 0, \theta=0\)).  At heading zero the robot faces along +x.  Positive rotation turns towards +y, which we would observe as anticlockwise rotation when viewed from above.</p>
+
+		    <figure class="plot"><img src="./assets/images/odometry/local_frame_sketched.png" width="50%" alt="" /><figcaption>Figure 1. Coordinate frame assumption, by default the robot initialises itself to be at the coordinate frame origin.</figcaption></figure>
+		    <p>The model has 4 essential parameters: the time step, the wheel radius, the wheel separation, and the number of encoder counts per wheel revolution (CPR).  The CPR should be considered as correct and fixed - the manufacturer of the robot specifies this as 358.3 counts per revolution.  Your task across the following exercises is to first improve the odometry on board the robot, and then measure and evaluate the overall performance.  Your findings will then be carried over into Phase 2, the group project element on the Digital Twin simulation.</p>
+
+		    <figure class="plot"><img src="./assets/images/odometry/model_parameters_sketch.png" width="50%" alt="" /><figcaption>Figure 1. Coordinate frame assumption, by default the robot initialises itself to be at the coordinate frame origin.</figcaption></figure>    
+
+		    <p>Importantly, for our odometric model, we do not want to know the total count of encoder pulses since the robot was powered on.  The total count for each motor does not describe the potential complexity of the motion path taken by the robot. For example, some turning movements (rotating on the spot) or reverse manoeuvrers will cause the encoder count to decrease, not just increase.  Inspecting only the total count does not represent these motion dynamics.   Instead, our odometric model will update in discrete time steps - repeated measurements taken with a spacing of a small interval of time.  The odometric model therefore computes the difference between two encoder counts spaced by an interval of time.  We can understand this as asking <i>"how far did the wheel travel in this time step?"</i>.   This allows for a piecewise estimation of how the robot moved to be constructed iteratively.</p>
+
+		    <p>In these exercises you are guided to develop code for the StampC3 within the Controller_c class (Controller.h file).  The Controller_c class framework implements a 10ms interval in the update() function, which in turn called the runLineFollower() example function. This 10ms schedule was created to allow the Pololu 3Pi+ robot sufficient time to execute it's own code to read sensors, control motors, respond to I2C requests, and so on.  The Controller_c class is also written to be directly compatible with the Digital Twin simulation code in Processing - which you will work with closely in Phase 2 of this course.  Therefore, as much as possible you should preserve the general design of the Controller_c class. That way, you will be able to directly transfer the control code for your robot between the real robot and the simulated robot.</p>     
+
+
+
+
+		</section>
+		<!--<div class="sequence-heading">
+		    <span class="section-number">01—07</span>
+		    <div><span class="section-kicker">Six core exercises and an acceleration extension</span><h2>Calibrate the supplied model, then challenge it with new motion</h2></div>
+		    <p>Keep raw readings, actual timestamps, initial poses, parameters, and independent observations together. Reserve validation conditions before fitting. A requested movement is an input to an experiment, not evidence that the robot followed it; compare every model prediction with an independent physical observation.</p>
+		</div>-->
+		
+		        <section class="orientation-card">
+          <div class="orientation-icon">
+            i
+          </div>
+          <div>
+            <span class="section-kicker">
+            </span>
+            <h2>
+              Configure your Robot
+
+            </h2>
+            <p>
+           Before you start these exercises, check that you have configured your robot middleware.  Find the following line of code in the top level .ino file and insert your chosen team name: </p>
+           <blockquote><code>robot.initialise("your teamname");</code></blockquote>
+            <p>The team name must not be longer than 31 characters.  If you want to make a comparison of performance without the middleware active, you can use:</p> 
+            <blockquote><code>robot.initialise();</code></blockquote>
+            <p>In the Odometry exercises, the encoders, gyroscope and accelerometer are not affected by the middleware configuration.  Physical differences between robots make a noticable impact to the calculation of kinematics and odometry, presenting enough challenge and interest.</p>
+          </div>
+        </section>
+
+		<div class="sequence-actions" aria-label="Exercise section controls"><button type="button" data-exercise-action="collapse">Collapse all</button><button type="button" data-exercise-action="open">Open all</button></div>
+		<div class="exercise-sequence">
+		    <article id="exercise-01" class="exercise-card">
+			<div class="exercise-index">01</div>
+			<div class="exercise-content">
+			    <div class="exercise-heading">
+				<div><span class="concept-tag">Acquisition · a supplied model</span><h2>Reading encoders and estimating motion</h2></div>
+				<span class="time-badge">Approx. 1.5–3 hours</span>
+			    </div>
+			    <div class="teaching-brief">
+				<p><strong>Goal:</strong> understand the translation of encoder counts through the odometry class, produce a reusable record of odometry measurements for later use.</p>
+
+				<p>Each motor on the robot is fitted with a quadrature encoder.  The encoder has a disc magnet which rotates above a <a href="https://en.wikipedia.org/wiki/Hall_effect_sensor">Hall Effect sensor</a>.  This means that when the motor shaft rotates an electronic pulse is created that can be counted.  More information on how the encoders work can be found in the <a href="https://www.pololu.com/docs/0J83/5.4">official documentation</a>.  In this course, counting the pulses and determining whether the wheel is rotating forwards or backwards has been implemented for you.  The robot will register a change in wheel rotation and either increment or decrement the rotation count.
+				</p>
+					<p>To read the current encoder count for the motors, we will utilise a helper function within the <strong>Robot_c</strong> class (defined in Robot.h). In Robot.cpp, find <code>getEncoders()</code>. Reviewing the code in this function, we can observe that the function requests a "snapshot". You can find this snapshot (encoders) and other snapshot variables declared at the top of the Robot_c class. This snapshot terminology reflects the fact that the encoder values retrieved were correct at the time they were requested, but that they may have since changed. In real terms, if a snapshot of the encoder counts is retrieved, but the robot continues to move, then we expect that the count stored on the robot itself will have continued updating.</p>
+
+				<p>Two more helper functions, <strong>getLeftEncoderCount()</strong>, and <strong>getRightEncoderCount()</strong>, are provided to attempt to reduce potential confusion about which count represents which wheel.  Reviewing the function getLeftEncoderCount(), we can observe that it has the <strong>return type</strong> of <strong>int32_t</strong>.  This means that the function will return a <strong>signed integer</strong> number value, whose range is represented across <strong>32 bits</strong>.  In actuality, 1 bit is reserved to represent the sign of the number (-/+) whilst the remaining 31 bits represent the numeric value.  Suffice to say, an int32_t can store very large number values.</p>
+
+				<p>Counts of rotation produced by the encoder may seem confusing - how does this map to a rotation or distance travelled?  The official documentation for the <a href="https://www.pololu.com/docs/0J83/5.4">encoders</a> tells us that one whole rotation of the wheel produces 358.3 encoder counts.  We can therefore work out either how much rotation occurs for 1 encoder count ( degrees: \(\frac{360}{358.3}\), or radians: \(\frac{2\pi}{358.3}\)), or how much distance would be travelled by the wheel for one encoder count (wheel circumference divided by CPR, \(\frac{2 \pi r}{358.3}\)).  </p>      
+
+				<p>However, our robot moves itself with two wheels, and their combined interactions determine the resultant motion of the whole robot.  Therefore, capturing the distance travelled by a single wheel is only the initial step in the process of modelling the motion. If one wheel rotates and the other does not, the robot will pivot (turn about) on the wheel that is not rotating.  If both wheels rotate forwards at the same speed, the robot should move forwards.  If both wheels rotate in opposite directions with the same speed, the robot should rotate on the spot.  Therefore, it is necessary to also model the essential physical geometry of the robot, and to combine this with the independent rotation counts for the left and right wheels.</p>
+
+					<p><strong>Odometry</strong> is the name given to this process of estimating overall motion from input measurements such as these. Developing and improving the odometry is your main task in this complete set of exercises. When we discuss the physical geometry of the robot and the mathematical operations of the model, we may use the phrase <strong>kinematics</strong>. In this first exercise, your task is to familiarise yourself with the code provided, verify that the example works, and make your first assessment of the accuracy and precision of the odometry by reporting odometry outputs.</p>
+
+				
+			    </div>
+
+			    <div class="exercise-grid">
+				<div class="context-box" data-context-box>
+				    <div class="context-tabs" role="tablist" aria-label="Exercise 1 guidance">
+					<button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button>
+					<button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button>
+				    </div>
+				    <div class="context-panel active" data-panel="nonai">
+					<h3>Investigation brief</h3>
+					<ol>
+					    <li><strong>Get familiar with the code:</strong> In the above description, the structure of the code is described as having a top level .ino file, which makes a call to the <strong>controller.update(...)</strong> function within Controller.h.  The Controller.h code makes function calls to the Robot.h file.  The code in Robot.h/.cpp has dependency on i2c_datatypes.h.
+						<ol>
+						    <li>As a first exercise, quickly sketch a block diagram of the organisation of the source code files. </li>
+						    <li>Look to sketch the relationships, such as when code is nested within other code. </li>
+						    <li> Don't worry too much about making this "correct" yet - as you continue to explore the code you can come back to correct your understanding.</li></ol></li>
+					    <li><strong>Verify the example works:</strong> Before making any changes, it is best practice to first verify an example works.  This way, we will know if our changes have caused a fault or not.  
+						<ol>
+						    <li>Upload the code to the StampC3 to run the supplied line-following example and observe how the robot behaves when it is waiting, follows the line, and searches after losing it. You should be able to observe a sequence of behaviours. <li>Now inspect the example code.  Starting from loop() in the top level .ino file, read the code to trace the execution path that reaches each <strong>robot.setMotorPWM(...)</strong> call.  Try to navigate each 'if' statement by considering possible alternative conditional values.  You can think of this as building a mental map of the logic of the code, and how it relates to robot behaviours.</li>
+							<li>If you find variables that have not been declared within a function, find where they have been declared elsewhere in the code.  Sometimes this may even require you to navigate to a separate source code file.</li>                  
+						</ol></li>
+						<li><strong>Disable the Digital Twin link. </strong>On a temporary basis, we will disable the reporting of data back to the Digital Twin simulation.  Find the following segment of code in the Controller_c update(...) function, and comment out the following line of code as shown below:
+						    <blockquote><pre><code>
+if (telemetry_timer.isReady(now)) {
+	telemetry_timer.resetTimer(now);
+	// publishTelemetry(robot, server, now); // commented out
+}</code></pre>
+						    </blockquote>
+						</li>
+						<li><strong>Find and isolate the calls to Odometry and Pose functions: </strong> Read the <code>Controller.cpp</code>. Find the portion of code within update(...) that reads:
+						    <pre><code>
+// Ask the robot for the latest encoder information, and then use this
+// to update the odometry on board the StampC3 (see Odometry.h/.cpp)
+if (robot.getEncoders()) {
+odometry.update(robot.getLeftEncoderCount(), robot.getRightEncoderCount());
+}
+
+// Pose estimation from the Pololu 3Pi robot itself.
+robot.getPose();
+						    </code></pre>
+						    <ol>
+							<li>The above portion of code runs the local (StampC3) odometry update, odometry.update(...), and requests odometry information from the Pololu robot itself, robot.getPose().  These lines of code will remain essential throughout these exercises.</li>
+							<li>In the above code extract, odometry.update(...) is updating the StampC3 local instance of odometry.  You can find this update routine in the source code file <strong>OdometryModel.h/.cpp</strong>. </li> 
+								<li>The line robot.getPose() retrieves the Pololu 3Pi+ robots own odometry estimate.  The Pololu 3Pi+ is automatically updating it's own odometry.  You have no way to change the code on the Pololu 3Pi+ robot, so you will not be able to improve the robots own odometry, but you can use it as a point of reference.  The Pololu 3Pi+ robots each have slight differences from each other. When a robot travels for some time, small errors accumulate into significant errors. It therefore remains necessary to perform a calibration of the odometry model.</li>
+							    </ol>
+							</li>
+
+							<li><strong>Prepare your measurement reporting.</strong> In Controller.cpp, find the function:
+								<blockquote>void runLineFollower( Robot_c &amp;robot, unsigned long now) {...}</blockquote>
+								<ol>
+								    <li>Copy and paste the function runLineFollower(), creating a duplicate.  Rename the function to represent our current task, something like reportOdometry(...)</li>
+								    <li>Make sure you preserve the input arguments <code>Robot_c &amp;robot, unsigned long now</code>.</li>
+								    <li>Inside the new reportOdometry(...) function, delete all the lines of code. Replace the contents with the lines:
+    <blockquote><pre><code>
+	Serial.print( now );
+	Serial.print( "," );
+	Serial.print( robot.getLeftEncoderCount() );
+	Serial.print( "," );
+	Serial.print( robot.getRightEncoderCount() );
+	Serial.print( "," );
+	Serial.print( odometry.pose.x );
+	Serial.print( "," );
+	Serial.print( odometry.pose.y );
+	Serial.print( "," );
+	Serial.print( odometry.pose.theta );
+	Serial.print( "\n" );
+	</code></pre></blockquote>
+									    The above lines of code invoke the Serial interface to print the time in milliseconds since the robot was powered on, the latest signed left and right encoder counts, and the corresponding local odometry \(x,y,\theta\). These values are printed on one line separated by commas. The final print statement is <code>"\n"</code>, which ends this record so that the next snapshot begins on a new line.</li>
+								    <li>The syntax <code>odometry.pose.x</code> contains dot (.) operators.  The line of code can be read right to left to mean: x is inside pose (pose.x), pose is inside odometry (odometry.pose).  The dot operator is therefore used to access variables or functions within objects.  If you see a line of code with the dot operator, you can use it as a clue to find more information.  We can find that the variable <strong>named</strong>odometry is declared within Controller_c (Controller.cpp file), but it's <strong>type</strong> <code>Odometry_c</code> is declared within Odometry.h.  Sometimes you will need to investigate other files. </li>  
+							    <li>Within the update(...) function, comment out the line of code calling runLineFollower() to disable the line following example.  For now, this should prevent the robot from activating its motors and moving.  Verify that this is the case.</li>
+						    <li>Within the update(...) function, now insert a call to your reportOdometry(...) function underneath the commented out runLineFollower(...) call.</li>
+							</ol>
+						</li>
+						<li><strong>Upload to the StampC3. </strong> Upload the edited code to the StampC3.  Keep the USB cable plugged in.  Open the Serial Monitor.<ol>
+							<li>Initially, you may not see anything.  This is because the StampC3 should be waiting for a button press. Once you press the button, you should then see the \(x, y, \theta\) values being printed from the reportOdometry() function.</li>
+							<li>Gently push the robot forwards and inspect the output on the Serial Monitor. You should see the value of \(x\) increase, and if there was some rotation, you will also see a change to \(y\) and \(\theta\).</li>
+								<li>Take your time to explore how \(x, y\) and \(\theta\) vary as you gently push the robot around.  See if you can move the robot, then move it back to return to where it started.</li>
+							    </ol>
+							</li>
+							<li><strong>Save a reusable raw record.</strong> Copy the Serial output into a CSV file rather than recording only the final pose. Use the following header so that the meaning and units of every column remain clear:
+							    <pre style="overflow-x: auto;"><code>sample_time_ms,left_encoder_count,right_encoder_count,odometry_x_mm,odometry_y_mm,odometry_theta_rad</code></pre>
+							    We would expect the reported data in the Serial Monitor to look something like:
+							    <blockquote><code><pre>
+	3225, 100, 95, 5.54, 0.5, 0.01
+	3225, 108, 104, 6.34, 0.56, 0.01
+	3225, 114, 110, 9.41, 1.2, 0.02
+							    </pre> </code> </blockquote>
+							    where the columns follow the header descriptions given.  Note that, the above values are not representative of the true values you will see - they are just an example.
+							    <ul>
+							    	<li>Begin recording before you move the robot, retain every row produced during the movement, and keep at least one row after it has stopped.</li>
+							    	<li>Check that time increases, that both signed encoder columns are present, and that each row contains six values. </li>
+							    	<li>An unchanged encoder count can be a valid stationary observation, so do not delete repeated count values merely because the wheel did not move. As a general rule, you don't want to delete any data without a justifiable reason.</li>
+							    	<li>These rows are the inputs and outputs of the local odometry model, at this point we expect them to not agree with a measured physical trajectory.</li> 
+
+							    </ul>
+							     
+
+						 
+						
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>A working acquisition routine, verified wheel and coordinate conventions, and a saved CSV containing the complete timestamped sequence of signed encoder counts and local pose values.</p>
+				    </div>
+				    <div class="context-panel" data-panel="ai" hidden>
+					<h3>AI-assisted investigation brief</h3>
+					<p>Use AI as a code-reading tutor while you follow a pair of encoder counts into a pose estimate. It has not observed your robot. A convincing explanation of the equations does not establish that the estimated motion agrees with the physical movement.</p>
+					<p>Your first milestone is one count-to-pose update you can explain, followed by a logger and physical sign checks. These checkpoints lead to the complete outcome below, rather than add extra submissions. If the map or calculation is unfamiliar, ask for a hint, then a small diagram or worked example using clearly labelled illustrative counts. Complete a similar example yourself before checking a real record. You can ask for direct explanation without first knowing the answer.</p>
+					<ol>
+					    <li><strong>Make a first map yourself.</strong> Sketch the path from <code>loop()</code> through <code>controller.update(...)</code>, <code>robot.getEncoders()</code> and <code>odometry.update(...)</code> to <code>controller.odometry.pose</code>. Put <code>robot.pose</code> and an independently measured physical pose in separate boxes. Mark uncertain arrows rather than trying to make the diagram look finished.</li>
+					    <li><strong>Check one connection at a time.</strong> Direct a repository-capable AI to <a href="https://github.com/paulodowd/RoboticsScienceAndSystems" target="_blank" rel="noopener">the public GitHub repository</a> and its <code>StampC3_Template</code> directory, or provide excerpts from your working copies of the supplied top-level sketch, <code>Controller.cpp</code>, <code>Robot.h</code>, <code>Robot.cpp</code> and <code>OdometryModel.h/.cpp</code>. Require exact files and symbols, and check them against your working copy, including your edits, if it differs from the online version. Sharing excerpts means providing the relevant code directly to AI, not publishing your code or making your team repository public. The supplied files do not include the opaque middleware implementation. Keep credentials and identifying student information out of the conversation.
+					        <ol>
+					            <li>Explain why cached count getters do not acquire a new snapshot and why a failed acquisition must not be recorded as a new measurement.</li>
+					            <li>Trace <code>odometry.reset(...)</code> and the first subsequent successful count pair. It establishes the local baseline; it does not mean the hardware encoder totals were reset.</li>
+					            <li>Locate the geometry, units and Euler update order. Position uses the old heading before the heading increment is added. Counts already describe movement over an interval, so the distance calculation does not need another multiplication by elapsed time.</li>
+					        </ol>
+					    </li>
+					</ol>
+					<div class="prompt-snippet">“Act as a code-reading tutor. I will explain my count-to-pose sketch first, including uncertain connections. Using the excerpts I provide from my supplied StampC3_Template files, help me trace the initial count baseline and one later Euler update, citing exact symbols. If I am stuck, demonstrate one small step with illustrative counts and let me complete a similar step. Distinguish local pose, the I2C pose and physical observations; do not present examples as readings or infer the unavailable middleware.”</div>
+					<ol start="3">
+					    <li><strong>Predict simple movements.</strong> Draw your coordinate axes and predict the signs of count and pose changes for a straight movement, a stationary-wheel pivot and an on-the-spot turn. Ask AI to check the reasoning after you attempt it. Record these as predictions; equal wheel commands do not guarantee equal physical wheel travel.</li>
+					    <li><strong>Build a small, checked logger.</strong> Preserve the supplied routine and create <code>reportOdometry(...)</code>, adding its declaration, definition and one call from <code>update(...)</code>. Keep the nominal 10 ms cycle and button start. Disable competing movement and ordinary telemetry, explicitly command zero motors, and continue successful encoder acquisition and local model updates. Ask AI to review your pseudocode before code. If implementation blocks you, provide the relevant declarations and request just the reporting section with an explanation. Save <code>sample_time_ms,left_encoder_count,right_encoder_count,odometry_x_mm,odometry_y_mm,odometry_theta_rad</code> with one consistent six-field row per accepted acquisition. For debugging, share the relevant function, exact error or output and what you expected. Ask what the tool actually inspected or compiled, then compile your own copy and check one row physically.</li>
+					    <li><strong>Test your map on the apparatus.</strong> Check the original selected routine with wheels clear before editing; then compile and upload the logger and verify that both motors remain off. Reset the local pose while stationary and acquire its baseline before moving. Gently move the robot on a clear surface without forcing the gears. Record before, during and after each motion, including unchanged counts when stationary. Verify physical left/right and coordinate signs, and keep the raw file even if the result surprises you.</li>
+					    <li><strong>Explain one recorded update.</strong> Select two consecutive records after baselining and calculate wheel travel, mean travel, heading change and the Euler position update yourself. Ask AI to check one step at a time, using your actual geometry and units. Finish by redrawing the source map from memory and explaining why agreement between two onboard estimates would still require an external physical check. In your existing investigation notes, record one AI suggestion you accepted or rejected and the evidence behind that choice. Identify a step you can now do without the conversation.</li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>A working non-blocking acquisition routine, complete raw count/time/pose records, verified sign conventions and a checked Euler calculation. You should be able to explain which quantities are observations, model inputs and pose estimates.</p>
+				    </div>
+				</div>
+				<div class="investigation exercise-evidence">
+				    <div class="measure-row"><span><b>Trace</b>counts to local pose</span><span><b>Record</b>raw counts + time</span><span><b>Verify</b>one Euler update</span></div>
+				</div>
+			    </div>
+			</div>
+		    </article>
+		    <article id="exercise-02" class="exercise-card">
+			<div class="exercise-index">02</div>
+			<div class="exercise-content">
+			    <div class="exercise-heading">
+				<div><span class="concept-tag">Translation · effective radius and validation</span><h2>Wheel radius and distance calibration</h2></div>
+				<span class="time-badge">Approx. 3–5 hours</span>
+			    </div>
+			    <div class="teaching-brief">
+				<p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/odometry-exercise-02-wheel-radius.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+				<p><strong>Goal:</strong> use the supplied printed measurement sheet to estimate an effective shared wheel radius, apply it to the supplied Euler model, and test whether it improves distance estimates on measurements excluded from calibration.</p>
+
+				<p>The investigation and development of the kinematic model should begin with the wheel radius. In this exercise, we will start with the assumption that both wheels will have the same radius to simplify matters.  Later exercises will guide you to explore for differences between the left and right wheels.  </p>
+				<p>Starting simple will You can review <code>OdometryModel.h</code> to become familiar with the mathematical steps of the kinematic update as they are described in code. The two components of the update are <strong>translation</strong> (moving the robot position forwards or backwards linearly) and <strong>rotation</strong>.</p>
+
+				<p>The translation component, \(\Delta s\), a linear change in position, is calculated with the equation:</p>
+				<div class="equation" role="img" aria-label="Forward displacement is the mean of the left-wheel and right-wheel distances">
+				    \[\Delta s=\frac{s_L+s_R}{2}\]
+				</div>
+				<p>where \(s_L\) is the signed distance travelled by the left wheel and \(s_R\) is the signed distance travelled by the right wheel. In this simple model implementation, the change in the robot's centre position during one time step is calculated from the mean of \(s_L\) and \(s_R\). Recall that the model determines the distance a wheel travels by calculating the difference in encoder counts, \(\Delta n\), for a given time step:</p>
+				<div class="equation" role="img" aria-label="Wheel distance equals two pi times wheel radius divided by encoder counts per revolution, multiplied by signed count change">
+				    \[s=\frac{2\pi r}{N}\Delta n\]
+				</div>
+				<p>Here \(r\) is the wheel radius assumed by the model and \(N\) is the specified number of encoder counts per wheel revolution: 358.3. We can interpret the equation as calculating the distance travelled around the wheel circumference for one encoder count, then multiplying that value by the signed change in counts. This means that, the models estimate of displacement is dependent on the wheel radius parameter \(r\). </p>
+				<figure class="plot"><img src="./assets/images/odometry/wheel-circumference-encoder-counts.png" alt="Three wheels of different sizes make the same registered encoder rotation; the larger wheel travels farther and the smaller wheel travels less" /><figcaption>For the same registered encoder counts, a larger wheel circumference produces more travel and a smaller circumference produces less. The relationship assumes that the wheel rolls on the surface without slipping.</figcaption></figure>
+				<p>Rotation is calculated with the equation:</p>
+				<div class="equation" role="img" aria-label="Heading change equals right-wheel distance minus left-wheel distance, divided by wheel separation">
+				    \[\Delta\theta=\frac{s_R-s_L}{B}\]
+				</div>
+				<p>In this equation, \(B\) is introduced as the physical distance between the two wheels and is the subject of investigation in the next exercise. The numerator and denominator are both lengths, so their ratio gives an angle in radians. The amount the robot turns depends on the difference in wheel travel relative to the distance between the wheels.</p>
+				<p>We are interested in investigating both \(r\) and \(B\), and we have a choice about which to investigate first. In the translation equation, \(B\) is not involved. We can therefore investigate a shared wheel radius first, provided that the robot travels approximately straight. Once a useful estimate of \(r\) is found, rotation can be investigated with \(B\) in relative isolation, depending on our confidence in \(r\).</p>
+
+				<h3>Translation: A Test Procedure</h3>
+				<p>To calibrate the value \(r\), we will need to make external measurements of the robot and carefully place the robot at the beginning of each test. This is therefore an <strong>experimental procedure</strong>. When reporting an experiment, it is important to declare and discuss limitations in the overall approach. Human placement and reading introduce measurement uncertainty, while a repeatable viewing or alignment method can still introduce systematic bias.</p>
+				<p>To calibrate the wheel radius, we require the wheels to rotate while the robot moves a measured physical distance, and then compare that distance with the value calculated by the odometry model. Keeping the encoder CPR fixed, a repeatable discrepancy in distance can indicate that the radius is misrepresented in the odometry model. However, other variables influence this relationship, including whether the robot starts and stops precisely, whether both wheels maintain consistent contact with the surface, and whether either wheel slips. For example, placing the robot may cause a small wheel rotation.</p>
+
+				<p>In these tests, we must use the real physical distance travelled by the robot as a measured reference. That means we cannot flip the robot over and remove the wheels from the surface in an attempt to control the experimental variables: the wheel-surface interaction is part of the system being calibrated.</p>
+
+				<p>To move the robot a measured distance across a surface, we have a couple of potential approaches. One approach is to place the robot on the surface and then, <strong>without</strong> any motor activation, move the robot forwards by a known fixed distance as precisely as we can manage. A second approach is to command the robot to move itself by activating the motors. However, this second approach is not as simple as it seems.</p>
+
+				<p>Ordinary motor PWM commands do not use feedback to regulate wheel speed or position. This affects how consistently the robot can start, stop, and move. It is possible to activate the motors at a fixed power level for a period of time and then measure the physical distance travelled. However, differences in left and right motor performance are likely to produce a path that is not consistently straight.</p>
+
+				<p>To help you explore these properties, the <code>Robot.h</code> file contains helper functions:</p>
+				<blockquote>
+				<code><pre>robot.startMoveDistance(distance_mm)
+robot.getMotionStatus()
+robot.isMotionHelperRunning()</pre></code>
+				</blockquote>
+				<p>These functions can request a forward movement for a specified nominal distance. The helper initially converts that request into encoder-count targets using transparent nominal wheel geometry and applies a fixed PWM magnitude to each unfinished wheel. It monitors the two encoder targets independently, but it does not synchronise the wheel speeds, slow the robot as it approaches the target, or measure the physical distance travelled. It will therefore be necessary to measure how far the robot actually moved in every test. This physical measurement is the external reference against which you will compare the distance reported by your StampC3 local odometry model.</p>
+
+				<p>If you find that the motion helper is either too complicated or not reliable enough, you can choose to move the robot across a known distance by hand. In this approach, you should carefully consider how you can place, move, and stop the robot with the best consistency. The paper test map you have been provided contains markings intended to act as an external distance reference. However, you should check that it has been printed to scale.</p>
+				<p>For this first calibration, begin with the robot aligned with the printed \(+x\) direction and use the change in the local odometry's reported \(x\) position:</p>
+				<div class="equation" role="img" aria-label="Estimated distance equals final odometry x minus initial odometry x">
+				    \[d_{\mathrm{est}}=\Delta x_{\mathrm{odom}}=x_{\mathrm{final}}-x_{\mathrm{initial}}\]
+				</div>
+				<p>This comparison assumes that the robot moved approximately straight. Note that, the reported \(x\) is displacement along one axis, not the total distance travelled along a curved path. For example, if your robot does not move in a straight line, some of the motion contribution will be lost in the x axis and appear in the y axis. Therefore, you should also record any corresponding changes in \(y\) and \(\theta\). If a trial has appreciable sideways movement or heading change, it would be better to repeat it, rather than allowing its curvature to become part of the radius correction.</p>
+				<p>Let \(d_{\mathrm{actual}}\) be the signed physical displacement measured along the same printed \(x\)-axis. Because the odometry distance for the same movement is proportional to the radius used by the model, we can produce a correction with:</p>
+				<div class="equation" role="img" aria-label="New wheel radius equals old wheel radius multiplied by actual distance divided by odometry estimated distance">
+				    \[r_{\mathrm{new}}=r_{\mathrm{old}}\frac{d_{\mathrm{actual}}}{d_{\mathrm{est}}}\]
+				</div>
+				<p>where:</p>
+				<ul>
+				    <li>\(d_{\mathrm{actual}}\) is the signed physical displacement measured along the printed \(x\)-axis;</li>
+				    <li>\(d_{\mathrm{est}}\) is the signed change in \(x\) reported by the local odometry;</li>
+				    <li>\(r_{\mathrm{old}}\) is the shared radius used in the odometry model during the test; and</li>
+				    <li>\(r_{\mathrm{new}}\) is the effective shared-radius estimate produced by this test.</li>
+				</ul>
+				<p>For example, suppose the odometry currently assumes:</p>
+				<div class="equation" role="img" aria-label="Old wheel radius equals sixteen millimetres">
+				    \[r_{\mathrm{old}}=16.0\,\mathrm{mm}\]
+				</div>
+				<p>You move the robot forwards by a measured distance:</p>
+				<div class="equation" role="img" aria-label="Actual distance equals three hundred millimetres">
+				    \[d_{\mathrm{actual}}=300\,\mathrm{mm}\]
+				</div>
+				<p>but the local odometry reports:</p>
+				<div class="equation" role="img" aria-label="Odometry estimated distance equals two hundred and eighty-five millimetres">
+				    \[d_{\mathrm{est}}=285\,\mathrm{mm}\]
+				</div>
+				<p>Then:</p>
+				<div class="equation" role="img" aria-label="New radius equals sixteen multiplied by three hundred divided by two hundred and eighty-five">
+				    \[r_{\mathrm{new}}=16.0\frac{300}{285}=16.84\,\mathrm{mm}\]
+				</div>
+				<p>The model underestimated the distance, so its wheel radius was too small and needs to increase. This result is an effective radius under the tested conditions, not necessarily the unloaded geometric radius of the wheel. Repeated trials and a measurement excluded from calibration are needed to establish whether the correction is useful beyond this example.</p>
+			    </div>
+			    <div class="exercise-grid">
+				<div class="context-box" data-context-box>
+				    <div class="context-tabs" role="tablist" aria-label="Exercise 2 guidance">
+					<button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button>
+					<button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button>
+				    </div>
+				    <div class="context-panel active" data-panel="nonai">
+					<h3>Investigation brief</h3>
+					<ol>
+					    <li><strong>Check and define the reference.</strong> Working with the provided printed test sheet, verify at least one printed dimension with a ruler and note any printer-scaling discrepancy. If you find that the sheet is not printed to scale, you can either work out a scaling conversion factor, or simply create your own measurement markings.</li>
+
+
+					    <!--<li><strong>Measure placement error.</strong> It is good practice to try to estimate placement error, which can then be considered when for potential impact when reviewing later results.  Place and remove the stationary robot at least five times at your designated starting location on the test sheet. Keep each observed x, y, and heading rather than only their average. Calculate their spread and identify one systematic error that this repeatability test might not reveal.</li>-->
+						    <li><strong>Plan the comparison.</strong> Decide several achievable travel distances to repeat, including forward and reverse direction. Intuitively, longer traversals should provide a greater resolution of distance for wheel rotations. However, maintaining a consistent straight line of travel over a long distance will become increasingly difficult. Plan to test and evaluate several different distances, and reserve at least one distance condition for checking the selected radius after calibration rather than using every condition to choose it.</li>
+
+					    <li><strong>Implement a Motion Helper.</strong> Duplicate the function from exercise 1, <code>reportOdometry(...)</code>.  Rename the function to suit the current context, such as <code>reportOdometryTranslation(...).</code>.  Add the following lines of code:
+						<blockquote><pre><code>
+if( mode != STOPPED ) {
+
+	robot.getMotionStatus();
+
+	if( robot.motion_status.state == MOTION_STATUS_IDLE ) {
+		robot.startMoveDistance(100);
+
+	} else if( robot.motion_status.state == MOTION_STATUS_COMPLETE ) {
+		setSignal(0);
+		mode = STOPPED;
+
+	}
+
+	Serial.print("translation,1,100,");
+	Serial.print( now );
+	Serial.print( "," );
+	Serial.print( robot.getLeftEncoderCount() );
+	Serial.print( "," );
+	Serial.print( robot.getRightEncoderCount() );
+	Serial.print( "," );
+	Serial.print( odometry.pose.x );
+	Serial.print( "," );
+	Serial.print( odometry.pose.y );
+	Serial.print( "," );
+	Serial.print( odometry.pose.theta );
+	Serial.print( "\n" );
+	
+}</code></pre></blockquote>
+						    <ol>
+							<li>When you edit the reportOdometryTranslation(...) function with the above, take the time to add comments to explain what each portion of the code is doing.  You will need to investigate some of the existing code.  For example, <code>mode</code> is used, but it is not declared within reportOdometryTranslation(...), and it is not provided as an argument. Therefore, <code>mode</code> must have been declared elsewhere, at a high <strong>scope</strong>.  The variable <code>mode</code> was used previously for the runLineFollower(...) function, so this offers another clue. </li>
+							<li>As an exercise, it would be worthwhile reading the above code and trying to predict how the robot will behave.  What will the robot do when it is powered up for the first time?  What will the robot do once <code>mode == STOPPED</code>? You can test your own understanding of the code by practicing predicting what the code will do, or what bugs may occur.</li>
+								<li>Notice the additional <code>Serial.print(...)</code> command. It adds three labels to every reported row: <code>translation</code> identifies the test, <code>1</code> is the trial number, and <code>100</code> is the distance requested from the motion helper in millimetres. The requested distance is an experimental input; it is not evidence that the robot travelled 100&nbsp;mm. Record the independently measured physical displacement separately at the end of the trial.</li>
+								<li>Save the complete output using the following header:
+
+
+								    <pre style="overflow-x: auto;"><code>test_name,trial_num,commanded_distance_mm,sample_time_ms,left_encoder_count,right_encoder_count,odometry_x_mm,odometry_y_mm,odometry_theta_rad</code></pre>
+								    Therefore, on the Serial Monitor you should see values reported similar to:
+								    <blockquote><code><pre>
+translation, 1, 100, 5421, 100, 104, 4.44, 0.4, 0.01
+translation, 1, 100, 5433, 100, 104, 4.44, 0.4, 0.01
+translation, 1, 100, 5443, 100, 104, 4.44, 0.4, 0.01
+								    </pre> </code> </blockquote>
+								    <ul>
+											<li>Note that we have added the fields "test_name" and "trial".  This is because we will re-use the collected data later.  We will use data collected from exercise 2 and 3, so it is important that we can tell them apart.  If we do not label the data, it is likely we will lose it or confuse it.</li>
+								    	<li>Note that the first data labels are not changing.  This may seem inefficient, but the labels will be useful when later processing the data in Python.  We can apply filters such as by test name (first column), by trial (second column), and so on.</li>
+								    	<li>Keep these names and units consistent across every translation trial. For example, don't change the test name "translation" to translation1, translation2, etc.  Instead, keep this fixed as translation, and increment the trial number value.</li>
+								    </ul>
+							
+						    </ol>
+					    </li>
+					    <li>Start <code>robot.startMoveDistance(...)</code> once, then continue logging and poll <code>robot.getMotionStatus()</code> for completion, timeout, or cancellation. Do not restart it in each loop iteration. Ensure that no controller or other routine issues competing PWM commands.</li>
+					    <li><strong>Conduct a trial.</strong> It is time to conduct the first trial.  Use this first trial to check that everything is working as expected, and to reveal any further details you may have overlooked.
+						<ol>
+						    <li>Place the robot aligned with the printed \(+x\) direction.</li>
+						    <li>If you power-cycle your robot (turn if completely off then on again) at the start of each trial, your robot should initialise to \(x=0, y=0, \theta=0\), and with encoder counts at zero. If you only reset your StampC3, the Pololu 3Pi+ robot will not reset, and so it will retain the last encoder counts.  </li>
+								<li>Remember that <code>controller.update(...)</code> will not run your new function until the button on the StampC3 is pressed.</li>
+								<li>Start saving the Serial output before pressing the button. Retain the stationary rows before movement, every timestamped encoder pair while the helper is running, and at least one row after completion. Check that the timestamps increase and that the left and right counts have the signs you expect. Do not replace this sequence with only the final odometry pose.</li>
+								<li>When the motion helper runs, it may not achieve the commanded distance.  For example, if you used the value of 100mm, you should measure what the actual distance travelled was.  The motion helper should not be considered as accurate or precise.  Your measurement of the actual distance should be taken as the reference, not the command of 100mm.</li>
+						    <li><strong>Check the straight-line assumption.</strong> Inspect the path taken by the robot.  Observe the changes in the StampC3 odometry \(y\) and \(\theta\). </li>
+						    <li>If you find that the motion helper routine results in some path curvature, you could try using some physical apparatus to guide the trajectory of the robot - for example, by placing a rule on the surface adjacent to a wheel. If you do this, you should later check whether this has caused wheel slip or otherwised influenced the measurements.  An alternative is to not call the motion helper, and to instead move the robot by hand.  Another alternative is to write your own motion control.</li>         
+						</ol>
+					    </li>
+						    <li><strong>Run repeated trials and retain every record.</strong> Run at least five repeated trials for each distance and direction you have decided to evaluate. If a trial did not remain sufficiently straight, keep its raw time series, label it as excluded from the radius fit, and record the reason. An excluded trial may still help reveal curvature, slip or a data-collection fault; silently deleting it would remove that evidence.</li>
+						    <li><strong>Keep a trial summary beside the sample log.</strong> For each trial, record the commanded distance, signed independently measured displacement, physical start and endpoint, surface, direction, radius and separation used by the local model, and whether the trial is allocated to calibration or held-back evaluation. Keep the fixed encoder resolution of 358.3 counts per revolution with this metadata. The sample log records what the encoders and model did through time; the trial summary records the independent physical observation against which the prediction is judged.</li>
+					    <li><strong>Estimate the new effective wheel radius.</strong> Following this exercise, you will have collected time-series data containing timestamps, both signed encoder counts, and local \(x,y,\theta\). Keep the complete data so that your calculation can be checked or revisited later. For the current calculation, identify the initial and final rows rather than assuming the initial pose was exactly zero. Even if the robot was reset to \(x=0,y=0,\theta=0\), a disturbance during placement may already have changed the first recorded pose.
+						<ol>
+						    <li>For each calibration trial, calculate \(d_{\mathrm{est}}=x_{\mathrm{final}}-x_{\mathrm{initial}}\) and use \(r_{\mathrm{new}}=r_{\mathrm{old}} \frac{ d_{\mathrm{actual} } }{ d_{\mathrm{est}}}\).</li>
+						    <li>Keep the sign convention consistent for forward and reverse trials. </li>
+						    <li>Compare the resulting effectiveradius estimates rather than selecting only the most convenient result.  Review both the mean and median of your \(r_{eff}\) values. How much does \(r_{eff}\) vary within the set of trials for this same distance condition? </li>
+						</ol>
+					    </li>
+					    <li><strong>Quantify uncertainty.</strong> Collect further sets of trials across new distance conditions.  Calculate effective-radius mean or median estimates across repeated trials. Plot measured distance against reported odometry \(x\) displacement and compare the variation between repeated observations with the placement/read spread. Explain how the selected distance range affect the result.</li>
+
+					    <li><strong>Apply the calibration.</strong> Set both radius fields on <code>controller.odometry</code> to your selected effective shared radius.  Inside <code>OdometryModel.cpp/.h</code>, two small helper functions are defined to override the default values:
+						<blockquote><pre><code>
+void setLeftWheelRadiusMm( float mm ) {
+  	leftWheelRadiusMm = mm;
+}
+void setRightWheelRadiusMm( float mm ) {
+	rightWheelRadiusMm = mm;
+}
+						</code></pre></blockquote>
+						<ol>
+						    <li>You require the radius of the wheels to be set once when the robot is powered on.  You should add a call to the above functions in the setup() portion of the StampC3 code.  Should these come before or after <code>robot.initialise()</code>?  You can follow the code execution path to work out the correct answer.</li>  
+						</ol>
+						<li><strong>Repeat the Process. </strong> Keep your original dataset.  Collect a new dataset of measurements across the same distance conditions.
+						    <ol>
+							<li>Check that the distance estimate reported by the StampC3 odometry is improved with the new value of \(r_{eff}\).</li>
+							<li>Check uncertainty again, compare the mean and median of this new dataset against the last dataset.  Has the uncertainty improved?  If distance estimation has improved, but the uncertainty has not, what are likely causes of this?</li>
+						    </ol>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>A checked external reference, complete timestamped translation logs containing both encoder counts and local pose, and a trial summary linking those logs to physical measurements. You should also have a shared effective radius with units and uncertainty, a before/after distance comparison, and a held-back distance test using the supplied model.</p>
+				    </div>
+				    <div class="context-panel" data-panel="ai" hidden>
+					<h3>AI-assisted investigation brief</h3>
+					<p>Use AI as a calibration tutor and a critic of your measurement method. It has not measured the robot's displacement. You will choose an effective shared radius from independent distance observations, then test the unchanged value on a distance kept out of calibration.</p>
+					<p>Begin by explaining from memory why counts require a radius to become a distance. Your first milestone is one complete trial record with independently measured displacement and a checked correction, not a final calibrated radius. Use that pilot to check the method before collecting the repeats below. If organising the records is difficult, ask AI for a blank trial-table layout from your proposed fields; fill it with your measurements, not generated examples. For notebook help, supply the relevant cell, column names, a labelled trial and the output you expected. Run suggested code yourself and trace its result back to the original record.</p>
+					<ol>
+					    <li><strong>Predict the correction before calculating it.</strong> Sketch a wheel travelling one revolution and explain what a larger assumed radius does to distance estimated from the same counts. If local odometry underestimates a straight displacement, which way should the radius change? Give AI your answer and ask it to check your reasoning against <code>OdometryModel.h/.cpp</code>, naming the equation and symbol.</li>
+					    <li><strong>Establish the external reference.</strong> Check a printed dimension with a ruler and record any scale correction. Choose a chassis reference point, viewing method and marked starting heading along \(+x\). Repeatedly place and read the stationary robot to estimate placement/read spread. Ask AI what that exercise can and cannot tell you about uncertainty during movement. Keep the physical measurements separate from both onboard poses and the requested helper distance.</li>
+					    <li><strong>Plan repeated calibration and evaluation trials.</strong> Choose several practical signed distances, including forward and reverse travel, and reserve at least one distance condition before fitting. Plan at least five repeats for each distance and direction tested. Keep encoder resolution fixed at 358.3 counts per wheel revolution and record the current radius and separation. Decide what degree of visible curvature would make a trial unsuitable for this straight-displacement comparison.</li>
+					    <li><strong>Review the acquisition and movement together.</strong> Draft a non-blocking <code>reportOdometryTranslation(...)</code> from Exercise 1. Ask AI to review excerpts from your supplied <code>Robot.h/.cpp</code> and controller files, including your changes, against your plan.
+					        <ol>
+					            <li>Start <code>startMoveDistance(...)</code> once, check its return, and poll successful <code>getMotionStatus()</code> reads while counts and local pose continue to be logged. Stop and diagnose timeout, cancellation or failed communication; do not repeatedly restart the helper.</li>
+					            <li>Remove competing motor commands, including routine zero commands while the helper is running. Keep a deliberate abort path and an explicit stop at the end. A controller soft reset alone is not a motor-stop instruction.</li>
+					            <li>Reset local odometry while stationary and establish its count baseline before moving. Prefix the six Exercise 1 fields with <code>test_name,trial_num,commanded_distance_mm</code>, keeping stationary rows before and after motion.</li>
+					        </ol>
+					    </li>
+					</ol>
+					<div class="prompt-snippet">“Help me organise and understand a radius calibration. I will provide my predicted correction, measurement method, proposed fields and excerpts from my supplied StampC3_Template code. Suggest a blank trial table that separates requested distance, physical displacement and odometry, and explain any missing field. With my real trial, help me check signs, straightness and one correction. If I am stuck, demonstrate the ratio with separately labelled illustrative values, then let me calculate my trial. Keep encoder resolution fixed and reserved trials out of calibration; do not fill measurement gaps.”</div>
+					<ol start="5">
+					    <li><strong>Pilot and measure on the surface.</strong> Use a clear area, keep cables from pulling the robot, and check the start/stop sequence before repeated trials. Gently moving the robot with motors off is an alternative if the helper gives poor straightness. For every trial, independently measure signed displacement and retain the complete count/pose log, path observations, changes in \(y\) and heading, conditions and any exclusion reason. Do not use wheels-raised motion as distance-calibration evidence.</li>
+					    <li><strong>Check one correction, then inspect all repeats.</strong> Run the Colab example before loading your records. Use actual initial and final rows to calculate \(d_{\mathrm{est}}=\Delta x_{\mathrm{odom}}\), then \(r_{\mathrm{new}}=r_{\mathrm{old}}d_{\mathrm{actual}}/d_{\mathrm{est}}\). Check one non-zero, approximately straight trial by hand. Ask AI to explain the per-trial table and compare mean, median and spread with placement uncertainty. Retain curved or disturbed trials with labels rather than hiding them.</li>
+					    <li><strong>Apply and evaluate a frozen radius.</strong> Set both local radius fields using <code>setLeftWheelRadiusMm(...)</code> and <code>setRightWheelRadiusMm(...)</code>, checking where the calls belong in your setup. Reset and baseline before new trials. Compare before/after measurements and evaluate the reserved distance without retuning. Explain to AI why improved distance agreement need not reduce placement variation, and why an effective radius is conditional on contact, slip and the reference method.</li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>A checked physical reference, labelled repeated translation logs and summaries, and an effective shared radius with uncertainty and held-back evidence. You should be able to justify the direction of the correction and the limits of its use.</p>
+				    </div>
+				</div>
+				<div class="investigation exercise-evidence">
+				    <div class="measure-row"><span><b>Measure</b>placement error</span><span><b>Estimate</b>shared wheel radius</span><span><b>Validate</b>unused distance</span></div>
+				</div>
+			    </div>
+			</div>
+		    </article>
+		    <article id="exercise-03" class="exercise-card">
+			<div class="exercise-index">03</div>
+			<div class="exercise-content">
+			    <div class="exercise-heading">
+				<div><span class="concept-tag">Rotation · effective geometry</span><h2>Wheel separation and heading calibration</h2></div>
+				<span class="time-badge">Approx. 2–4 hours</span>
+			    </div>
+			    <div class="teaching-brief">
+				<p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/odometry-exercise-03-wheel-separation.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+				<p><strong>Goal:</strong> estimate effective wheel separation from observed turns, update the supplied model, and test heading estimates in both directions.</p>
+				<p>Exercise 2 established an effective wheel radius (assumed common to both left and right wheels) by comparing the local odometry's reported \(x\) displacement with independently measured physical displacement. We can now investigate the second geometric quantity in the supplied kinematic model: the distance between the two wheel contact points, represented by \(B\).</p>
+				<p>When the wheels travel equal distances in the same direction (same sign), the differential-drive model predicts no heading change: the robot moves straight forwards or straight backwards. When the wheels travel equal distances in opposite directions, the model predicts rotation on the spot about the midpoint between the wheels. Other combinations of left and right wheel travel produce a change in both position and heading, describing curved motion.</p>
+				<p>A simple thought experiment is to consider the ideal rolling case in which one wheel does not rotate, one wheel does rotate, and neither wheel slips. The stationary wheel contact point acts as a pivot for the robot body. The moving wheel follows an arc whose length is the distance travelled by that wheel, while the radius of the arc is the distance between the two wheel contact paths: the wheel separation, \(B\).</p>
+				<p>For a fixed distance travelled by the moving wheel, increasing the physical wheel separation does not change the arc length. Instead, that arc represents a smaller fraction of a circle of radius \(B\), so the robot turns through a smaller angle. With a smaller separation, the same arc length represents a larger fraction of the circle and produces a larger turn. During calibration we do not change the physical robot; we adjust the value of \(B\) assumed by the model so that its heading estimates better match physical observations.</p>
+				<p>Using the calibrated shared wheel radius stated in Exercise 2, the model calculates a signed distance for left right wheels, \(s_L\) and \(s_R\) repsectively, and then calculates the change in heading:</p>
+				<div class="equation" role="img" aria-label="Heading change equals right-wheel distance minus left-wheel distance, divided by wheel separation">
+				    \[\Delta\theta=\frac{s_R-s_L}{B}\]
+				</div>
+				<p>Here \(s_L\) and \(s_R\) are the signed wheel distances and \(B\) is the wheel separation assumed by the model. The numerator is the difference in wheel travel that produces the turn. Because the numerator and denominator are both lengths, their ratio gives an angle in radians. For the same observed wheel-distance difference, increasing the assumed \(B\) reduces the estimated turn, while decreasing it increases the estimated turn.</p>
+				<!--
+				    <p>After the thought experiment, it may seem confusing that a rotation on the spot still operates with the denominator \(B\) (the total distance between the contact points of the two wheels).  For a rotation on the spot, the centre of rotation lies at the midpoint between the two wheels. Each wheel therefore follows an arc whose radius is half the wheel separation, \(\frac{B}{2}\). </p> 
+
+				    For a rotation on the spot with heading change \(\Delta\theta\), each wheel travels a distance with magnitude \(\frac{B}{2}\left|\Delta\theta\right|\), but the wheels travel in opposite directions. Their signed distances therefore have opposite signs, so subtracting them combines the two half-separations to give \(s_R-s_L=B\Delta\theta\). This is why the heading equation uses the full separation \(B\), even though each individual wheel follows a circle of radius \(\frac{B}{2}\).</p>
+				-->
+				<figure class="plot"><img src="./assets/images/odometry/calib_rotation.png" alt="A robot turns through an angle while alternative circular arcs show that an assumed wheel separation that is too small produces too much estimated rotation and one that is too large produces too little" /><figcaption>Figure 2. For the same observed difference in wheel travel, a smaller assumed wheel separation produces a larger heading estimate, while a larger assumed separation produces a smaller heading estimate. The robot's physical heading must still be measured using an independent reference.</figcaption></figure>
+				<p>In <code>OdometryModel.h</code>, the public parameter <code>wheelSeparationMm</code> is used as \(B\). The resulting heading is accumulated in <code>controller.odometry.pose.theta</code>. 
+				<!--
+				    For one trial, use the change in this reported heading:</p>
+				    <div class="equation" role="img" aria-label="Estimated heading change equals final odometry heading minus initial odometry heading">
+				    \[\Delta\theta_{\mathrm{est}}=\theta_{\mathrm{final}}-\theta_{\mathrm{initial}}\]
+				    </div>
+				    <p>The supplied printed measurement sheet provides an independent value, \(\Delta\theta_{\mathrm{actual}}\), from the robot's measured starting and final headings. Convert measurements in degrees to radians before using them in the model:</p>
+				    <div class="equation" role="img" aria-label="Angle in radians equals angle in degrees multiplied by pi divided by one hundred and eighty">
+				    \[\theta_{\mathrm{rad}}=\theta_{\mathrm{deg}}\frac{\pi}{180}\]
+				    </div>
+				-->
+				<h3>A Test Procedure</h3>
+				<p>To calibrate \(B\), we need the robot to perform a measurable turn while we record both its local odometry heading and an external physical heading. An approximately in-place rotation is simplest and most convenient, where each wheel should rotate the same distance but with opposite sign.  Similar to exercise 2, it will be useful to record x and y values reported by odometry to help you assess whether the rotation was controlled enough.</p>
+
+				<p>The <code>Robot.h</code> file provides the same style of motion-helper interface used in Exercise 2:</p>
+				<pre><code>robot.startRotateAngle(angle_rad)
+robot.getMotionStatus()
+robot.isMotionHelperRunning()</code></pre>
+				<p>Call <code>robot.startRotateAngle(...)</code> once at the start of each trial, then continue acquiring measurements while polling the motion status. The requested angle and a <code>COMPLETE</code> status describe the helper request and its stopping condition; they are not measurements of the physical angle achieved. Measure the actual start and final headings from the printed sheet for every trial. Similar to exercise 2, you may also decide that you achieve better control and consistency by moving the robot by hand. </p>
+				<p>For this calibration, compare the physical heading change with the change reported by the local odometry. You can pick a quantity of rotation as a reference, 90 degrees may be a convenient starting value.  Because estimated heading is inversely proportional to the separation used by the model, we can correct the separation with:</p>
+				<div class="equation" role="img" aria-label="New wheel separation equals old wheel separation multiplied by estimated heading change divided by actual heading change">
+				    \[B_{\mathrm{new}}=B_{\mathrm{old}}\frac{\Delta\theta_{\mathrm{est}}}{\Delta\theta_{\mathrm{actual}}}\]
+				</div>
+				<p>where:</p>
+				<ul>
+				    <li>\(\Delta\theta_{\mathrm{actual}}\) is the signed physical heading change measured from the printed reference;</li>
+				    <li>\(\Delta\theta_{\mathrm{est}}\) is the signed heading change reported by the local odometry;</li>
+				    <li>\(B_{\mathrm{old}}\) is the separation used in the odometry model during the test; and</li>
+				    <li>\(B_{\mathrm{new}}\) is the effective separation estimate produced by this test.</li>
+				</ul>
+				<p>For example, suppose the odometry uses \(B_{\mathrm{old}}=90\,\mathrm{mm}\). The physical robot turns through \(1.00\,\mathrm{rad}\), but the local odometry reports \(0.90\,\mathrm{rad}\). Then:</p>
+				<div class="equation" role="img" aria-label="New separation equals ninety millimetres multiplied by zero point nine divided by one, giving eighty-one millimetres">
+				    \[B_{\mathrm{new}}=90\frac{0.90}{1.00}=81\,\mathrm{mm}\]
+				</div>
+				<p>The model underestimated the turn, so its separation was too large and needs to decrease. Positive and negative turns should both produce a positive value of \(B\) when the physical and odometry heading conventions agree. Very small turns make the calculation sensitive to placement and reading uncertainty, so several clearly measurable turn sizes in both directions are more informative than one tiny rotation.</p>
+				<p>This result is an <strong>effective wheel separation</strong>, conditional on the shared radius from Exercise 2, the tested surface, wheel slip, the physical reference, and the stopping motion. It is not necessarily identical to a single chassis measurement made with a ruler. A changed separation also changes later \(x\) and \(y\) estimates because they use the accumulated heading. Repeated trials and a turn excluded from calibration are therefore needed to establish whether the revised value is useful.</p>
+			    </div>
+			    <div class="exercise-grid">
+				<div class="context-box" data-context-box>
+				    <div class="context-tabs" role="tablist" aria-label="Exercise 3 guidance">
+					<button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button>
+					<button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button>
+				    </div>
+				    <div class="context-panel active" data-panel="nonai">
+					<h3>Investigation brief</h3>
+					<ol>
+					    <li><strong>Check and define the reference.</strong> Using the provided printed test sheet, find the printed markings for rotation.  
+						<ol>
+						    <li>Check that you can reliably place your robot.</li>
+						    <li>Determine which markings are most useful to improve the consistency of your robot placement.</li>
+						    <li>Determine an effective method to measure the final rotation position of the robot. You can use other materials (e.g., paper, card, pens) to help.</li>
+						</ol>
+					    </li>
+						    <li><strong>Plan the Comparison.</strong> Decide a set of rotation conditions to test and evaluate, making sure that you test clockwise and anticlockwise rotations. Reserve at least one rotation condition in each direction for evaluating the selected separation after calibration.
+						<ol>
+						    <li>Similar to distance, greater rotations will provide a better resolution of information overall, but they may be harder to conduct reliably. </li>
+						    <li>Decide whether it is more convenient to rotate to angles such as 90 degrees (1.57 radians), or to rotate to angles such as 1 radians (57.2 degrees).  You could investigate both.</li>
+						</ol>
+					    </li>
+					    <li><strong>Implement a Motion Helper:</strong> Duplicate the function you created in exercise 2, <code>reportOdometryTranslation(...)</code>.  Rename the function given the context of the current exercise, such as <code>reportOdometryRotation(...)</code>.  
+						<ol>
+						    <li>Replace the line of code for <code>robot.startMoveDistance(100);</code> with:
+							<blockquote><code>robot.startRotateAngle(PI/2.0);</code></blockquote></li>
+								<li>Check that the code compiles and uploads to the StampC3.</li>
+								<li>Check that the robot performs as you expect. Remember that <code>controller.update(...)</code> will not run your new function until the button on the StampC3 is pressed. </li>
+								<li>Remember to edit the <code>update(...)</code> function of controller to only call this new function, <code>reportOdometryRotation(...)</code></li>
+								<li>Update the three leading labels in each reported row so that they describe this experiment: use <code>rotation</code> as <code>test_name</code>, increment <code>trial_num</code>, and record the signed <code>commanded_angle_rad</code>. Retain the remaining timestamp, encoder-count and local-pose columns from Exercise 2:
+								    <pre style="overflow-x: auto;"><code>test_name,trial_num,commanded_angle_rad,sample_time_ms,left_encoder_count,right_encoder_count,odometry_x_mm,odometry_y_mm,odometry_theta_rad</code></pre>
+								    A positive or negative command is an input to the trial. The independently measured physical angle remains the external reference.</li>
+						</ol>
+	
+					    </li>
+					    <li><strong>Conduct a trial.</strong> Run a single trial to check that everything is working and to reveal any further details you have overlooked.
+						<ol>
+						    <li> Place the robot at the centre of the radial marker on the test sheet.</li>
+								<li>Start saving the Serial output, then press the button on the StampC3 to activate the robot. Retain the stationary rows before motion, every timestamped encoder pair during the turn, and at least one row after the robot has stopped. Check that the two count sequences have the signs expected for an in-place rotation and preserve the complete series even though the separation calculation below uses its initial and final pose values.</li>
+						    <li> Check the actual rotation performed by the motion helper.  Note that, even if you commanded a rotation of \(\frac{\pi}{2}\), the external reference that you want to use is the actual measured rotation of the robot.  This value is also likely to vary trial to trial.  The motion helper is not accurate or precise. Compare the measured reference rotation against the value reported by the StampC3 odometry.</li>
+						    <li>You may find that the robot deviates from a precise rotation on the spot - this would be observed as the robot "wobbling" about it's centre point between the two wheels. This is likely to occur because the left and right motors are controlled open-loop, and so there is no gaurantee that the motors maintain speed of equal magnitude. It is also possible that the wheels are in slightly different positions along the axles of the motors. You should decide whether it would be better to rotate the robot by hand (motors off), or use some external apparatus to help keep the robot centred.  You could review the time-series values of \(x\) and \(y\) to quantify the performance of a rotation on the spot.</li> 
+						</ol>
+					    </li> 
+						    <li><strong>Run repeated trials and retain every record.</strong> Run at least five repeated trials for each rotation and direction you have decided to evaluate. If a trial did not remain acceptably close to an in-place rotation, keep its raw time series, label it as excluded from the separation fit, and record the reason. Alongside each log, retain the measured physical start and final headings, the measured change in heading, the surface, the shared radius and separation used during acquisition, and whether the trial is allocated to calibration or held-back evaluation.</li>
+					    <li><strong>Estimate separation.</strong> For each trial and rotation condition, identify the initial and final rows and calculate \(\Delta\theta_{\mathrm{est}}=\theta_{\mathrm{final}}-\theta_{\mathrm{initial}}\). Use the independently measured signed turn \(\Delta\theta_{\mathrm{actual}}\) to calculate \(B_{\mathrm{new}}=B_{\mathrm{old}}\Delta\theta_{\mathrm{est}}/\Delta\theta_{\mathrm{actual}}\). Keep the complete timestamped count sequence so that your calculation can be checked or revisited later.
+						<ol>
+						    <li>For each set of trials for a rotation condition, calculate the mean and median.  How do the mean and median \(B_{\mathrm{new}}\) compare across each rotation condition?.</li>
+						    <li>Plot your total dataset as a scatter plot.  Use the measured rotation on the x-axis and reported rotation on the y-axis.</li> 
+						</ol>
+					    </li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>Complete timestamped turn logs containing both signed encoder counts and local pose, linked to independent physical start and final headings. You should also have an effective separation tied to the calibrated shared radius and physical conditions, with uncertainty, before/after heading comparisons, and a held-back turn test.</p>
+				    </div>
+				    <div class="context-panel" data-panel="ai" hidden>
+					<h3>AI-assisted investigation brief</h3>
+					<p>Use AI as a geometry tutor and a reviewer of signed measurements. It has not measured your turns. You will investigate wheel separation while keeping the shared radius from Exercise 2 fixed, using physical headings as the reference.</p>
+					<p>First aim to explain the correction direction and check one signed turn; then extend to the repeated calibration and reserved turns. Choose the help you need: an annotated geometry sketch, a worked ratio or a review of your logger. If AI cannot inspect your sketch, describe the axes, wheel paths and labelled distances. For illustration only, an estimate of 100° for a measured 90° turn calls for a separation multiplier of 100/90, greater than one. Explain why that reduces the heading estimated from the same counts, then check your own trial rather than copying those values.</p>
+					<ol>
+					    <li><strong>Draw the geometry before asking for an equation.</strong> Sketch a stationary-wheel pivot, then an ideal on-the-spot turn with each wheel travelling an arc of radius \(B/2\). Mark the signed wheel distances. Explain why the heading estimate divides their difference by the full separation \(B\). Predict what happens to the estimate when the assumed separation increases but the encoder record stays the same.</li>
+					    <li><strong>Ask for feedback on your explanation.</strong> Give AI your sketches and the relevant <code>OdometryModel.h/.cpp</code> excerpts from your supplied <code>StampC3_Template</code> files. Ask it to identify one gap at a time and cite the supporting symbol. Locate <code>wheelSeparationMm</code> and the heading update yourself. Work through the direction of the correction before substituting numbers into \(B_{\mathrm{new}}=B_{\mathrm{old}}\Delta\theta_{\mathrm{est}}/\Delta\theta_{\mathrm{actual}}\).</li>
+					    <li><strong>Plan measurable turns.</strong> Use checked printed angular markings, a repeatable chassis reference and the same sign convention for physical and local headings. Measure placement/read spread and choose several clearly resolvable turn sizes in both directions. Plan at least five repeats per tested size and direction, reserving one condition in each direction before calibration. Record the fixed radius, existing separation, surface and method.</li>
+					    <li><strong>Adapt one part of the logger at a time.</strong> Preserve the translation routine and create <code>reportOdometryRotation(...)</code>. Start <code>startRotateAngle(...)</code> once, using radians, and retain the successful encoder-update path. Ask AI to review request returns, fresh status reads and stop/failure paths against <code>Robot.h/.cpp</code>. Keep competing PWM routines disabled while the helper runs, and use <code>test_name,trial_num,commanded_angle_rad</code> before the timestamp/count/local-pose fields. Compile and run one cautious trial in a clear area before the repeated set.</li>
+					</ol>
+					<div class="prompt-snippet">“Act as a geometry tutor. I will explain my pivot sketches and predict the direction of the separation correction first. Check one step at a time against the excerpts I provide from my supplied OdometryModel.h/.cpp files and my signed physical and odometry measurements. Ask me to verify units, non-zero angles and trial selection before calculating B. Keep the shared radius fixed and leave reserved turns out of calibration; do not substitute a helper request for a measured angle.”</div>
+					<ol start="5">
+					    <li><strong>Retain what actually happened.</strong> Record stationary samples before and after each turn and the complete intervening count/pose sequence. Independently measure start and final headings, even when the helper reports completion. Inspect physical movement and local \(x,y\) changes for an off-centre turn. Gentle manual rotation with motors off is an alternative; label the method and any apparatus constraint. Keep unsuitable trials and explain their exclusion.</li>
+					    <li><strong>Calculate and question the correction.</strong> Run the Colab example, load your records, and calculate heading changes from each trial's initial and final rows. Check one separation estimate by hand with consistent units and signs. Avoid wrapping a deliberate large turn into a different small angle. Compare mean, median and repeat spread across conditions; ask AI how external-heading uncertainty and the earlier radius estimate affect the result.</li>
+					    <li><strong>Apply the value and test an unused turn.</strong> Set the local <code>wheelSeparationMm</code> to your chosen positive effective value, reset and baseline while stationary, and collect before/after comparisons. Evaluate the reserved turns in both directions with the parameters frozen. Explain the result unaided, then ask AI whether the evidence supports one separation or reveals a limitation. Changing local geometry does not automatically change helper geometry or calibrate the onboard I2C pose. Record one revision to your reasoning and the observation that prompted it, so the next exercise starts from your understanding rather than a saved AI answer.</li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>Repeated signed turn records, a checked effective separation conditional on the shared radius, and before/after and held-back heading comparisons with uncertainty. You should be able to explain the inverse relationship between separation and estimated turn.</p>
+				    </div>
+				</div>
+				<div class="investigation exercise-evidence">
+				    <div class="measure-row"><span><b>Vary</b>turn size + direction</span><span><b>Estimate</b>effective separation</span><span><b>Validate</b>unused turn</span></div>
+				</div>
+			    </div>
+			</div>
+		    </article>
+		    <!--
+		    <article id="exercise-04" class="exercise-card">
+			<div class="exercise-index">04</div>
+			<div class="exercise-content">
+			    <div class="exercise-heading">
+				<div><span class="concept-tag">Model comparison · physical causes</span><h2>Left/right wheel differences</h2></div>
+				<span class="time-badge">40–55 min</span>
+			    </div>
+			    <div class="teaching-brief">
+				<p><strong>Goal:</strong> decide whether the combined distance and heading evidence supports different effective wheel radii, and whether that additional parameter improves the supplied model on unused trials.</p>
+				<p>Exercises 2 and 3 calibrated the simplest geometry: one effective radius shared by both wheels, followed by one effective separation. Starting with this simpler model makes its limitations easier to recognise. If these simple parameters predicts distance and turn trials well enough, adding another parameter may not be useful. To make this judgement, you may want to consider how much uncertainty exists from the external measurments you make of your robot position.  If you find that a repeatable error remains, its direction and how it changes across trials can suggest what the model is missing.</p>
+				<p>In the previous exercises you were invited to use the supplied motion helper to instruct your robot to move forwards a specified distance.  This motion helper does not regulate the speed of the rotation of each wheel. Rather, it activates both motors with a fixed PWM signal.  If the relationship between PWM and speed is different for each motor then the robot will move on a slightly curved path.</p>
+				<p>Another explanation for a curved path is that the wheels each have a slightly different radius.  In this case, even if the wheels were to rotate at the exact same speed, the resultant motion of the robot would be curved.  If we assume that there is a 85mm wheel separation, and that one wheel had a radius of 16mm and the other 16.5mm (0.5mm, a 3% difference), a travel distance of 1m would cause an approximate change of heading of 21 degrees and a lateral displacement error of \(y=185mm\).</p>
+				
+				<figure class="plot"><img src="./assets/images/odometry/asymmetry_candidates.png" alt="Two illustrative trajectory panels show the same curved path arising from equal counts with unequal radii or unequal counts with equal radii, each compared with a straight reference" /><figcaption>Figure 3a. Two ideal rolling examples produce the same curved trajectory through different combinations of wheel rotation and radius. The path alone cannot distinguish them; the encoder record provides additional evidence.</figcaption></figure>
+				<p>Figure 3a compares possible causes; it does not diagnose your robot. Slip can also change the relation between wheel rotation and ground travel. An error in the recorded starting heading rotates the apparent trajectory, while inconsistent placement of the chassis reference point can shift the measured endpoint. Repeated observations in forward and reverse, with the initial pose and operating conditions recorded, help show whether an apparent left/right effect is systematic or just trial-to-trial variation.</p>
+				<p>To represent a possible distance-per-count difference, a more flexible model uses a separate effective radius for each wheel:</p>
+				<div class="equation" role="img" aria-label="Separate wheel distances use separate radii and the same stated encoder counts per revolution">
+				    \[s_L=\frac{2\pi r_L}{N}\Delta n_L,\qquad
+				    s_R=\frac{2\pi r_R}{N}\Delta n_R\]
+				</div>
+				<p>Here \(r_L\) and \(r_R\) are operational distance scales under the tested conditions, just like the shared effective radius from Exercise 2. Fitting different values does not by itself establish the physical tyre dimensions or explain why the scales differ. The separate-radius model has one extra freedom relative to the shared-radius model: the ratio \(r_R/r_L\).</p>
+				<p>To make the first comparison manageable, preserve the calibrated mean radius \(\bar r\) and vary a small dimensionless fractional difference \(\epsilon\): \(r_L=\bar r(1-\epsilon)\) and \(r_R=\bar r(1+\epsilon)\). At \(\epsilon=0\), the candidate is exactly the shared-radius model. For example, if \(\bar r=16.0\,\mathrm{mm}\) and \(\epsilon=0.02\), then \(r_L=15.68\,\mathrm{mm}\) and \(r_R=16.32\,\mathrm{mm}\). Replay each candidate through the same supplied Euler update using the same recorded encoder counts, timestamps, and initial pose. This produces directly comparable predictions because only the radius model has changed.</p>
+				<figure class="plot"><img src="./assets/images/odometry/model_comparison_trajectories.png" width="100%" alt="Shared-radius and separate-radius predicted trajectories are compared with observed endpoint markers for an illustrative calibration movement and a held-back movement; no measured path is drawn" /><figcaption>Figure 3b. Illustrative model predictions for equal-count movements. Only the physical endpoint is shown because an endpoint observation does not establish the path taken. The second movement is held back from parameter selection.</figcaption></figure>
+				<p>Figure 3b turns each model into a prediction that can be compared with an independent observation. A trajectory line belongs to the odometry model; it is not a measured physical path unless you used an external tracking method to record that path. Where the printed sheet provides only a start and endpoint, show those observations as points and compare like with like.</p>
+				<p>The signed difference between an independent observation and the corresponding prediction is called a <strong>residual</strong>. For a measured endpoint:</p>
+				<div class="equation" role="img" aria-label="Position and heading residuals equal the independently measured values minus the model estimates">
+				    \[e_x=x_{\mathrm{actual}}-x_{\mathrm{est}},\qquad
+				    e_y=y_{\mathrm{actual}}-y_{\mathrm{est}},\qquad
+				    e_\theta=\theta_{\mathrm{actual}}-\theta_{\mathrm{est}}\]
+				</div>
+				<p>For example, if the measured lateral endpoint is \(y_{\mathrm{actual}}=18\,\mathrm{mm}\) and a model predicts \(y_{\mathrm{est}}=5\,\mathrm{mm}\), then \(e_y=+13\,\mathrm{mm}\). The positive sign means that the observation lies farther in the positive \(y\) direction than the prediction. A negative residual would mean that the model predicted too far in that direction. State one sign convention and use it consistently, and calculate heading differences carefully where angles wrap around.</p>
+				<p>A residual is not a corrected pose, and it should not automatically be interpreted as random noise or as evidence of unequal wheels. It contains everything the model and experiment have not explained, including geometry error, slip, initial-pose error, reference-point placement, measurement uncertainty, and the approximation made by the Euler update.</p>
+				<figure class="plot"><img src="./assets/images/odometry/model_comparison_residuals.png" width="100%" alt="Three illustrative residual plots compare shared-radius and separate-radius predictions for x, y, and heading across calibration and held-back movements" /><figcaption>Figure 3c. Illustrative measured-minus-estimated residuals. Values near zero indicate closer predictions. The separate-radius candidate reduces a repeatable lateral and heading pattern in this synthetic example, including on held-back movements; your robot may support a different conclusion.</figcaption></figure>
+				<p>Figure 3c shows why plotting residuals can reveal more than reporting one final distance error. A useful model would produce small residuals scattered around zero without a repeatable change with distance, direction, or turn direction. A run of residuals on the same side of zero, errors that grow with travel, or opposite signs for forward and reverse movements indicate structure that deserves investigation. Compare each component in its own units; do not add millimetres and degrees into one score unless you first scale them using stated tolerances.</p>
+				<p>A reduced residual pattern on calibration trials does not establish that the additional parameter will generalise. A more flexible model can adapt to the observations used to select it. Freeze the candidate radii and compare the shared- and separate-radius models on the same unused encoder record and physical observation, accounting for reference uncertainty and repeat-to-repeat variation. Because Exercise 3 estimated separation using the shared radius, revisit that estimate if the radius scales change. Several combinations of radii and separation may predict nearly the same observations; if your evidence cannot distinguish them, retain the simpler shared-radius model or report the unresolved range.</p>
+			    </div>
+			    <div class="exercise-grid">
+				<div class="context-box" data-context-box>
+				    <div class="context-tabs" role="tablist" aria-label="Exercise 4 guidance">
+					<button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button>
+					<button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button>
+				    </div>
+				    <div class="context-panel active" data-panel="nonai">
+					<h3>Investigation brief</h3>
+					<ol>
+						    <li><strong>Audit the evidence retained from Exercises 2 and 3.</strong> For each translation and rotation trial, check that you have the complete ordered sequence of <code>sample_time_ms</code>, <code>left_encoder_count</code>, <code>right_encoder_count</code>, and the local odometry \(x,y,\theta\). Match each sample log to its trial summary containing the physical start and endpoint, direction, surface, model geometry used during acquisition, and calibration or held-back allocation. Confirm that timestamps increase and that each log contains records before, during and after the movement. Do not begin candidate fitting until you know which records meet these requirements.</li>
+						    <li><strong>Recover missing evidence without inventing it.</strong> If an earlier trial contains only a final physical or odometry pose, retain it as endpoint evidence but do not reconstruct intermediate encoder counts. It cannot be replayed through a different wheel model. Instead, collect a targeted replacement set using the logger developed in Exercises 2 and 3. Include forward and reverse translation, clockwise and anticlockwise rotation, repeated placements, and at least one complete trial kept out of model selection. Keep the surface, load and physical reference method controlled.</li>
+						    <li><strong>Reproduce the supplied model before changing it.</strong> In Python, take one complete encoder log and initialise the replay from its recorded starting pose and first left and right counts. Apply the same shared radius and separation that were active on the StampC3. Check one count difference and Euler update by hand, then confirm that the replay reproduces the recorded local odometry to an appropriate numerical tolerance. If it does not, check count order, signs, units, initial conditions and update equations before testing another model.</li>
+						    <li><strong>Inspect what the shared-radius model leaves unexplained.</strong> Plot the shared-model predicted trajectory from each replay and show the independently measured physical start and endpoint as points. Do not connect physical endpoint observations to imply that you measured the path between them. Calculate measured-minus-estimated \(x\), \(y\), and heading residuals at the endpoint, and compare them across distance, movement direction and turn direction. Inspect the two encoder sequences as well: unequal counts can produce curvature even when the radii are equal, so a curved odometry path does not by itself establish unequal wheel radii.</li>
+						    <li><strong>State the candidate comparison before fitting.</strong> Retain the calibrated shared-radius model as the baseline. Choose a modest stated range of the fractional radius difference \(\epsilon\), preserving the mean radius initially, and identify which logs will select a candidate and which will remain held back. For every value, replay exactly the same timestamps, signed encoder counts and initial poses. Change only the named geometry parameters so that differences between predictions remain traceable.</li>
+						    <li><strong>Compare candidates using like-for-like residuals.</strong> For each calibration log, compare the shared- and separate-radius endpoint predictions with the same independent observation. Report \(x\) and \(y\) errors in millimetres and heading error in radians or degrees. Plot each component separately. If you create one combined score, first scale the components using stated physical tolerances; do not directly add millimetres and angles. Look for a repeatable reduction in structured error rather than selecting a candidate because it improves one convenient trial.</li>
+						    <li><strong>Check dependence on wheel separation.</strong> A radius difference changes the wheel-distance difference used to calculate heading, so revisit the separation estimated in Exercise 3 for any supported radius candidate. Recheck both translation and rotation records after this change. If several combinations of left radius, right radius and separation predict the observations about equally well, your experiment has not uniquely identified them. Retain the simpler model or report the range that remains unresolved.</li>
+						    <li><strong>Freeze the models and evaluate held-back evidence.</strong> Do not adjust either model after revealing the reserved trials. Replay the shared- and separate-radius models on the same held-back encoder records, from the same recorded initial poses, and compare both predictions with the same physical endpoints. Then put the selected geometry into <code>controller.odometry</code>, reset and baseline it before a new physical trial, and check whether the improvement is reproduced. Preserve a null result if the additional radius parameter does not improve prediction beyond placement and measurement variation.</li>
+						    <li><strong>Explain what the result supports.</strong> Report whether separate effective radii improve prediction enough to justify the added parameter, and state the surface, directions, travel and turn ranges, physical-reference uncertainty, and remaining residual patterns. Distinguish evidence for a useful operational model from a claim about physical tyre dimensions or cause. Count imbalance, motor behaviour, slip, starting-pose error and reference uncertainty remain plausible explanations unless your observations distinguish them. Preserve unsuccessful candidates and the raw logs needed to reproduce your comparison.</li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>Reproducible model replays from complete encoder logs, shared- and separate-radius predictions compared against the same independent physical observations, traceable parameter choices, and held-back validation showing whether the additional model complexity produces a meaningful improvement.</p>
+				    </div>
+				    <div class="context-panel" data-panel="ai" hidden>
+					<strong>AI-assisted option</strong>
+					<p>Ask AI to compare the candidates using identical logs and held-back trials. Require it to identify parameter ambiguity and distinguish count imbalance from scale imbalance.</p>
+					<div class="prompt-snippet">“Compare shared and separate wheel radii on these timestamped encoder logs and measured endpoints. Keep calibration and validation trials separate, show position and heading residuals with units, and identify geometry combinations my measurements cannot distinguish.”</div>
+					<span class="ai-reminder">Your raw observations, checked calculations, and independent physical reference determine what the result supports.</span>
+				    </div>
+				</div>
+				<div class="investigation exercise-evidence">
+				    <div class="measure-row"><span><b>Compare</b>shared/separate radii</span><span><b>Retain</b>counts + physical pose</span><span><b>Decide</b>supported complexity</span></div>
+				</div>
+			    </div>
+			</div>
+		    </article>-->
+		    <article id="exercise-04" class="exercise-card">
+			<div class="exercise-index">04</div>
+			<div class="exercise-content">
+			    <div class="exercise-heading">
+				<div><span class="concept-tag">Compound trajectory · held-back evaluation</span><h2>Evaluating odometry with a bidirectional square</h2></div>
+				<span class="time-badge">Approx. 3–6 hours</span>
+			    </div>
+			    <div class="teaching-brief">
+				<p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/odometry-exercise-04-square-benchmark.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+				<p><strong>Goal:</strong> use your discovered robot geometry (wheel radius and wheel separation) to configure the supplied motion helpers.  Then, program the robot to move in repeatable squares to evaluate the final reported odometry prediction against independently measured start and end poses.</p>
+				<p>A square offers a simple expectation: after four straight sides and four ninety degree turns, the robot should finish where it started, including it's heading. For example, we position the robot in the environment, and the robot initialises it's odometry model to \(x=0, y=0, \theta=0\).  The robot then drives in the commanded square. Finishing, the robot reports \(x=0, y=0, \theta=0\), estimating that it has stopped where it started.  However, we measure the final robot position as \(x=12.5, y=-22.1, theta=0.08\) - clearly, the odometry model has accrued error.</p>
+				<p>In the previous exercises we used relatively simple and short movments to calibrate the robot geometry.  However, by tasking the robot to move in a more complex pattern, such as a square, any errors are compounded.  Each individual movement may appear reasonable while a small distance or heading error is carried into every movement that follows. By the final side, an early heading error can contribute to both the final position and the final orientation. The square therefore tests the calibrated parameters together under a more demanding movement than the straight-line and on-the-spot trials used to estimate them.</p>
+				<p>This exercise is inspired by the <a href="https://doi.org/10.1109/70.544770" target="_blank" rel="noopener">University of Michigan Benchmark (UMBmark)</a> for differential-drive robots. The original method uses repeated clockwise and anticlockwise square paths because two systematic effects can partly cancel in one direction but reinforce in the other. In this exercise, we will adopt a similar premise but alter aspects from the original source publication.  For example, the square size, the use of motion helpers and measurement method differ from the original procedure. Therefore, this exercise is not a reproduction of the full published benchmark.</p>
+				<p>Importantly, during this benchmark the robot should not be configured to follow a line on the surface, such as the rectangle marked on the test sheet provided to you. Instead, the robot should attempt to move around the square using only the information available from its wheel encoders, without reference to external features. We are interested in observing the physical displacement that accumulates when the robot relies on encoder information to control its motion. If the robot were to follow the marked line, this would provide an external reference that could continually correct its trajectory and therefore mask the odometry errors that the benchmark is intended to reveal.</p>
+				<p>When running these tests, we expect that the final end position for each trial will vary.  However, identifying the causes for each variation is not simple.  Wheel slip, motor activation times, a shifted starting pose, surface variation, stopping behaviour and measurement error can produce patterns resembling geometry error. Repeated final end positions can reveal useful structure. A consistent offset between the clockwise and anticlockwise groups suggests a direction-dependent effect, while the spread within a group shows how repeatable the complete experiment was under the controlled conditions.</p>
+				
+				<p>For each trial, first calculate the robot's <strong>physical closure</strong> from the independently measured start and end poses. We will represent these measurements with the subscript \(\mathrm{phys}\):</p>
+				<div class="equation" role="img" aria-label="Physical closure equals the independently measured final pose minus the independently measured initial pose">
+				    \[c_x=x_{\mathrm{phys,final}}-x_{\mathrm{phys,initial}},\qquad
+				    c_y=y_{\mathrm{phys,final}}-y_{\mathrm{phys,initial}},\qquad
+				    c_\theta=\operatorname{wrap}(\theta_{\mathrm{phys,final}}-\theta_{\mathrm{phys,initial}})\]
+				</div>
+				<p>The quantities \(c_x\), \(c_y\), and \(c_\theta\) therefore describe the physically observed change in pose. They are not values reported by odometry. If the measured final pose exactly matched the measured initial pose, all three closure values would be zero.</p>
+				<p>Next, calculate the corresponding change reported by the local odometry. We will use the subscript \(\mathrm{odom}\) to distinguish these model estimates from the physical measurements:</p>
+				<div class="equation" role="img" aria-label="Odometry pose change equals the final local odometry pose minus the initial local odometry pose">
+				    \[\Delta x_{\mathrm{odom}}=x_{\mathrm{odom,final}}-x_{\mathrm{odom,initial}},\qquad
+				    \Delta y_{\mathrm{odom}}=y_{\mathrm{odom,final}}-y_{\mathrm{odom,initial}},\qquad
+				    \Delta\theta_{\mathrm{odom}}=\operatorname{wrap}(\theta_{\mathrm{odom,final}}-\theta_{\mathrm{odom,initial}})\]
+				</div>
+				<p>Finally, define each endpoint residual as the independently measured physical closure minus the change estimated by odometry:</p>
+				<div class="equation" role="img" aria-label="Endpoint residual equals independently measured physical closure minus the change estimated by local odometry">
+				    \[e_x=c_x-\Delta x_{\mathrm{odom}},\qquad
+				    e_y=c_y-\Delta y_{\mathrm{odom}},\qquad
+				    e_\theta=\operatorname{wrap}(c_\theta-\Delta\theta_{\mathrm{odom}})\]
+				</div>
+				<p>For example, an ideal square would have zero physical closure, but do not replace your measured closure with zero: use the physical start and end poses you actually observed. The <code>wrap</code> operation maps an angular difference into one chosen interval, such as \((-\pi,\pi]\) radians or \((-180,180]\) degrees. Use the same convention and angular units throughout. Report position and heading residuals separately rather than combining millimetres and degrees into one unexplained score.</p>
+				
+				<p>In this exercise we will use the motion helpers that you previously encoutered in exercise 2.  The motion helper can be provided with new geometry values (wheel radius and wheel separation).  You can provide the effective radius from Exercise 2, and the effective wheel separation from Exercise 3. </p>
+
+				<p>To perform the square movement routine, we will need to program the robot to make four reptitions of a translation followed by a rotation via the motion helper functions.  A square of side length \(L\) can be requested as four repetitions of a translation followed by a quarter-turn, \(\pi / 2\), with \(q\) determining the direction of the rotation:</p>
+				<div class="equation" role="img" aria-label="A square consists of four repetitions of a forward movement followed by a signed quarter-turn">
+				    \[\text{repeat four times:}\qquad
+				    \operatorname{move}(L),\quad \operatorname{rotate}(q\pi/2),
+				    \qquad q=+1\ \text{anticlockwise},\quad q=-1\ \text{clockwise}\]
+				</div>
+
+				
+			    </div>
+			    <div class="exercise-grid">
+				<div class="context-box" data-context-box>
+				    <div class="context-tabs" role="tablist" aria-label="Exercise 4 guidance">
+					<button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button>
+					<button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button>
+				    </div>
+				    <div class="context-panel active" data-panel="nonai">
+					<h3>Investigation brief</h3>
+					<ol>
+						  <li><strong>Create a test function.</strong> Like previous exercises, we will create a new test function to be called from the controller update(...) function iteratively.  This means that we expect the test function to be <strong>non-blocking</strong>: it will be called, execute it's code once, and then immediately return.
+						  	<ol>
+					  			<li>Create a new function called <code>testSquareMotion(...)</code>.   Use the same input arguments as the previous test function and the example runLineFollower(...). For now, leave this function empty.  It should look like:</li>
+					  			<blockquote><code><pre>
+	void Controller_c::testSquareMotion( Robot_c &amp;robot, unsigned long now ) {
+
+	}
+					  			</pre></code></blockquote>
+					  			<li>Remember to add the function prototype to <strong>Controller.h</strong>:</li>
+					  			<blockquote><code><pre>
+	void testSquareMotion( Robot_c &amp;robot, unsigned long now );
+					  			</pre></code></blockquote>
+						  	</ol>
+						  </li>
+							<li><strong>Implement State Variables.</strong> To have the robot achieve a trajectory of a square, we will track the progress of the two motion helper operations, moving forwards and rotation.  To achieve a square trajectory, we will need for the forward motion to complete, before initiating a rotation.  Once the rotation has finished, the next forward motion and rotation can be initiated. To trace a square path, this will need to be repeated 4 times.  Therefore, we will declare a variable within the class, making it a <strong>global variable</strong> within the class, and therefore persistent. This means that the variable will retain it's value between each iterative call to the test function.
+								<ol>
+									<li>In <strong>Controller.h</strong>, find the following section of code and add the variable declaration so that it appears as below:</li>
+									<blockquote><code><pre>
+class Controller_c {
+  
+  public:
+    /** @brief Editable local encoder-to-pose model; inspect odometry.pose.
+     * @note Controller mode resets do not reset this estimate. Use
+     * odometry.reset(...) explicitly to start a new physical trial.
+     */
+    OdometryModel_c odometry;
+
+    // Variable to track the number of rotations to move in a square motion
+    int rotation_count;
+									</pre></code></blockquote>
+									By placing this variable under the <strong>Public:</strong> keyword (an access specifier), it means this variable can be access by all other functions within the class, and by interacting with the class externally.
+								</ol>
+
+
+							</li>
+							<li><strong>Implement the test function:</strong> Replace testSquareMotion(...) with the following:</li>
+							<blockquote><code><pre>
+void Controller_c::testSquareMotion( Robot_c &amp;robot, unsigned long now ) {
+
+	// Has the motion sequence finished?
+	if ( mode != STOPPED ) {
+
+		robot.getMotionStatus();
+
+		// True before the first time the motion helper is called.
+		if ( robot.motion_status.state == MOTION_STATUS_IDLE ) {
+
+			// Initialise rotation count
+			rotation_count = 0;
+
+			// Configure new geometry
+			robot.setMotionHelperGeometry( 16.0, 16.0, 90.0 );
+
+			// Check it was received
+			if ( robot.getMotionHelperGeometry() ) {
+				Serial.printf("Set geometry: %.3f, %.3f, %.3f\n",
+				robot.motion_geometry.left_wheel_radius_mm,
+				robot.motion_geometry.right_wheel_radius_mm,
+				robot.motion_geometry.wheel_separation_mm
+			);
+
+		} else {
+			Serial.println("Failed to set new robot geometry");
+			// Stop the robot.
+			setSignal(0);
+			mode = STOPPED;
+			return;
+		}
+
+		// Start first movement
+		robot.startMoveDistance( 100.0 );
+
+	// Check for finished status for all subsequent status conditions
+	} else if ( robot.motion_status.state == MOTION_STATUS_COMPLETE ) {
+
+		// Just finished a distance travel?
+		if ( robot.motion_status.mode == MOTION_MODE_DISTANCE ) {
+			// Trigger next rotation
+			robot.startRotateAngle( PI / 2.0 );
+			return;
+		}
+
+		// Just finished a rotation?
+		if ( robot.motion_status.mode == MOTION_MODE_ROTATION ) {
+			rotation_count = rotation_count + 1;
+
+			// Was that the fourth rotation?
+			if ( rotation_count >= 4 ) {
+
+				// Stop the robot.
+				setSignal(0);
+				mode = STOPPED;
+				return;
+			}
+
+			// Trigger next forward translation
+			robot.startMoveDistance( 100.0 );
+			return;
+		}
+
+
+		} else {
+			// Motion helper is running, do nothing.
+
+		}
+	}
+}
+							</pre></code></blockquote>
+							<p>This code builds on the runLineFollower() code in terms of moving the robot through different behaviours.  This is achived through the variable <strong>mode</strong>, and the variables within <strong>robot.motion_status</strong>.  The variables within robot.motion_status report whether the robot is still moving, and what the last movement type was. </p>
+							<ol>
+								<li>Review the above code.  To first approach this review, it will help if you view the code in blocks:
+								<ol>
+									<li>First consider the function as a block of code encapsulated by <code>if( mode != STOPPED ) { } </code>.  What is your intuitive interpretation of what this if statement is doing? Note that there is no code outside this if statement.</li>
+									<li>Establish how the code is then partitioned into two further large blocks by the second if statement, <code>if( robot.motion_state.mode == MOTION_STATUS_IDLE ) {</code>.  Considering both blocks of partitioned code, what are they achieving in general?   </li>
+									<li>Continue to review the code in blocks like this, rather than reading the code top-to-bottom, line-by-line. Once you have an overview, return to read the code line-by-line in detail.</li>
+								</ol> 
+								<li>Trace the execution of this code beginning from <strong>controller.update(...)</strong> called in loop() in the top level .ino file.</li>
+								<li>Determine the initial value of the variable <strong>mode</strong> when the code first runs.  Which function sets this value, and when is this function called? This function is called before loop() executes for the first time.</li>
+								<li>Draw a diagram that represents which movement the robot will be operating, and what causes the transition to the next movement.  Use a circle to represent each movement behaviour, and use labelled arrows to indicate the value of <strong>robot.motion_status.mode</strong> that triggers the transition.</li>
+								<li>Extend your diagram to indicate what variable and variable value transitions the robot back to the <strong>stopped</strong> state.</li>
+								<li>Update the above code with your measured wheel radius and wheel separation values. Find the function <code>robot.setMotionHelperGeometry(...);</code></li>
+								<li>Update the above code for your desired travel distance.  In the example, it is set to 100mm.</li>
+							</ol>
+
+							<li><strong>Report data over Wi-Fi. </strong> Attempting to capture data from the robot with the physical USB-C cable plugged in will interfere with the motion of the robot.  Therefore, we will utilise the StampC3 Wi-Fi functionality.  In the controller <strong>update(...)</strong>function, find the following block of code and add the lines of code so it appears the same:</li>
+
+							<blockquote><code><pre>
+// Use another TaskTimer_c to limit how often we transmit telemetry data
+// on WiFi and Serial.
+if (telemetry_timer.isReady(now)) {
+	telemetry_timer.resetTimer(now);
+	// publishTelemetry(robot, server, now);
+
+		// Report data over Wi-Fi when the controller is active
+		if( signal == 1 ) {
+			server.printf("%lu, %.3f, %.3f, %.3f\n", 
+							now,
+							odometry.pose.x,
+							odometry.pose.y,
+							odometry.pose.theta
+							);
+	}
+}
+</pre></code></blockquote>
+					    
+					    <li><strong>Define the independent reference.</strong> On a surface, mark a repeatable starting position, heading and chassis reference point. Recall that the robot will initialise the odometry with itself facing forwards aligned with \(+x\). Decide how physical \(x\), \(y\), and heading will be measured at the start and end. Repeat the placement if necessary to estimate if there is measurable variation in when placing the robot in the starting position. </li>
+					    
+					    <li><strong>Run a cautious first trial.</strong> Clear an area larger than the requested square and keep people, cables and loose objects outside it. Use one trial to check state transitions and stopping behaviour. Treat any timeout, cancellation, unexpected restart or competing motor command as a failed trial to diagnose, not a result to hide.
+					    	<ol>
+					    		<li>You may want to take the extra step of reporting the time-series encoder counts whilst your robot completes this square motion.  You can extend the line <code>server.printf(...)</code> in the above provided code.</li>
+					    		<li>Follow the guidance in the <strong>Phase 2</strong> section of these teaching materials to connect to your robot over Wi-Fi and to recieve the data.  You will need to use the name  you gave to the StampC3 network and the password you defined.</li>
+					    	</ol>
+
+					    </li>
+					    <li><strong>Collect the benchmark.</strong> From the same marked pose, collect at least five clockwise squares.  Keep side length, surface, load, helper geometry and measurement method fixed.  Remember to record the physical start position, the final physical position, and the final position reported by the StampC3 local odometry.</li>
+					    <ol>
+					    	<li>Remember to keep good records.  It would be best to label each data point that you collect.  The easiest way to do this is from within the code on the StampC3 that produces that <code>server.printf(...)</code>.  For example, it would be good to label the data with whether this was a clockwise or anti-clockwise traversal, and which trial number it was.</li>
+					    </ol>
+					    <li><strong>Compare closures and residuals.</strong> For every run, retain the commanded square, the local odometry trajectory, and the independently measured start and endpoint as distinct records. Calculate physical closure and measured-minus-estimated \(x\), \(y\), and heading residuals. Plot clockwise and anticlockwise physical endpoints with different symbols, show their group centres and spread, and show odometry trajectories only as model estimates.</li>
+					    <li><strong>Decide what the benchmark supports.</strong> Ask whether the direction groups have a consistent offset, whether their spreads overlap, and whether any difference is meaningful relative to placement and measurement uncertainty. Replay the same encoder records through a clearly named alternative geometry if you want to compare models, but keep the benchmark observations held back and do not refit to them. Explain remaining errors using more than one plausible cause and propose one changed condition that would distinguish those causes.</li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>A functioning non-blocking square sequence, independently measured clockwise and anticlockwise return poses, and an evidence-backed evaluation of the frozen odometry model that separates repeatable direction-dependent error from trial-to-trial variation.</p>
+				    </div>
+				    <div class="context-panel" data-panel="ai" hidden>
+					<h3>AI-assisted investigation brief</h3>
+					<p>Use AI as a code-review tutor and an experimental-design critic. It has not observed your robot, cannot recover the physical path from endpoint measurements, and cannot establish hidden middleware behaviour. Your source inspection, raw encoder records and independent pose measurements remain the evidence.</p>
+					<p>First explain the frozen radius and separation to a team member without reopening earlier conversations. Your initial milestone is one safely commissioned square with a complete log and independent endpoints; then collect the bidirectional benchmark below. Decide where assistance would help: one state transition, a trial table, a residual plot or a critique of your claim. You may request a small implementation from your specification, provided you can explain its state changes and test its stop paths. Familiar steps do not need another tutor-led quiz.</p>
+					<ol>
+					    <li><strong>Make the reasoning visible first.</strong> Before consulting AI, draw the square from the \(+x\) starting direction, label the sign of each clockwise and anticlockwise turn, and predict how one small turn error could alter later sides. Then sketch a state diagram that issues each of the eight helper requests once and stops on timeout or cancellation. Mark any transition you are unsure about.</li>
+					    <li><strong>Use AI to review the supplied robot interface.</strong> Give a repository-capable AI the public GitHub <a href="https://github.com/paulodowd/RoboticsScienceAndSystems" target="_blank" rel="noopener">Robotics Science and Systems repository</a> and direct it to <strong>StampC3_Template/Robot.h</strong>, <strong>Robot.cpp</strong>, <strong>Controller.h</strong> and <strong>Controller.cpp</strong>. If it cannot inspect the repository, or your working copy differs, provide the relevant excerpts from your supplied files, including your changes. Ask it to check your state diagram against the named helper methods and status values, one transition at a time. Verify every claim in your working copy; the supplied files do not include the opaque middleware implementation.</li>
+					</ol>
+					<div class="prompt-snippet">“Help me develop a square-path routine from my state diagram and pseudocode. Using only the excerpts I provide from my supplied StampC3_Template code, review the transition I identify; draft that small section if I ask. Check that each move or rotation is requested once, RUNNING is observed before COMPLETE is accepted, encoder logging continues, and TIMEOUT or CANCELLED aborts safely. Explain the change and suggest a test whose expected state sequence I can check first. Cite exact files and symbols; do not infer the opaque middleware implementation or claim a physical test succeeded.”</div>
+					<ol start="3">
+					    <li><strong>Ask AI to challenge the experiment, not choose the result.</strong> Write your own benchmark plan containing the frozen geometry from Exercises 2–3, a practical side length, at least five repeats in each direction, balanced run order, physical reference, recorded fields and uncertainty. Define a chassis reference point and measure placement/read spread. Ask AI which comparisons would be confounded and what observation would challenge your prediction. It must not invent suitable parameter values, measurements or expected endpoints. Keep this benchmark separate from the records used to calibrate geometry.</li>
+					    <li><strong>Implement and commission from predictions.</strong> Once initialisation has completed and the helpers are idle, use <code>setMotionHelperGeometry(...)</code>, check the write, then use <code>getMotionHelperGeometry()</code> and compare all three returned values with those requested. Confirm the local odometry uses the same frozen radius and separation; these are separate configurations. Keep one non-blocking routine, the button start and 10 ms schedule, and implement explicit stops for completion, timeout, cancellation and communication failure. A controller reset alone does not stop a helper. Compile and explain the expected status sequence to a team member. First check commands with wheels clear, then clear a surface area larger than the square and conduct one commissioning trial. Keep cables and people outside the motion area and retain any aborted run as debugging evidence.</li>
+					    <li><strong>Collect measurements before interpretation.</strong> Reset and baseline local odometry while stationary at the marked start of each trial. Run the repeated clockwise and anticlockwise squares without line following or external steering correction. Log trial, direction, helper stage, actual times, both raw encoder counts and local pose throughout, including stationary endpoints. Use WiFi if a USB cable would pull the robot, but keep passwords out of AI conversations. Independently measure physical start and final poses in the same coordinate frame. Preserve failed trials with reasons; do not ask AI to fill gaps or convert a requested square into a measured path.</li>
+					    <li><strong>Use AI as a critic of claims.</strong> Run the Colab example, then load your own logs and endpoint measurements. Calculate one physical closure and one physical-minus-odometry residual yourself before asking AI to review the analysis. Use a consistent angular wrap and keep position and heading errors in separate units. Plot direction groups with centres and spread, and distinguish odometry trajectories from measured endpoints. Ask AI for at least two explanations of any pattern and choose a changed trial that could separate them. Retain a null result when uncertainty prevents the groups being distinguished, and do not refit the frozen geometry to make the benchmark close.</li>
+					</ol>
+					<div class="prompt-snippet">“Help me compare benchmark evidence. Here are my clockwise and anticlockwise endpoints, initial poses, local-odometry changes, labels, uncertainty and one hand calculation. Suggest two plot layouts for comparing direction groups while retaining every repeat, and help implement the one I choose in a small cell. State whether you executed it or only proposed code. Keep physical closure and measured-minus-estimated residuals distinct, with separate units for position and heading. Question my interpretation without treating the requested square as a measured path or refitting the frozen geometry.”</div>
+					<ol start="7">
+					    <li><strong>Consolidate with a teach-back.</strong> Explain to AI, without looking at its earlier responses, why both directions were needed and why an odometry trace returning to zero is not sufficient evidence of physical accuracy. Check your explanation against the measurements, then produce your own short table of claim, supporting evidence, competing explanation and remaining uncertainty.</li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>A safely sequenced bidirectional benchmark that you can explain from the supplied <code>Robot_c</code> interface, together with independently checked endpoint analysis and a justified account of what the frozen odometry model does and does not predict.</p>
+					<span class="ai-reminder">AI can review code and calculations, but only your recorded source checks and physical measurements establish what happened.</span>
+				    </div>
+				</div>
+				<div class="investigation exercise-evidence">
+				    <div class="measure-row"><span><b>Configure</b>frozen helper geometry</span><span><b>Repeat</b>clockwise + anticlockwise</span><span><b>Compare</b>physical closure + odometry residual</span></div>
+				</div>
+			    </div>
+			</div>
+		    </article>
+		    <article id="exercise-05" class="exercise-card">
+			<div class="exercise-index">05</div>
+			<div class="exercise-content">
+			    <div class="exercise-heading">
+				<div><span class="concept-tag">Inertial measurement · accumulated error</span><h2>Gyroscope bias and heading drift</h2></div>
+				<span class="time-badge">Approx. 3–6 hours</span>
+			    </div>
+			    <div class="teaching-brief">
+				<p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/odometry-exercise-05-gyroscope-heading.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+				<p><strong>Goal:</strong> measure the gyroscope's stationary bias, examine how it affects integrated heading, and compare gyro and encoder estimates against the same physical reference.</p>
+				<p>In Exercise 3, the robot's change in heading was estimated from the difference between the distances travelled by its wheels. This estimate depends on the wheel geometry and on the assumption that rotation at the wheels represents rotation of the robot body. A gyroscope offers a different observation: it responds directly to rotation of the body about one of its sensor axes. Wheel slip may therefore affect the two estimates differently, although neither estimate is an independent measurement of the robot's physical heading.</p>
+				<p>A gyroscope reports <strong>angular velocity</strong>, or rate of rotation, rather than angle. A reading of \(30\) degrees/s means that the heading would change by approximately \(30\) degrees if that rate continued for one second. To estimate a complete turn, successive rate measurements must be accumulated over their measured time intervals. This process is called <strong>integration</strong>.</p>
+				<p>Ideally, a stationary gyroscope would report zero degrees/s. In practice, its readings may be scattered around a small non-zero mean. The mean stationary rate is a candidate <strong>zero-rate bias</strong>, while the sample-to-sample variation describes the short-term spread around it. These effects should not be confused: bias is a systematic offset in angular velocity, whereas <strong>heading drift</strong> is the accumulated change in the integrated angle. For example, a constant rate bias of \(0.2\) degrees/s would contribute \(4\) degrees of heading error after \(20\) seconds, even though the individual rate readings appear close to zero.</p>
+				<figure class="plot"><img src="./assets/images/odometry/gyro_drift.png" alt="Synthetic stationary gyro rate and integrated heading show that bias correction reduces accumulated drift on a segment excluded from bias estimation" /><figcaption>Figure 4. A synthetic stationary record is divided into bias-calibration and evaluation segments. The second panel integrates only the evaluation segment; it does not reuse that segment to force its final error to zero.</figcaption></figure>
+				<p>In the left panel, the horizontal calibration mean is the candidate bias estimated while the robot is stationary. The individual readings lie above and below this line because the measured rate also contains short-term variation and may change slowly with time. These components have different consequences when they are integrated. A positive bias adds a small positive angle during every sample interval, so its error grows steadily in one direction. Variation around the mean adds less regular positive and negative increments, but those increments are still accumulated rather than forgotten.</p>
+				<p>The right panel makes this accumulation visible. The uncorrected heading moves progressively away from the stationary reference because the rate retains a positive offset. Removing the fixed calibration mean makes the curve less steep, but it does not make it perfectly flat: a single constant correction cannot remove measurement variation or a bias that changes after calibration. The remaining drift is therefore useful evidence about the limits of the correction, rather than simply a failed result.</p>
+				<p>It is important to estimate and evaluate the correction using different data. For example, imagine we collected a dataset of samples with the sensor stationary and determined the mean to repesent bias.  If we now used that bias value applied to the same dataset would make their corrected values sum to zero. However, in reality the operating circumstances of the sensor will change. These sensors are typically sensitive to aspects such as temperature variations and other environmental factors.</p>
+				<p>In the right panel of Figure 4, the example plot is intended to communicate that once a bias has been determined from a sampled dataset, it's subsequent application on later readings will likely not operate perfectly.  We can observe that the <strong>fixed bias removed</strong> plot still gently trends upwards.  A reduction in drift on this unseen data is useful evidence that the correction transfers under similar conditions, but any remaining residual drift shows how far that transfer is from perfect.</p>
+				<p>As such, a stationary mean is an <strong>operational estimate</strong>, not a permanent or exact property of the sensor. It may depend on warm-up time, temperature, how the robot is supported, and other conditions. Repeated stationary trials allow you to compare the variation within one record with changes between records. Before conducting and evaluating the turning trials, estimate the gyroscope bias from separate stationary calibration data and then keep it fixed. Do not adjust the bias for individual turns after comparing their estimated and externally measured final headings, because this would tune the correction to the result it is intended to predict.</p>
+				<p>For a simple left-endpoint integration, use the previous corrected rate over the measured sample interval:</p>
+				<div class="equation" role="img" aria-label="Gyro heading equals previous heading plus previous measured rate minus estimated bias times elapsed seconds">
+				    \[\hat{\theta}_{k+1}=\hat{\theta}_k+(\omega_k-\hat b)\Delta t_k,\qquad
+				    \Delta t_k=(t_{k+1}-t_k)\times10^{-6}\]
+				</div>
+				<p>Here \(t_k\) is the IMU timestamp in microseconds.  Therefore, \(\Delta t_{k}\) is the <i>difference in time</i> between the measurement samples (sensor reading) taken. \(\omega_k\) is the measured rate (sensor reading) in degrees/s, \(\hat b\) is the fixed bias estimate in degrees/s, and the resulting \(\hat{\theta}\) is in degrees. For example, a corrected rate of \(20\) degrees/s applied for \(0.01\) seconds adds \(0.2\) degrees to the heading estimate. Checking one such calculation by hand is a useful way to find a missing \(10^{-6}\) conversion or a mixture of degrees and radians.</p>
+				<p>The StampC3_Template code has a class provided to you to operate the gyro sensor.  The class <code>RobotIMU_c</code> has the helper function <code>gyroscopeToDegreesPerSecond(...)</code> which you can use to convert a gyro reading into degrees.  The local encoder odometry stores heading in radians, so one estimate must be converted before the two are compared. Their timestamps also have different meanings: <code>timestamp_us</code> is recorded after the IMU read, while the controller's millisecond time (the argument provided, <code>unsigned long now</code>) describes the surrounding acquisition cycle. When recording data, it would be best to keep both time values rather than presenting the measurements as exactly simultaneous.</p>
+				
+				<!--<p>The supplied <code>RobotIMU_c</code> interface keeps these operations visible. In <code>RobotIMU.h</code>, <code>imu.isSampleReady()</code> checks whether a fresh accelerometer and gyroscope sample is available, <code>imu.read()</code> acquires it, and <code>imu.getSample()</code> exposes the raw axes, sequence number and <code>timestamp_us</code>. <code>RobotIMU_c::gyroscopeToDegreesPerSecond(...)</code> converts a raw gyro value using the configured \(\pm245\) degrees/s range.-->
+				<p>The RobotIMU_c class configures the IMU sensor to sample at \(104\) Hz, close to the controller's \(100\) Hz update rate. The class does not choose an axis, all three are available to you.  The class does not estimate bias or integrate heading for you.</p>
+				<p>In this exercise you will first establish which sensor axis and sign correspond to physical yaw. You will then estimate bias from stationary evidence and test it on data that was not used for the estimate. Finally, you will compare gyro and encoder heading changes with the same external start and final headings. Agreement between the onboard estimates is useful, but the external observation is needed to assess whether either one describes the physical turn.</p>
+			    </div>
+			    <div class="exercise-grid">
+				<div class="context-box" data-context-box>
+				    <div class="context-tabs" role="tablist" aria-label="Exercise 5 guidance">
+					<button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button>
+					<button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button>
+				    </div>
+				    <div class="context-panel active" data-panel="nonai">
+					<h3>Investigation brief</h3>
+					<ol>
+					    <li><strong>Inspect the supplied IMU path before changing it.</strong> In the top-level <code>StampC3_Template.ino</code> file, find the global <code>RobotIMU_c imu</code> object and follow its call to <code>imu.initialise()</code>. In <code>RobotIMU.cpp</code>, identify the configured accelerometer and gyroscope ranges, the \(104\) Hz output rate, and the conversion used by <code>gyroscopeToDegreesPerSecond(...)</code>. Upload the unmodified template once and check that the Serial Monitor does not report <code>Warning: LSM6DS33 IMU was not detected.</code> The RobotIMU_c class can be considered complete, you should not need to modify it further for these exercises.  The robot interface starts the shared I2C bus before the IMU is initialised, so do not add another <code>Wire.begin()</code> call - this would likely cause a critical error for your StampC3.</li>
+					    <li><strong>Make the existing IMU object available to the controller.</strong> From the previous step, we have identified that an instance of RobotIMU_c is declared in the top level .ino file.  Our next task is to pass this through to the instance of the Controller_c class.  From previous exercises, we can recognise that the controller has only been provided with <code>robot</code> and <code>server</code>. We need to modify the definition of update(...) in Controller_c to accept a new input argument, the IMU sensor.
+						<ol>
+						    <li>Include <code>RobotIMU.h</code> in <code>Controller.h</code>. You can achieve this by writing <code>#include "RobotIMU.h"</code> underneath the line that has <code>#include "OdometryModel.h"</code></li>
+						    <li>In <code>Controller.h</code>, change the update declaration to:<pre><code>void update(Robot_c &amp;robot, RobotIMU_c &amp;imu, RobotWifiAP_c &amp;server);</code></pre></li>
+						    <li>Make the matching change to the <code>Controller_c::update(...)</code> function definition in <code>Controller.cpp</code>.</li>
+						    <li>In the top-level <code>loop()</code>, change the call to:<pre><code>controller.update(robot, imu, server);</code></pre></li>
+						    <li>Compile the project before adding acquisition code. A declaration, definition and function call with different argument lists will produce a compiler error. Before you add more code, check that the code compiles without any errors.</li>
+						</ol>
+					    </li>
+					    <li><strong>Prepare a labelled gyroscope logger.</strong> Create a new test function for this investigation to be called by the controller update(...) function.  We need to ensure that we pass it references to the robot, IMU and server, together with <code>now</code> as input arguments. Declare it in <code>Controller.h</code>, define it in <code>Controller.cpp</code>, and call it from the active <code>signal == 1</code> block in <code>update(...)</code>. For example, its declaration in <strong>Controller.h</strong> can be:
+						<pre><code>void reportGyroscope(Robot_c &amp;robot, RobotIMU_c &amp;imu, RobotWifiAP_c &amp;server, unsigned long now);</code></pre>
+                     In <strong>Controller.cpp</strong> you can create the function:
+						<pre><code>void Controller_c::reportGyroscope(Robot_c &amp;robot, RobotIMU_c &amp;imu, RobotWifiAP_c &amp;server, unsigned long now) {
+
+ }</code></pre>
+
+
+
+
+						Keep the motor commands disabled for the first tests. Within the new test function reportGyroscope(...), acquire a record only when both readiness and reading succeed:
+						<pre><code>if (imu.isSampleReady() &amp;&amp; imu.read()) {
+    RobotIMUSample_t sample = imu.getSample();
+    // Convert and report this fresh sample here.
+}</code></pre>
+						For the initial axis check, report all three raw gyroscope values. You will want to check the response of each axis to establish which registers the rotation of the robot on a flat plane (called, yaw).  From previous exercises, you should be familiar with reporting measurements via either <code>Serial</code> or <code>server</code>.  Remember that <code>Serial.print( variable, 4 );</code> can receive a second argument to specify the decimal precision (in this example, 4) - without this, you may see rounding errors.  A useful time-series record is:
+						<pre style="overflow-x: auto;"><code>test_name,trial_num,condition,controller_time_ms,imu_time_us,imu_sequence,gyro_x_raw,gyro_y_raw,gyro_z_raw,yaw_rate_dps,left_encoder_count,right_encoder_count,odometry_theta_rad</code></pre>
+						Use short, consistent condition labels such as <code>stationary</code>, <code>clockwise</code> and <code>anticlockwise</code> to represent the tests you complete. Retain a separate trial summary containing the warm-up time, commanded turn where applicable, externally measured start and final headings, surface, whether the record is for calibration or evaluation, and any handling or acquisition problem. A short Serial record containing only the three raw axes is sufficient for the initial axis check.</li>
+					    <li><strong>Identify the yaw axis and its sign experimentally.</strong> Place the complete robot flat on the test surface with its motors disabled. Begin recording, rotate the chassis gently by hand about its vertical axis, pause, and then rotate it in the opposite direction. Compare the three raw channels and identify the channel with the clear signed response. Check the sign of the gyro readings against the sign convention used in the odometry model: positive heading turns anticlockwise when viewed from above. </li>
+					    <li><strong>Check that your reporting and conversion work as expected with a short stationary record.</strong> Collect approximately five seconds of data without touching the robot. Check that <code>imu_sequence</code> increases, <code>imu_time_us</code> remains ordered, and repeated cached samples have not been printed. The sensor produces a sample approximately every \(0.0096\) seconds at \(104\) Hz, while the controller can request data only about every \(0.010\) seconds. Calculate several successive intervals from your acquisition timestamps and expect them to be close to, but not exactly, \(0.010\) seconds. Convert one raw yaw value to degrees/s by hand and compare it with the reported value. Keep this commissioning record, but do not automatically use it as bias-calibration evidence if it contains handling or start-up behaviour.</li>
+					    <li><strong>Collect separate stationary calibration and evaluation evidence.</strong> Choose and record a warm-up duration, place the robot securely, and avoid touching the table or chassis during each record. Collect at least three stationary records of at least \(20\) seconds under the same conditions. Before inspecting the results, label one record for estimating bias and at least one complete later record for evaluation. Restarting the logger, lifting the robot, or changing its support creates a new trial. Repeat an evaluation after a different warm-up duration so that you can see whether the first estimate remains useful outside its original condition. Preserve every record and note disturbances rather than silently deleting inconvenient samples.</li>
+					    <li><strong>Estimate bias, then test it without refitting.</strong> Plot the converted yaw rate against elapsed time for each stationary record before reducing it to one number. Look for settling, steps, gradual change, isolated spikes and gaps. From the designated calibration record, calculate the mean rate as \(\hat b\) and describe its spread using the standard deviation or another stated measure. Keeping your calculated \(\hat b\) fixed, perform the integration after acquisition in a spreadsheet or Python so that the raw rate and timestamp columns remain unchanged.
+						<ol>
+						    <li>Set the initial gyro heading of each evaluation record to zero and integrate it once without correction and once after subtracting the fixed bias.</li>
+						    <li>Check one raw-to-rate conversion, one timestamp difference and one angle increment by hand. Do not integrate across a StampC3 restart, a repeated sequence number or an unexplained acquisition gap.</li>
+						    <li>Plot both integrated headings against elapsed time and report their final drift. A smaller corrected drift supports the usefulness of this bias under the tested conditions; it does not establish that the bias is constant for every future trial.</li>
+						    <li>Compare the evaluation made after the different warm-up duration. Describe any change in the rate centre separately from the short-term scatter within a record.</li>
+						</ol>
+					    </li>
+					    <li><strong>Extend the Exercise 3 turn test.</strong> Reuse the printed angular reference and your non-blocking rotation routine. Keep the wheel radius, wheel separation and gyro bias fixed before collecting evaluation data. Record a stationary interval before the turn, the complete motion, and a stationary interval after it. Continue updating encoder odometry while acquiring each fresh IMU sample, retaining the controller time and IMU time as separate fields. For every trial, measure the physical start and final headings rather than assuming <code>startRotateAngle(...)</code> is accurate or precise in achieving the turn.
+						<ol>
+						    <li>Collect at least five repeated clockwise and five repeated anticlockwise turns of one chosen size.</li>
+						    <li>Reserve a different turn size in each direction as a held-back condition. Do not change the wheel geometry or gyro bias after revealing these results.</li>
+						    <li>Retain failed or disturbed trials with a reason. A timeout, collision, accidental cable contact or incomplete log is diagnostic evidence, but it should not be presented as an undisturbed measurement.</li>
+						</ol>
+					    </li>
+						    <li><strong>Compare like with like and explain the remaining disagreement.</strong> For each turn, calculate the signed physical heading change, the local encoder-odometry heading change and the bias-corrected integrated gyro heading change. Convert them to one stated angular unit and apply the same sign convention. Calculate separate endpoint residuals using <code>measured physical change - estimated change</code> for the encoder and gyro estimates. Plot the onboard time histories, but show the external observation only where it was actually measured; start and final headings do not establish the physical path between them. Compare residuals across repetitions, directions, turn sizes, elapsed times and warm-up conditions. Consider at least two explanations—such as residual gyro bias, timing alignment, encoder geometry, wheel slip, placement or external reading uncertainty—and propose one changed trial that would help distinguish them.</li>
+						</ol>
+						<strong>Expected outcome</strong>
+					<p>A checked IMU acquisition routine with labelled raw and converted measurements, a stationary bias estimate tested on separate records, and repeated turns comparing gyro and encoder heading changes against the same external reference. Your conclusion should state the conditions under which the bias correction was useful and preserve the remaining uncertainty and disagreement between measurements.</p>
+				    </div>
+				    <div class="context-panel" data-panel="ai" hidden>
+					<h3>AI-assisted investigation brief</h3>
+					<p>Use AI as a code-review and integration tutor. It has not watched the robot turn or remain stationary. You will identify a yaw measurement, estimate its bias from one record, and test how well that correction transfers to separate stationary and turning records.</p>
+					<p>Your first milestone is a fresh stationary rate record and one checked angle increment, before the full bias and turning comparisons. Choose whether you need help tracing the source, integrating samples or interpreting disagreement. For an illustrative constant bias of 0.5°/s, 20 seconds would accumulate 10° even without a turn; these are teaching values, not expected readings. If integration is unfamiliar, ask AI to demonstrate a short timestamped example, then complete another interval yourself.</p>
+					<ol>
+					    <li><strong>Predict how a rate becomes an angle.</strong> Sketch a stationary rate trace with a small constant offset and the heading it would produce after integration. Explain what subtracting a fixed bias could improve and what variation might remain. Ask AI to check the distinction between rate bias and accumulated heading drift after you have attempted the explanation.</li>
+					    <li><strong>Trace the existing IMU object.</strong> Direct AI to the <code>StampC3_Template</code> directory in the GitHub repository linked in Exercise 1, or provide excerpts from your working copies of the supplied top-level sketch, <code>Controller.h/.cpp</code> and <code>RobotIMU.h/.cpp</code>. Locate <code>imu.initialise()</code>, readiness, acquisition, cached sample access and the degrees-per-second conversion. Ask AI to cite the supporting file and symbol. Pass the existing <code>RobotIMU_c</code> object by reference through the controller declaration, definition and call; compile that change before adding the logger. Keep the existing shared-bus initialisation rather than adding another <code>Wire.begin()</code>.</li>
+					    <li><strong>Check the physical axis and the record format.</strong> Create a non-blocking routine called from the active controller at its usual interval. Keep motors explicitly at zero for the initial tests. Acquire only when <code>imu.isSampleReady()</code> and <code>imu.read()</code> succeed, then copy <code>imu.getSample()</code>. Gently rotate the chassis on a clear surface in both directions and identify the responding axis and sign experimentally; AI should not choose them for you.
+					        <ol>
+					            <li>Keep test, trial and condition labels, controller milliseconds, IMU microseconds, sequence number, all three raw gyro axes, converted yaw rate, both encoder counts and local odometry heading.</li>
+					            <li>Use a short stationary pilot to inspect increasing sequence numbers, actual intervals and repeated records. The IMU read time and controller cycle time do not establish exact simultaneity.</li>
+					            <li>Check one raw-to-rate conversion yourself and record the warm-up duration, support and handling conditions. Keep credentials and identifying personal data out of source excerpts or logs shared with AI.</li>
+					        </ol>
+					    </li>
+					</ol>
+					<div class="prompt-snippet">“Help me with the part of the IMU investigation I identify. I will provide my rate-to-angle sketch and either excerpts from my supplied StampC3_Template code with logger pseudocode, or a notebook cell with labelled timestamp/rate rows and my hand calculation. Review the relevant signatures, freshness and units, or draft one integration cell using my fixed bias and actual intervals. Explain it, state what you ran, and leave me one row to check. Offer a worked example if I am stuck, clearly separate from measurements. Leave the yaw-axis decision to my physical experiment and do not invent a successful test.”</div>
+					<ol start="4">
+					    <li><strong>Choose calibration and evaluation before analysis.</strong> Collect at least three untouched stationary records of at least 20 seconds under stated conditions. Label one for estimating bias and complete later records for evaluation. Repeat an evaluation after a different warm-up duration. Ask AI to critique that split and explain why correcting a record with its own mean is a weak test of transfer. Preserve disturbances with notes.</li>
+					    <li><strong>Check an integration before running the whole notebook.</strong> Run the Colab example, load your records and plot rate against time. Estimate the mean bias only from the calibration trial. With it frozen, integrate each evaluation record both with and without correction using the previous rate and actual elapsed seconds. Check one timestamp conversion and angle increment by hand. Ask AI to review gaps, repeated sequences and restarts before integrating; do not bridge an unexplained gap. Keep raw and derived columns separate and compare final drift across records.</li>
+					    <li><strong>Compare two estimates against one external reference.</strong> Reuse the checked rotation routine with a clear area and explicit stop/abort paths. Keep wheel geometry and gyro bias fixed. Collect at least five clockwise and five anticlockwise turns at one chosen size, plus a reserved different size in each direction. Retain stationary intervals before and after, complete encoder/IMU logs, and independently measured start and final headings. Do not leave the stationary logger's repeated zero commands active while a helper is turning.</li>
+					    <li><strong>Explain the remaining disagreement.</strong> Convert gyro and encoder heading changes to the same unit and sign convention. Calculate physical-minus-estimated endpoint residuals separately and check one of each yourself. Ask AI to question your interpretation across direction, duration and warm-up, considering timing, bias change, slip, geometry and external reading uncertainty. Start and end observations do not establish a continuous physical trajectory. Finish with your own explanation of when correction helped and a proposed trial that distinguishes two remaining causes. In your notes, record which assistance you chose, one suggestion accepted or rejected with evidence, and what you can now do independently. Explain the comparison to a team member without the conversation open.</li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>A verified IMU logger, an independently checked integration, a bias estimate evaluated on separate records, and repeated gyro/encoder comparisons against physical headings. You should be able to explain the useful scope and remaining drift of the correction.</p>
+				    </div>
+				</div>
+				<div class="investigation exercise-evidence">
+				    <div class="measure-row"><span><b>Measure</b>rate bias + spread</span><span><b>Integrate</b>actual sample intervals</span><span><b>Compare</b>two estimates + reference</span></div>
+				</div>
+			    </div>
+			</div>
+		    </article>
+		    <!--
+		    <article id="exercise-06" class="exercise-card">
+			<div class="exercise-index">06</div>
+			<div class="exercise-content">
+			    <div class="exercise-heading">
+				<div><span class="concept-tag">Inertial measurement · double integration</span><h2>Acceleration and displacement</h2></div>
+				<span class="time-badge">60–90 min</span>
+			    </div>
+			    <div class="teaching-brief">
+				<p><strong>Goal:</strong> investigate what happens when measured acceleration is integrated into velocity and displacement, then use stationary and moving evidence to identify where this simple estimate is useful and where it becomes unreliable.</p>
+				<p>A robot that begins at rest, moves forwards and stops again must first accelerate and then decelerate. An accelerometer can reveal these changes in motion, but it does not report distance directly. In exercise 5, estimating heading from gyro readings was achieved by accumulating the gyro readings over time (single integration). Estimating translation from acceleration requires two stages: acceleration is first accumulated into velocity, then velocity is accumulated into displacement. This process is called <strong>double integration</strong>.</p>
+				<p>Each integration retains the errors from earlier samples. A small persistent acceleration error changes the estimated velocity during every time interval. That velocity error is then integrated again, so the displacement error can grow increasingly quickly even when the original acceleration response looks close to zero. For a constant uncorrected acceleration error \(b\), starting with zero velocity and displacement error, the continuous relationships are:</p>
+				<div class="equation" role="img" aria-label="Constant acceleration error produces velocity error b times time and position error one half b times time squared">
+				    \[e_v(t)=bt,\qquad e_x(t)=\tfrac12bt^2\]
+				</div>
+				<p>Where:</p>
+				<ul>
+				<li>\(b\) is the constant acceleration error in m/s² (metres per second per second)</li>
+				<li> \(e_v(t)\) is the resulting error in velocity</li>
+				<li>\(e_x(t)\) is the resulting error in displacement</li>
+				<li> and \(t\) is the elapsed time in seconds.</li>
+				</ul>
+				<p>The first equation, \(e_v(t)=bt\), describes how a constant acceleration accumulates into velocity error over time. If every second adds another \(b\) m/s to the velocity error, then after \(t\) seconds the velocity error is \(bt\). Starting from zero error, this can be written as:</p>
+				<div class="equation" role="img" aria-label="Velocity error is the integral of constant acceleration error b from zero to elapsed time t">
+				    \[e_v(t)=\int_0^t b\,\mathrm{d}\tau=bt\]
+				</div>
+				<p>The second integration accumulates the growing velocity error over time to produce displacement error. However, that velocity error is not constant: it begins at zero and grows linearly to \(bt\). Integrating it for a second time gives:</p>
+				<div class="equation" role="img" aria-label="Displacement error is the integral of the growing velocity error b tau, producing one half b t squared">
+				    \[e_x(t)=\int_0^t e_v(\tau)\,\mathrm{d}\tau
+				    =\int_0^t b\tau\,\mathrm{d}\tau
+				    =\tfrac12bt^2\]
+				</div>
+				<p>The \(t^2\) appears because the error has two opportunities to accumulate: the acceleration error makes the velocity error grow with time, and that growing velocity error then acts over time to produce displacement error. Graphically, a plot of velocity error against time is a straight line from \(0\) to \(bt\). The displacement error is the triangular area under that line: \(\tfrac12\times\text{base }t\times\text{height }bt=\tfrac12bt^2\). Doubling the duration therefore doubles the final velocity error but multiplies the displacement error by four.</p>
+				<p>For example, an acceleration error of \(0.01\,\mathrm{m/s^2}\) would produce a velocity error of \(0.10\,\mathrm{m/s}\) and a displacement error of \(0.50\,\mathrm{m}\) after \(10\) seconds. These values assume that \(b\) remains constant and that both errors begin at zero. They are predictions from this simple error model, not specifications for your sensor. A real record may also contain changing bias, gravity projection and short-term variation, so it need not follow the curve exactly. The model instead explains why a small persistent offset that seems unimportant in an acceleration plot can dominate the calculated displacement.</p>
+				<figure class="plot"><img src="./assets/images/odometry/acceleration_integration.png" alt="Illustrative acceleration errors close to zero produce growing velocity and displacement errors after two integrations; a constant bias plus random variation drifts much more than zero-mean variation alone" /><figcaption>Figure 5. Synthetic stationary signals illustrate how small acceleration errors accumulate. The dotted displacement curve shows the constant-bias prediction; the other curves are calculated from the time samples.</figcaption></figure>
+				<p>In the acceleration panel, the two example signals appear similar because both contain the same rapid variation. Their integrated results are very different: the zero-mean example wanders, while the added constant offset produces a steadily changing velocity and a curved displacement error close to the theoretical prediction. The smoothness of either displacement curve is not evidence that it is accurate. Integration itself produces smooth-looking curves, and smoothing the acceleration may reduce rapid variation without removing a persistent offset.</p>
+				<p>The LSM6DS33 contains a MEMS accelerometer. Its microscopic sensing structure responds to <strong>specific force</strong>, so the output depends on the robot's orientation relative to gravity as well as on its translational motion. When the robot is stationary and level, one sensor axis may report approximately \(1g\), while a horizontal axis should be much closer to zero. If the chassis tilts, part of the gravity response is projected onto the nominally horizontal axes. A tilt of only one degree corresponds to approximately \(g\sin(1^\circ)=0.17\,\mathrm{m/s^2}\), which is already much larger than the example constant error in Figure 5. Subtracting a stationary baseline can correct an offset for one fixed orientation, but it cannot compensate for an orientation that changes during the movement.</p>
+				<p><code>RobotIMU_c::accelerationToG(...)</code> converts a raw acceleration value using the configured \(\pm2g\) range. Multiply the result by approximately \(9.81\) to express it in m/s² before integrating. Retain the raw values as well as the converted values so that the conversion can be checked. As in Exercise 5, estimate any stationary baseline from designated calibration data, keep that estimate fixed, and evaluate it on a different stationary record before using it for a moving trial.</p>
+				<p>A transparent numerical starting point uses each measured time interval and the previous acceleration and velocity:</p>
+				<div class="equation" role="img" aria-label="Velocity is updated from previous acceleration, and displacement from previous velocity">
+				    \[\hat v_{k+1}=\hat v_k+a_k\Delta t_k,\qquad
+				    \hat d_{k+1}=\hat d_k+\hat v_k\Delta t_k\]
+				</div>
+				<p>Here \(a_k\) is the converted, baseline-adjusted acceleration along the chosen physical direction and \(\Delta t_k=(t_{k+1}-t_k)\times10^{-6}\) converts the IMU timestamp difference from microseconds to seconds. The product \(a_k\Delta t_k\) is the change in velocity attributed to that sample interval, while \(\hat v_k\Delta t_k\) is the displacement attributed to travelling at the current estimated velocity during the same interval. For example, an acceleration of \(0.20\,\mathrm{m/s^2}\) applied for \(0.01\) seconds changes the estimated velocity by \(0.002\,\mathrm{m/s}\). If the current estimated velocity is \(0.10\,\mathrm{m/s}\), that interval adds \(0.001\,\mathrm{m}\) to the estimated displacement.</p>
+				<p>These equations approximate the areas under the acceleration and velocity curves using one rectangle per measured interval. They are called a <strong>left-endpoint update</strong> because each rectangle uses the value at the beginning of the interval. Record this update order and state the initial velocity and displacement. For a trial that is known to begin stationary, setting \(\hat v_0=0\) is a measured initial condition. Setting the calculated final velocity to zero after seeing the result would instead add a new constraint and should not be presented as an independent prediction.</p>
+				<p>Begin with stationary records, because the known physical displacement is zero and any calculated movement exposes error in the measurement and integration process. Then investigate short, level and approximately straight movements that begin and finish at rest. Compare the inertial estimate with both the independently measured endpoint and the wheel-odometry estimate, while recognising that agreement between two onboard estimates does not establish the physical motion. The aim is not to obtain unrestricted inertial navigation from a simple calculation, but to establish what information the accelerometer can contribute to your robot model and where its limitations would matter in the Digital Twin.</p>
+			    </div>
+			    <div class="exercise-grid">
+				<div class="context-box" data-context-box>
+				    <div class="context-tabs" role="tablist" aria-label="Exercise 6 guidance">
+					<button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">Self-Directed Route</button>
+					<button class="context-tab" data-context="ai" role="tab" aria-selected="false">AI-Assisted Route</button>
+				    </div>
+				    <div class="context-panel active" data-panel="nonai">
+					<h3>Investigation brief</h3>
+					<ol>
+					    <li><strong>Extend the logger developed in Exercise 5.</strong> Continue to acquire a record only when <code>imu.isSampleReady() &amp;&amp; imu.read()</code> succeeds, then retain all three raw acceleration channels from the same <code>RobotIMUSample_t</code>. Add converted acceleration in g without replacing the raw evidence. Continue recording the IMU sequence number and timestamp, the controller time, both encoder counts and the local odometry pose. One suitable time-series format is:
+						<pre style="overflow-x: auto;"><code>test_name,trial_num,condition,controller_time_ms,imu_time_us,imu_sequence,accel_x_raw,accel_y_raw,accel_z_raw,accel_x_g,accel_y_g,accel_z_g,left_encoder_count,right_encoder_count,odometry_x_mm,odometry_y_mm,odometry_theta_rad</code></pre>
+						Keep a separate trial summary containing the warm-up time, robot orientation, surface, commanded movement, independently measured start and final positions, whether the record is for calibration or evaluation, and any handling or acquisition problem. Use short, consistent condition labels such as <code>stationary</code>, <code>forward</code>, <code>reverse</code> and <code>tilt_check</code>.</li>
+					    <li><strong>Establish the physical axes and signs.</strong> With the motors disabled, place the complete robot flat and record a short stationary interval. Gently tilt one side of the chassis, return it to the original position, and repeat about the other horizontal direction. Inspect all three acceleration channels to identify the axis that is mainly vertical and the axes aligned most closely with forward and sideways motion. The printed axis name alone does not establish its physical direction or sign. Keep the movements small, support the robot securely, and record what you observed rather than relying on an assumed mounting orientation.</li>
+					    <li><strong>Check the conversion and acquisition timing.</strong> Return the robot to the documented level test orientation and collect approximately five seconds without touching it. Confirm that <code>imu_sequence</code> increases, <code>imu_time_us</code> remains ordered and only fresh samples are reported. Convert one raw value using \(a_g=\text{raw value}\times0.000061\), compare it with <code>accelerationToG(...)</code>, and multiply the result in g by \(9.81\) to obtain m/s². Calculate several timestamp intervals in seconds. As a reasonableness check, the magnitude across the three stationary axes should be of the order of \(1g\), but this check does not prove that the individual axes are calibrated or correctly aligned.</li>
+					    <li><strong>Collect separate stationary calibration and evaluation records.</strong> Choose one repeatable level support and a stated warm-up duration. Without moving or touching the robot during a record, collect at least three stationary trials of at least \(10\) seconds. Before inspecting their results, designate one complete trial for baseline estimation and at least one later trial for evaluation. Restarting the logger, lifting the robot or replacing it on the surface begins a new trial. Retain disturbed records with a note rather than silently removing inconvenient samples.</li>
+					    <li><strong>Estimate the baseline without hiding variation.</strong> Plot the three converted acceleration channels against elapsed time for every stationary trial. Look for settling, slow change, spikes, repeated values and changes following replacement. For the horizontal axis most closely aligned with the proposed straight movement, calculate the mean of the designated calibration trial as the candidate baseline and report its standard deviation or another stated spread measure. Freeze this value before revealing the evaluation calculation. A mean close to zero does not imply that individual readings contain no error.</li>
+					    <li><strong>Double-integrate held-back stationary evidence first.</strong> From the separate stationary evaluation record, preserve the measured sample intervals, subtract the fixed calibration baseline, and convert the corrected acceleration to m/s². Set the initial velocity and displacement to zero, then apply the stated updates without altering the raw columns. Check one raw-to-g conversion, one time interval, one velocity update and one displacement update by hand. Plot acceleration, calculated velocity and calculated displacement against elapsed time. Since the robot remained stationary, any final velocity or displacement is estimation error; report it rather than adjusting the baseline to make the endpoint zero.</li>
+					    <li><strong>Collect short straight movements with an independent reference.</strong> Use a level test area and the calibrated motion helper from the earlier exercises. Mark the chassis reference point and measure its physical start and final positions. Record a stationary interval before the command, the complete movement, and a stationary interval after it. Begin with one cautious trial to check the sign, range and logger, then collect at least three forward and three reverse repetitions over one short distance. Keep the baseline, orientation and integration method fixed. Record the requested movement as an input, not as the achieved distance.</li>
+					    <li><strong>Compare the three displacement estimates.</strong> For each movement, initialise inertial velocity and displacement from the known stationary start and double-integrate using the actual IMU intervals. Plot the acceleration, velocity and displacement histories, and report the calculated final velocity without forcing it to zero. Convert the inertial estimate, wheel odometry and physical endpoint measurement to the same distance unit and sign convention before calculating separate <code>physical displacement - estimated displacement</code> residuals. Show the external observation only where it was measured; start and final positions do not establish the path between them.</li>
+					    <li><strong>Investigate one observed limitation.</strong> Use the first results to choose one controlled change, such as trial duration, a small fixed chassis tilt, travel direction, surface, or one documented smoothing method. State what difference the change is intended to reveal and keep all other practical conditions as consistent as possible. Preserve the unmodified result and test the change on a separate record. If you investigate smoothing, apply one frozen method to both the stationary and moving evaluation records; a smoother curve is not sufficient evidence of a more accurate displacement.</li>
+					    <li><strong>State what the evidence supports.</strong> Explain whether the simple inertial calculation was useful for recognising changes in motion, estimating displacement, or only exposing the consequences of accumulated error under your tested conditions. Distinguish a fixed baseline error from changing gravity projection, vibration, timing, initial-condition error and numerical approximation. These effects can produce similar endpoint errors, so do not claim a unique cause without a discriminating test. An inaccurate or inconsistent displacement estimate is a valid result when the retained records show why it should not be trusted in the Digital Twin or a controller.</li>
+					</ol>
+					<strong>Expected outcome</strong>
+					<p>A checked acceleration logger with raw and converted measurements, a stationary baseline evaluated on separate evidence, and reproducible acceleration, velocity and displacement plots for stationary and moving trials. Your conclusion should compare the inertial, wheel-odometry and physical endpoint estimates, and state the operating conditions and limitations of the simple double-integration method.</p>
+				    </div>
+				    <div class="context-panel" data-panel="ai" hidden>
+					<strong>AI-assisted option</strong>
+					<p>Use AI to check data handling and calculations while keeping the physical axis identification, trial allocation and interpretation grounded in your own experiment.</p>
+					<ol>
+					    <li>Before collecting data, give AI your proposed fields and trial summary. Ask it to check for missing units, timestamps, raw axes, condition labels and independent measurements. Establish the physical axes yourself by moving the robot; do not ask AI to infer them from column names alone.</li>
+					    <li>Label the baseline-calibration and held-back evaluation records before requesting analysis. Require AI to preserve raw values and time order, calculate intervals from <code>imu_time_us</code>, and apply the calibration mean unchanged to the evaluation records.</li>
+					    <li>Ask for an inspectable left-endpoint integration that states units, initial conditions and update order. Reproduce one raw conversion, velocity update and displacement update independently before trusting a complete plot.</li>
+					    <li>For the moving trials, provide the physical start and final positions and the wheel-odometry result. Ask AI to compare endpoint residuals without treating the requested distance as an observation, inventing a continuous external path, or forcing the final inertial velocity or displacement to the expected value.</li>
+					    <li>Ask AI to separate observations from possible explanations and to propose a changed trial that distinguishes two plausible causes of error. A polished or smooth trace should not replace evidence that the displacement estimate transfers to another record.</li>
+					</ol>
+					<div class="prompt-snippet">“Use the designated stationary calibration trial to estimate one acceleration baseline, then freeze it. Preserve the raw axes, sequence numbers and timestamps. Double-integrate the held-back stationary and moving records using their measured intervals, state units and initial conditions, and show one update calculation. Compare the inertial and wheel-odometry endpoints with the independently measured displacement without forcing final velocity or displacement to zero.”</div>
+					<span class="ai-reminder">AI can check an integration and help compare records. Your physical axis test, fixed trial allocation, checked calculation and independent endpoint measurements determine what the result supports.</span>
+				    </div>
+				</div>
+				<div class="investigation exercise-evidence">
+				    <div class="measure-row"><span><b>Inspect</b>stationary acceleration</span><span><b>Calculate</b>velocity + displacement</span><span><b>Explain</b>error growth + limits</span></div>
+				</div>
+			    </div>
+			</div>
+		    </article>
+		    -->
+		</div>
+		<!--
+		<section class="validation" id="validation">
+		    <div><span class="section-kicker">Before Phase 2</span><h2>Carry a transparent model forward</h2>
+			<p>Carry forward raw encoder records, the supplied physical reference and its uncertainty, calibrated geometry, initial-pose conventions, and before/after residuals from unused distance and turn conditions. Include the square-benchmark endpoint residuals, gyro bias and drift evidence, and acceleration findings if you undertook Exercise 6. Record limitations as well as improvements so the team can decide how to use each estimate in Phase 2.</p>
+		    </div>
+		    <div class="validation-list"><span>□ Check the supplied reference</span><span>□ Calibrate encoder geometry</span><span>□ Compare gyro heading and drift</span><span>□ Validate on unused conditions</span></div>
+		</section>
+		-->
+		<footer>
+          <span>
+            Designed and written by Paul O'Dowd for the University of Bristol, UK (2026)
+          </span>
+        </footer>
+	    </main>
+	</div>
+    </body>
+</html>

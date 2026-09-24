@@ -9,16 +9,14 @@
     <link rel="stylesheet" href="vendor/katex/katex.min.css" />
     <script src="vendor/katex/katex.min.js" defer></script>
     <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
-    <script src="app.js?v=10" defer></script>
+    <script src="app.js?v=11" defer></script>
   </head>
   <body data-exercise-default="open">
     <div class="site-shell">
       <aside class="sidebar" aria-label="Course navigation">
         <a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
         <div class="course-status"><span class="status-dot"></span>System reference</div>
-        <nav data-course-navigation>
-        <p class="nav-label">Course journey</p>
-</nav>
+        <nav data-course-navigation></nav>
       </aside>
       <main id="top" class="main-content">
         <header class="topbar"><div class="breadcrumb"><a href="index.html">CW2026</a><b>/</b><a href="system-reference.html">System Reference</a><b>/</b><strong>Processing Digital Twin</strong></div>
@@ -75,10 +73,10 @@
 <div class="exercise-content"><div class="exercise-heading"><div><span class="concept-tag">Expected development · MotorsModel</span><h2>Motor command and wheel-speed model</h2></div>
 </div>
             <div class="teaching-brief">
-            <p><code>MotorsModel_c</code> contains one <code>MotorModel_c</code> for each wheel. It is an intentionally ideal starting point: requested PWM is limited to −400 to +400, then mapped linearly to a maximum speed of ±0.5 mm/ms.</p>
+            <p><code>MotorsModel_c</code> contains one <code>MotorModel_c</code> for each wheel. It is an intentionally ideal starting point: requested PWM is limited to −200 to +200, then mapped linearly to a maximum speed of ±0.25 mm/ms.</p>
 </div>
             <div class="investigation"><h3>What is represented, and what is left to improve</h3><ul class="reference-list">
-            <li><strong>Represents:</strong> separate left/right requested commands, a hard request limit at ±400, and a wheel-speed value used by the odometry update.</li>
+            <li><strong>Represents:</strong> separate left/right requested commands, a hard request limit at ±200, and a wheel-speed value used by the odometry update.</li>
             <li><strong>Does not represent:</strong> measured deadband, asymmetric gain, nonlinear response, output saturation beyond that request limit, noise, slew limiting, or first-order lag.</li>
             <li><strong>Expected development:</strong> revise <code>MotorModel_c.setPWM(...)</code> and/or <code>MotorModel_c.update(...)</code> using measurements of the chosen robot.</li>
             <li><strong>Check:</strong> compare a predicted trajectory or encoder change against a fresh physical observation rather than only fitting the measurements used to choose parameters.</li></ul></div>

@@ -15,6 +15,10 @@ const phaseOnePages = [
   ['reflectance.html', 'Surface Reflectance Sensors'],
   ['odometry.html', 'Odometry'],
 ];
+const referencePages = [
+  ['stampc3-reference.html', 'StampC3 Template Code'],
+  ['processing-reference.html', 'Processing Digital Twin'],
+];
 
 const navigationLink = (href, number, label, active = false, child = false) => `
   <a class="nav-item${active ? ' active' : ''}${child ? ' nav-tree-child' : ''}" href="${href}">
@@ -28,6 +32,15 @@ document.querySelectorAll('[data-course-navigation]').forEach((navigation) => {
   const phaseOneChildren = phaseOnePages.map(([href, label], index) => navigationLink(
     href,
     `1.${index + 1}`,
+    label,
+    href === currentPage,
+    true,
+  )).join('');
+  const referenceExpanded = currentPage === 'system-reference.html'
+    || referencePages.some(([href]) => href === currentPage);
+  const referenceChildren = referencePages.map(([href, label], index) => navigationLink(
+    href,
+    `R.${index + 1}`,
     label,
     href === currentPage,
     true,
@@ -51,9 +64,18 @@ document.querySelectorAll('[data-course-navigation]').forEach((navigation) => {
       </div>
     </div>
     ${navigationLink('phase-2.html', '02', 'Update the Digital Twin', currentPage === 'phase-2.html')}
-    ${navigationLink('going-further.html', '+', 'Going Further', currentPage === 'going-further.html')}
     <p class="nav-label nav-reference-label">Reference</p>
-    ${navigationLink('system-reference.html', 'Ref', 'System Reference', currentPage === 'system-reference.html' || currentPage === 'stampc3-reference.html' || currentPage === 'processing-reference.html')}
+    <div class="nav-tree-group">
+      <div class="nav-tree-row">
+        ${navigationLink('system-reference.html', 'Ref', 'System Reference', currentPage === 'system-reference.html')}
+        <button class="nav-tree-toggle" type="button" data-nav-toggle aria-controls="system-reference-tree" aria-expanded="${referenceExpanded}" aria-label="${referenceExpanded ? 'Collapse' : 'Expand'} System Reference navigation">
+          <span aria-hidden="true">${referenceExpanded ? '−' : '+'}</span>
+        </button>
+      </div>
+      <div id="system-reference-tree" class="nav-tree-children"${referenceExpanded ? '' : ' hidden'}>
+        ${referenceChildren}
+      </div>
+    </div>
   `;
 });
 
@@ -62,7 +84,10 @@ document.querySelectorAll('[data-nav-toggle]').forEach((toggle) => {
     const tree = document.getElementById(toggle.getAttribute('aria-controls'));
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
     toggle.setAttribute('aria-expanded', String(!expanded));
-    toggle.setAttribute('aria-label', `${expanded ? 'Expand' : 'Collapse'} Phase 1 navigation`);
+    const navigationName = toggle.getAttribute('aria-controls') === 'phase-1-tree'
+      ? 'Phase 1'
+      : 'System Reference';
+    toggle.setAttribute('aria-label', `${expanded ? 'Expand' : 'Collapse'} ${navigationName} navigation`);
     toggle.querySelector('[aria-hidden="true"]').textContent = expanded ? '+' : '−';
     tree.hidden = expanded;
   });

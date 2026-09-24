@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CW2026 project selection guide" />
+    <title>CW2026 · Select a Project</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=11" defer></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <aside class="sidebar" aria-label="Course navigation">
+        <a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
+        
+        <nav data-course-navigation></nav>
+      </aside>
+      <main id="top" class="main-content">
+        
+        <section id="overview" class="intro">
+          <div class="eyebrow"><span class="eyebrow-line"></span>SEMTM0043/42:</div>
+          <h1>Choose a Project</h1>
+          <p class="lead"> </p>
+        </section>
+        <section class="orientation-card">
+          <div class="orientation-icon">?</div>
+          <div><span class="section-kicker">Choose together</span><h2>Select a project your team can investigate.</h2>
+          <p>From the beginning of this course, it will be useful to decide a project that you would like to investigate and report on. Choosing a project early will give you a context to understand and evaluate your robotic system. A project will allow you to discuss your discoveries with your team members towards a shared goal. In each of these projects, you could focus on evaluating the model of a single robot, or on evaluating a model that is suitably representative of the variation between the all robots in your team. The differences you will observe between your real robot and the simulation are an opportunity to further our understanding of both parts of the system.</p></div>
+        </section>
+        <div class="sequence-actions" aria-label="Project idea controls"><button type="button" data-exercise-action="collapse">Collapse all</button><button type="button" data-exercise-action="open">Open all</button></div>
+        <div class="exercise-sequence">
+          <article id="project-01" class="exercise-card">
+            <div class="exercise-index">01</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Reflectance · motors · odometry</span><h2>Line Following</h2></div><span class="time-badge">Core subsystems</span></div>
+              <div class="teaching-brief">
+                <p>Build on the supplied line-following example to investigate how reliably the robot can follow a route, recover from deviations, or complete a course under different conditions. You may want to experiment with different line widths, different robot velocity, or even multiple robots.</p>
+                <p>For example, you could attempt to identify the highest stable robot velocity in simulation, and then look to evaluate how well this compares to reality. Working in the opposite direction, you could detemrine the highest stable velocity in reality, and look to improve the simulation model so that is demonstrates the same bounds of operation. Your experiments should critically examine the differences between the digital twin and physical robot, using these discrepancies to investigate the assumptions, limitations and behaviour of the model.</p>
+                <figure class="orientation-figure"><img src="assets/images/project_ideas/line_following.png" alt="Hand-drawn Pololu 3Pi+ robot following a curved black line beside a lightly washed green dashed trajectory representing a differing Digital Twin prediction" width="100%" loading="lazy" /></figure>
+              </div>
+              <div class="exercise-grid">
+                <div class="investigation">
+                  <h3>Robot elements</h3>
+                  <p>The five surface reflectance sensors provide information about the line, the motors produce corrective motion, and odometry can describe the resulting path.</p>
+                </div>
+                <div class="investigation">
+                  <h3>Robot–Digital Twin comparison</h3>
+                  <p>The comparison may depend on sensor response, surface and lighting conditions, motor dynamics, control timing, wheel slip, and how small errors accumulate around the route.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="project-02" class="exercise-card">
+            <div class="exercise-index">02</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Reflectance · motors · odometry</span><h2>Image Rastering</h2></div><span class="time-badge">Core subsystems</span></div>
+              <div class="teaching-brief">
+                <p>Program the robot to sweep across an area and use its surface reflectance readings to reconstruct an image or pattern printed on the surface.  This project may focus on the resolution of fidelity of both surface area and tone that can be detected or reconstructed from the real robot surface reflectance sensors.  The simulation model can be evaluated by how closely it approximates the fidelity and resolution achieved in reality, including any errors or artefacts.  Your experiments should critically examine the differences between the digital twin and physical robot, using these discrepancies to investigate the assumptions, limitations and behaviour of the model.</p>
+                <figure class="orientation-figure"><img src="assets/images/project_ideas/image_rastering.png" alt="Hand-drawn Pololu 3Pi+ robot following a raster path over a geometric surface pattern, with sampled points forming an incomplete reconstructed image" width="100%" loading="lazy" /></figure>
+              </div>
+              <div class="exercise-grid">
+                <div class="investigation">
+                  <h3>Robot elements</h3>
+                  <p>The motors create the scanning motion, odometry estimates where each measurement was taken, and the reflectance sensors provide the values used to reconstruct the surface.</p>
+                </div>
+                <div class="investigation">
+                  <h3>Robot–Digital Twin comparison</h3>
+                  <p>Reconstruction may be affected by path spacing, pose error, sensor footprint, changing speed, interpolation, and the difference between an ideal simulated surface and physical printed material.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="project-03" class="exercise-card">
+            <div class="exercise-index">03</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motors · odometry · reflectance</span><h2>Repeatable Parking</h2></div><span class="time-badge">Core subsystems</span></div>
+              <div class="teaching-brief">
+                <p>In this project, you will develop a robot behaviour that allows the robot to park within a designated area, considering both its final position and orientation. Your solution might involve sensing line markings on the surface, estimating the robot's position, planning a suitable manoeuvre, and controlling the wheels to execute it.</p>
+                <p>The main focus, however, is the comparison between the physical robot and its digital twin. Run equivalent parking experiments in simulation and reality, and investigate how closely the twin predicts the robot's behaviour. Where and when do their trajectories begin to differ? Does a successful simulated park predict a successful real-world park? Your experiments should critically examine the differences between the digital twin and physical robot, using these discrepancies to investigate the assumptions, limitations and behaviour of the model.</p>
+                <figure class="orientation-figure"><img src="assets/images/project_ideas/repeatable_parking.png" alt="Hand-drawn Pololu 3Pi+ robot approaching a parking target, with faint repeated poses showing variation in final position and heading" width="100%" loading="lazy" /></figure>
+              </div>
+              <div class="exercise-grid">
+                <div class="investigation">
+                  <h3>Robot elements</h3>
+                  <p>Motor control and odometry provide the main motion, while the reflectance sensors could detect a boundary or marker near the destination.</p>
+                </div>
+                <div class="investigation">
+                  <h3>Robot–Digital Twin comparison</h3>
+                  <p>The final position and heading may reveal motor deadband, stopping behaviour, wheel-radius mismatch, slip, approach speed, and differences between a simulated marker and its physical detection.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="project-04" class="exercise-card">
+            <div class="exercise-index">04</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motors · odometry</span><h2>Path Reproduction</h2></div><span class="time-badge">Core subsystems</span></div>
+              <div class="teaching-brief">
+                <p>In this project, you will develop a robot behaviour that follows a designed trajectory containing different types of motion, such as straight sections, curves, rotations, changes in speed or reversals. The trajectory should provide an interesting test of the robot's motion and allow you to investigate how accurately it can be reproduced.</p>
+                <p>The main focus is the comparison between the physical robot and its digital twin. Run equivalent trajectories in simulation and reality, and measure how their position and orientation differ throughout the experiment. Investigate where and when the trajectories begin to diverge, which types of motion produce the greatest differences, and what aspects of the model might explain them. Your experiments should critically examine the differences between the digital twin and physical robot, using these discrepancies to investigate the assumptions, limitations and behaviour of the model.</p>
+                <figure class="orientation-figure"><img src="assets/images/project_ideas/path_reproduction.png" alt="Hand-drawn Pololu 3Pi+ robot following solid and dashed geometric paths that gradually diverge through corners and a curve" width="100%" loading="lazy" /></figure>
+              </div>
+              <div class="exercise-grid">
+                <div class="investigation">
+                  <h3>Robot elements</h3>
+                  <p>The motors execute turns and straight or curved segments, while encoder odometry records how the estimated pose develops along the path.</p>
+                </div>
+                <div class="investigation">
+                  <h3>Robot–Digital Twin comparison</h3>
+                  <p>Small differences in motor response, effective wheel geometry, timing, contact, and stopping can compound across a sequence even when individual movements appear accurate.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="project-05" class="exercise-card">
+            <div class="exercise-index">05</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Reflectance · odometry · motors</span><h2>Surface Mapping and Classification</h2></div><span class="time-badge">Core subsystems</span></div>
+              <div class="teaching-brief">
+                <p>In this project, you will use the robot's surface reflectance sensors to investigate and map different surfaces or patterns. Your robot might explore an area, collect reflectance measurements at different locations, and use these measurements to construct a map or distinguish between different surface types. An important challenge is understanding how much spatial detail and classification accuracy can realistically be achieved with the physical sensors.</p>
+                <p>The main focus is the comparison between the physical robot and its digital twin. Perform equivalent mapping or classification experiments in simulation and reality, and investigate the differences between their results. Consider how sensor characteristics, robot motion and spatial resolution affect the maps or classifications produced, and critically examine whether the simulation exhibits the same limitations and uncertainties observed in the physical system.</p>
+                <figure class="orientation-figure"><img src="assets/images/project_ideas/surface_mapping.png" alt="Hand-drawn Pololu 3Pi+ robot crossing differently textured surface regions while sparse observations form an incomplete classified map" width="100%" loading="lazy" /></figure>
+              </div>
+              <div class="exercise-grid">
+                <div class="investigation">
+                  <h3>Robot elements</h3>
+                  <p>The reflectance sensors distinguish surface responses, odometry associates readings with estimated locations, and the motors move the sensor array through the area.</p>
+                </div>
+                <div class="investigation">
+                  <h3>Robot–Digital Twin comparison</h3>
+                  <p>Classification and mapping may be complicated by overlap between surface readings, channel differences, sensor footprint, illumination, route coverage, and spatial error in the odometry.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="project-06" class="exercise-card">
+            <div class="exercise-index">06</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motors · odometry</span><h2>Load and Surface Effects</h2></div><span class="time-badge">Core subsystems</span></div>
+              <div class="teaching-brief">
+                <p>In this project, you will investigate how changes to the robot's physical operating conditions affect its behaviour. You might vary the mass carried by the robot or operate it on different surfaces, such as a smooth floor, glass or carpet. You could investigate effects on characteristics such as speed, acceleration, turning, wheel slip, motor response or odometry accuracy.</p>
+                <p>The main focus is the comparison between the physical robot and its digital twin. Conduct equivalent experiments under different operating conditions and examine how the physical robot's behaviour changes, whether the simulation predicts these changes, and where discrepancies emerge. Use these differences to critically investigate which physical effects are represented by the model, which are missing or simplified, and how the usefulness of the digital twin changes when the robot operates outside its original conditions.</p>
+                <figure class="orientation-figure"><img src="assets/images/project_ideas/load_surface_effects.png" alt="Two hand-drawn observations of a loaded Pololu 3Pi+ robot travelling over smooth and textured surfaces with differing trajectories" width="100%" loading="lazy" /></figure>
+              </div>
+              <div class="exercise-grid">
+                <div class="investigation">
+                  <h3>Robot elements</h3>
+                  <p>Motor commands and encoder measurements can be compared across controlled conditions, with odometry showing the effect on distance, heading, or a complete trajectory.</p>
+                </div>
+                <div class="investigation">
+                  <h3>Robot–Digital Twin comparison</h3>
+                  <p>A model fitted under one condition may not predict another because contact, slip, acceleration, battery state, and load can alter the observed response in related ways.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="project-07" class="exercise-card">
+            <div class="exercise-index">07</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Accelerometer · motors · odometry</span><h2>Surface Roughness</h2></div><span class="time-badge">Core subsystem</span></div>
+              <div class="teaching-brief">
+                <p>In this project, you will investigate whether the robot's accelerometer can be used to detect characteristics of the surface it is travelling over. You might compare surfaces with different levels of roughness, introduce bumps or other features, and examine how these are represented in the measured acceleration. Key challenges include determining the sensitivity of the accelerometer, identifying useful features in the measurements, and distinguishing surface effects from normal robot motion and sensor noise.</p>
+                <p>The main focus is the comparison between the physical robot and its digital twin. Conduct equivalent experiments in simulation and reality, and compare the acceleration signals and surface characteristics that can be detected. You would need to introduce a simplistic model of surface changes that correlate to synthesised accelerometer characteristics.  Critically examine where the simulated and physical measurements differ, and consider what these differences reveal about the ability of the simulation model to represent surface–robot interactions.</p>
+                <figure class="orientation-figure"><img src="assets/images/project_ideas/surface_roughness.png" alt="Repeated hand-drawn poses of a Pololu 3Pi+ robot crossing from a smooth floor onto a rough surface, with vibration traces increasing at the transition" width="100%" loading="lazy" /></figure>
+              </div>
+              <div class="exercise-grid">
+                <div class="investigation">
+                  <h3>Robot elements</h3>
+                  <p>The accelerometer provides motion-sensitive measurements, the motors control traversal speed, and odometry can associate possible transitions with locations along the route.</p>
+                </div>
+                <div class="investigation">
+                  <h3>Robot–Digital Twin comparison</h3>
+                  <p>Acceleration also responds to turning, speed changes, mounting, orientation, and vibration. The Digital Twin may therefore need a deliberately limited candidate model rather than an exact simulation of surface physics.</p>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="project-08" class="exercise-card">
+            <div class="exercise-index">08</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">WiFi · IR · Multiple Robots</span><h2>Propose your own Project</h2></div><span class="time-badge">Extension</span></div>
+              <div class="teaching-brief">
+                <p>You can propose your own project. In all cases, it will be important to keep the scope of the project relatively simple, a proof of concept. The course assessment is not about "making a solution to a problem" - you should focus on analysing a key observable difference or challenge between the real robot and simulation.  Threfore, a project needs to provide something interesting to observe between real robot and simulation.</p>
+
+                <p>The StampC3 offers access to the following interesting technologies:
+                  <ul>
+                      <li>Wi-Fi & Bluetooth: either could be used for inter-robot communication or localisation.</li>
+                      <li>400Kb of SRAM, which could be used to produce high resolution maps.</li>
+                      <li>3 Pairs of infra-red transmitters and receivers: these could be used for detection of proximity to obstacles, for inter-robot communication, or signalling with digital signal processing, or formation control between robots.</li>
+                      
+                  </ul>
+                </p>
+                <p>If it interests you, you could also investigate more physical aspects of the robotic system.  This would require a model or representation to be developed for the simulation.  For example, tasking the robot to:
+                  <ul>
+                    <li>Push and manipulate objects, such as boxes.</li>
+                    <li>Utilise a light source as a beacon, signal or coordination mechanism.</li>
+                    <li>Task the robot with pulling objects.</li>
+                    <li>Apply temporary modifications to the robot, such as cardboard or 3D printing to change the body shape.</li>
+                  </ul>
+                <p>If you have previous experience with algorithms such as Q-learning, reinforcement learning, or genetic algorithms, you could use this knowledge to investigate how well a controller optimised in simulation can transfer to the real robot - giving a supporting argument for the key aspects that present a challenge.</p>
+                <p>Your team will have 3 robots, and so you can also propose a study around multi-robot interaction. </p>
+
+                </p>
+                <figure class="orientation-figure"><img src="assets/images/project_ideas/wifi_localisation.png" alt="Three hand-drawn Pololu 3Pi+ robots in a mapped room, with overlapping green and blue signal fields and an uncertain estimated location around the central robot" width="100%" loading="lazy" /></figure>
+              </div>
+              <!--
+              <div class="exercise-grid">
+                <div class="investigation">
+                  <h3>Robot elements</h3>
+                  <p>WiFi signal observations provide the fingerprints, while motor control and odometry help place mapping samples and provide an independent position estimate for comparison.</p>
+                </div>
+                <div class="investigation">
+                  <h3>Robot–Digital Twin comparison</h3>
+                  <p>Signal strength can vary with orientation, occlusion, reflections, interference, time, and the arrangement of the room. A useful Digital Twin may need to represent uncertainty or an empirical signal map rather than ideal distance alone.</p>
+                </div>
+              </div>
+              -->
+            </div>
+          </article>
+        </div>
+        <section class="validation"><div><span class="section-kicker">Next</span><h2>Use the Project theme to start your investigation</h2>
+        <p>Once your team has selected a project direction, begin your individual work to characterise the real robot.  Study the real robot first, collecting the evidence you will need to improve and evaluate the simulation counter part (a Digital Twin).</p></div><div class="validation-list"><a href="phase-1.html">Continue to Phase 1 →</a></div></section>
+                <footer>
+          <span>
+            Designed and written by Paul O'Dowd for the University of Bristol, UK (2026)
+          </span>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

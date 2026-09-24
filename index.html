@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="vendor/katex/katex.min.css" />
     <script src="vendor/katex/katex.min.js" defer></script>
     <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
-    <script src="app.js?v=10" defer>
+    <script src="app.js?v=11" defer>
     </script>
   </head>
   <body>
@@ -37,29 +37,7 @@
           Course learning journey
         </div>
         -->
-        <nav data-course-navigation>
-          <p class="nav-label">
-            Start here
-          </p>
-          <a class="nav-item active" href="#overview">
-            <span>
-              00
-            </span>
-            Course overview
-          </a>
-          <a class="nav-item" href="#journey">
-            <span>
-              01
-            </span>
-            Learning journey
-          </a>
-          <a class="nav-item" href="#approach">
-            <span>
-              02
-            </span>
-            Investigation approach
-          </a>
-        </nav>
+        <nav data-course-navigation></nav>
       </aside>
       <main id="top" class="main-content">
 		 <!--        
@@ -82,8 +60,9 @@
             SEMTM0043/SEMTM42:
           </div>
           <h1>
-            Robotics Science &amp; Systems.
+            Robotics </br><em>Science &amp; Systems.</em>
           </h1>
+           <p class="lead">Progress through this course can be made by moving through each of the panels below. Click a panel to navigate to the specified materials.  You are encouraged to read through all materials - your progression does not need to be strictly linear. Your progress is supported through timetabled practical laboratory sessions and discussion with the teaching staff. This course has been designed as learning-by-doing. We encourage you to pursue a project theme that interests you.  </p>
           <!--
           <div class="principles">
             <div><span>1</span><strong>Phase 1</strong><small>Measure the subsystems of a real robot.</small></div>
@@ -157,7 +136,7 @@
                 Phase 2 (Group Work)
               </span>
               <h3>
-                Updating the Digital Twin Simulation
+                Updating the Digital Twin Simulation, Evaluate the Project
               </h3>
               <p>
                 Use what you have learned from the real robot to identify, test, and improve assumptions in the simulation.
@@ -166,7 +145,7 @@
                 Open Phase 2 →
               </span>
             </a>
-            <a class="journey-card" href="going-further.html">
+            <div class="journey-card">
               <span class="section-number">
                 Optional
               </span>
@@ -174,12 +153,12 @@
                 Going Further
               </h3>
               <p>
-                Explore additional robot capabilities and extension-board hardware when they connect with a question you want to pursue.
+                This section will be updated and made available soon.  This section will contain guidance and exercises for using optional functionality of the Pololu 3Pi+ robot and StampC3.
               </p>
               <span class="card-link">
                 Explore extensions →
               </span>
-            </a>
+            </div>
             <a class="journey-card" href="system-reference.html">
               <span class="section-number">
                 Reference
@@ -196,6 +175,7 @@
             </a>
           </div>
         </section>
+        <!--
         <section id="approach" class="validation">
           <div>
             <span class="section-kicker">
@@ -225,7 +205,7 @@
               □ Predict
             </span>
           </div>
-        </section>
+        </section>-->
         <footer>
           <span>
             Designed and written by Paul O'Dowd for the University of Bristol, UK (2026)

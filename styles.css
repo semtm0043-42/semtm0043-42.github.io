@@ -184,7 +184,7 @@ button {
 .main-content {
   width: 100%;
   max-width: 1160px;
-  margin: auto;
+  margin: 0 auto;
   padding: 0 54px 38px;
 }
 .topbar {

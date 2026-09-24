@@ -1,0 +1,27 @@
+/* Keep long source names and equations inside the odometry exercise cards.
+   Shared course styling remains in styles.css. */
+.exercise-card,
+.exercise-content,
+.context-box {
+  min-width: 0;
+}
+
+.main-content code {
+  overflow-wrap: anywhere;
+}
+
+.exercise-content pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 12px;
+  background: #f6f8f6;
+}
+
+.exercise-content pre code {
+  overflow-wrap: normal;
+}
+
+.exercise-content .equation {
+  display: block;
+  overflow-x: auto;
+}

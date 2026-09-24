@@ -1,0 +1,1759 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CW2026 sequential motor characterisation exercises" />
+    <title>
+      CW2026 · Motor characterisation
+    </title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+    <script src="vendor/katex/katex.min.js" defer></script>
+    <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
+    <script src="app.js?v=11" defer>
+    </script>
+  </head>
+  <body data-exercise-default="collapsed">
+    <div class="site-shell">
+      <aside class="sidebar" aria-label="Course navigation">
+        <a class="brand" href="index.html">
+          <span class="brand-mark">
+            CW
+          </span>
+          <span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span>
+        </a>
+        
+        <nav data-course-navigation>
+        </nav>
+        <nav aria-label="Motor investigation sequence">
+          <p class="nav-label">
+            Investigation sequence
+          </p>
+          <a class="nav-item active" href="#overview">
+            <span>
+              00
+            </span>
+            Brief &amp; setup
+          </a>
+          <a class="nav-item" href="#exercise-01">
+            <span>
+              01
+            </span>
+            Command the motors
+          </a>
+          <a class="nav-item" href="#exercise-02">
+            <span>
+              02
+            </span>
+            Encoder speed measurement
+          </a>
+          <a class="nav-item" href="#exercise-03">
+            <span>
+              03
+            </span>
+            Deadband discovery
+          </a>
+          <a class="nav-item" href="#exercise-04">
+            <span>
+              04
+            </span>
+            Saturation
+          </a>
+          <a class="nav-item" href="#exercise-05">
+            <span>
+              05
+            </span>
+            Gain response
+          </a>
+          <a class="nav-item" href="#exercise-06">
+            <span>
+              06
+            </span>
+            Non-linearity
+          </a>
+          <a class="nav-item" href="#exercise-07">
+            <span>
+              07
+            </span>
+            Dynamics
+          </a>
+        </nav>
+        
+      </aside>
+      <main id="top" class="main-content">
+        
+        <section id="overview" class="intro">
+          <h1>
+            Subsystem:
+            <br />
+            <em>
+              Motors.
+            </em>
+          </h1>
+          <figure class="orientation-figure">
+            <img src="assets/images/motors/motor_encoder.png" alt="Illustration of a disassembled motor" width="100%" />
+          </figure>
+          <p>
+            The motors subsystem is composed of many parts.  There is the motor <strong>actuator</strong> itself, the electronics driving and providing power, a quadrature rotary encoder for sensing motor rotation, a gear train, and the wheel as <strong>effector</strong> output interacting with the contact surface.  Electrical, mechanical, physical and software effects all contribute to variances between motors and betweeen robots.
+            </p>
+            <p >In <strong>Phase 1</strong> of this course, we are tasked with measuring and developing a description of the motor subsystem performance, called <strong>characterisation</strong>. Once we understand how the motor subsystem is operating, we can take this information to improve the simulation model in <strong>Phase 2</strong>.
+          </p>
+            <p>
+           In these exercises, the code you will write will be very simple: you will need to activate a motor for some time and record some measurements.  Some aspects could be automated with <strong>iteration</strong> (e.g., loops).  However, it will be important to think about whether using iteration may also impact the observed motor performance.  You will need to design and write different test cases to measure different characteristics.  You will need to think carefully about any assumptions.</p>
+            <p>It might surprise you that, even though we are focusing on <strong>motor output</strong>, we are still going to use a <strong>sensor</strong>. The simplest way to determine the speed of the robot might be to set the motor power, allow the robot to travel a known fixed distance, and record the time it takes from beginning to end.  We would then divide the distance by the time to work out the velocity, for example, in meters per second.  Taking <strong>external measurements</strong> like this (external to the robot) are perfectly valid, and sometimes essential.  However, a robotic system will also have many sensors which can be used to take more <strong>internal measurements</strong> (internal to the robot), with very good control of time and other aspects. In the following exercises, we will learn to command the motors and to measure their activity via <strong>quadrature rotary encoder sensors</strong>.</p>
+        </section>
+        
+        <section class="orientation-card">
+          <div class="orientation-icon">
+            i
+          </div>
+          <div>
+            <span class="section-kicker">
+            </span>
+            <h2>
+              Configure your Robot
+
+            </h2>
+            <p>
+           Before you start these exercises, check that you have configured your robot middleware.  Find the following line of code in the top level .ino file and insert your chosen team name: </p>
+           <blockquote><code>robot.initialise("your teamname");</code></blockquote>
+            <p>The team name must not be longer than 31 characters.  If you want to make a comparison of performance without the middleware active, you can use:</p> 
+            <blockquote><code>robot.initialise();</code></blockquote>
+          </div>
+        </section>
+
+        <div class="sequence-actions" aria-label="Exercise section controls">
+          <button type="button" data-exercise-action="collapse">Collapse all</button>
+          <button type="button" data-exercise-action="open">Open all</button>
+        </div>
+        <div class="exercise-sequence">
+          <article id="exercise-01" class="exercise-card">
+            <div class="exercise-index">
+              01
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Controller orientation · code trace
+                  </span>
+                  <h2>
+                    Command the motors from the StampC3
+                  </h2>
+                </div>
+                <span class="time-badge">
+                  Approx. 1–3 hours
+                </span>
+              </div>
+              <div class="teaching-brief">
+                <p>
+                  <strong>Goal:</strong> establish that you can use code to deliberately start and stop simple motor movements.  The main outcome is to become familiar with the general layout of the code base.<br><br> 
+                  
+                  After following the <a href="getting-started.html">Getting Started</a> exercises, you should have a renamed copy of the <strong>StampC3_Template</strong> on your computer - this is a good starting point.  Reviewing the files, the <code>.ino</code> file is the <strong>top-level</strong> file - this means it essentially contains and structures all other code used.  Therefore, the .ino file is the correct starting point to review and understand the code.</p>
+                  
+<figure class="motor-diagram">
+                <img src="assets/images/setup/execution_path.png" width="100%" alt="" />
+
+                <figcaption>
+                  Figure 1. A block diagram showing the code execution path from the top level .ino file, through to the Controller_c class, and back again.
+                </figcaption>
+              </figure>
+
+                  <p>The original StampC3_Template has an example line-following controller.  The line following controller moves through the general steps of: read the sensors, make a decision, power the motors.  In these exercises the code we develop will be much  more simple.  Our main requirement is to make <strong>controlled</strong> measurements of the motors subsystem - so we do not need full autonomous behaviour.</p>
+
+                  <p>Even though we do not need fully autonomous behaviour, you are still strongly encouraged to adopt the framework of using the Controller_c class.  This is because Controller_c has been designed to transfer between the real robot and the simulation used in <strong>Phase 2</strong>.  Therefore, by working within Controller_c in these exercises, you will develop the familiarity you need for your later work.</p>
+
+                  <p>When we develop our later test routines, a primary functionality will be to decide when to start and stop the motors.  As a first exercise, the easiest way to start developing these test routines is to edit the existing template code.</p>
+                  
+                <h3>Reading through the StampC3_Template code</h3>
+
+                <p>First, observe in StampC3_Template.ino (the top level file) that the function <strong>loop()</strong> contains the line of code:</p>
+                <blockquote>controller.update(robot, server);</blockquote>
+                <p>This is the first clue about how the code controls the robot.  Reading this line of code, controller is being used to update the robot.  At the top of the same file, you will find the line:</p>
+                <blockquote>Controller_c controller;</blockquote>
+                <p>This line creates a <strong>global variable</strong> named controller, which has the datatype Controller_c.  Because controller is defined with global scope (outside of all functions), this means that controller will exist in the computer memory for a long as the robot is powered on.  Controller_c is a <strong>class</strong>, which can be understood to mean that it collects together a set of variables and functions.  To access the variables and functions within a class, the dot operator (.) is used.  Hence, controller.update(...) is calling a function defined within Controller_c.
+                </p>
+                <p>To learn more about what functionality Controller_c currently provides we will need to review the associated source code files.  In general, a <strong>.h</strong> contains the declarations and definitions - you can think of this as the <strong>contents page</strong> or <strong>index</strong> of a book.   A <strong>.cpp</strong> file contains the full implementation code - which is much more like the main body of a book. </p>
+
+                <p>  Our current focus is to operate the motors. In <strong>Controller.cpp</strong>, find every call to:</p><blockquote>robot.setMotorPWM(...)</blockquote>
+                  <p>When you find this line of code, observe how it is being used in each instance, such as what values are being provided to the function within the brackets <code>( )</code>. These are our first clues as to the operation of this function.  When you are presented with a lot of code to work with, you will have to behave like a detective to develop your familiarity and understanding.</p>
+                  
+                  <p>The above line of code can be read from right-to-left to help us understand what it does and where it is defined in the code. First, <strong>setMotorPWM(...)</strong> is a function, which we can identify by the parentheses.   The name of the function describes setting the <strong>pulse width modulation</strong> (PWM) for the motors.  PWM is the name given to a technique to approximate an analogue output on a digital output pin (i.e., graduated values between on and off).  A digital output pin can only output a high (typically 5v or 3.3v, depending on the microcontroller) or low value (0v).  If we could only use a digital output, the motors would be powered either fully-on, or off.</p>
+
+<figure class="motor-diagram">
+                <img src="assets/images/motors/motor_pwm_illustration.png" width="100%" alt="" />
+
+                <figcaption>
+                  Figure 1. A block diagram showing the code execution path from the top level .ino file, through to the Controller_c class, and back again.
+                </figcaption>
+              </figure>
+
+                  <p>  To provide continuous command of a motor (varied power levels), PWM very quickly alternates between high and low values in repetition, generating a square waveform on the output pin.  To change the approximate voltage on the digital pin, the pulse (high period) is varied with respect to the low period.   A long high period generates a higher voltage, whereas a longer low period generates a lower voltage.</p> 
+                  
+                  <p>Next, within <code>robot.setMotorPWM(...)</code>, the dot (.) can be read as "contained within" the preceding object, <strong>robot</strong>.  The dot operator is used to access functions and variables within an object.  To learn more about <strong>robot</strong>, the next step of investigation is to find where robot is declared. You will find the following line of code at the top of the StampC3_Template.ino file:</p>
+                  <blockquote>Robot_c robot;</blockquote>
+                  <p>This line tells us that robot has the datatype <strong>Robot_c</strong> - robot is the name to access this memory, and Robot_c is the definition of how the memory is structured for the datatype.  The _c suffix is a convention adopted throughout the StampC3_Template code, and it can be read to mean that this datatype is a <strong>class</strong>.  In other areas, _t will be used to mean a unique type, and _s to mean a struct data type.</p>
+                  
+                      <aside class="teaching-callout">
+                      <h3>Discuss and Agree Subjective Choices in Code</h3>
+                  
+                  <p>These conventions have been adopted to help with the readablity of the code.  Modern code editors will highlight common datatypes such as float, int, char, to help you recognise a datatype.  However, datatypes newly created are unlikely to be highlighted and can quickly become a source of confusion or bugs.</p>
+                  <p>For example, if we simply used <strong>r</strong> as the name of the class (<code>r robot;</code>), it is not immediately clear that this is a datatype, nor whether it is a class, structure, or something else - and it doesn't provide any clues about where to find out more information.  Using r to <i>define</i> a datatype could easily become confused with a variable <i>named</i> r elsewhere.</p>
+                  <p>You can create your own conventions.  In the future, you may be required by your employer to follow a set of conventions.  Some conventions prefix whilst other suffix.  If you use Generative AI, it is likely to adopt conventions, and these may vary depending on the model, session or context.  In any case, it is important to discuss and agree any conventions with your team. If you don't do this, the ability of your team to cooperate and support each other will rapidly degrade.</p>
+                  <p>If you want to see how extremely unreadable code can become, you could review the submissions to the <a href="https://www.ioccc.org/index.html">The International Obfuscated C Code Contest</a> (<a href="https://github.com/ioccc-src/winner/blob/master/2025/ayu/prog.c">example</a>).  You can read more about <a href="https://en.wikipedia.org/wiki/Coding_conventions">code conventions</a> and <a href="https://en.wikibooks.org/wiki/Computer_Programming/Coding_Style">code styles</a>.</p> 
+</aside>                  
+                     
+                  
+                  <p>You can review <strong>Robot.h</strong> to find the definition of the Robot_c class and to review the <strong>function prototypes</strong> - this is a bit like a list of the operations for use within the class.  You can the review <strong>Robot.cpp</strong> to see how the functions are fully implemented.</p>
+                  <p>Spend some time to explore how Robot_c is defined, and what other functionalities it offers.  You should review each of the functions - the functions within Robot.cpp all concern the fundamental operation of the Pololu 3Pi+ robot.  You may feel this is overwhelming at first - to make this easier, you can consider it a process of exploring and mapping, a bit like exploring a new city - you can't be an expert immediately.</p> 
+                  
+                  <p>Returning to Controller.h find the controller <strong>update(...)</strong>  function,  and then follow the code execution path into <strong>runLineFollower(...)</strong>. Compare the commands used while the robot is waiting, following the line, searching for the line, and stopped. Notice that the <strong>arguments</strong> to the setMotorPWM(...) function change depending on when and how it is being used.</p>
+
+                  <p>In the above portion of text, we have read the code itself and followed it through to various files (.cpp, .h) to understand it.  On this website, there is also a <a href="./system-reference.html">system reference</a> (technical documentation) page which provides a concise definition of all the functionality available within the template code. Developing familarity with code typically involves reviewing both technical documentation and source code together.</p>
+
+                  <p>
+                  In the following steps, we will build a up a simple movement routine.  The robot will be programmed to activate it's motors for 3 seconds, then stop.  The steps will build on this basic premise.  The first approach is to use a variable to count how many times the test function (movement routine) has been called.  As an extension, the final steps encourage you to revise the approach to use TaskTimer_c, which was encountered in the Getting Started exercises.</p>
+
+                  <aside class="teaching-callout">
+                    <h3>Run away robot!</h3>
+                    <p>In these exercises, it is <strong>strongly recommended that you keep your robot upside-down on the table</strong> so that the robot does not run away at high speed and <strong>cause damage</strong>.</p>
+                   </aside>
+				
+              </div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Motor command orientation guidance">
+                    <button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">
+                      Self-Directed Route
+                    </button>
+                    <button class="context-tab" data-context="ai" role="tab" aria-selected="false">
+                      AI-Assisted Route
+                    </button>
+                  </div>
+                  <div class="context-panel active" data-panel="nonai">
+
+<h3>
+                    A Simple Movement Routine
+                  </h3>
+                   
+                  <ol>
+                  <li><strong>Get familiar with the code:</strong> In the above description, the structure of the code is described as having a top level .ino file, which makes a call to the <strong>controller.update(...)</strong> function within Controller.cpp.  The Controller.cpp code makes function calls to the Robot.cpp/Robot.h file.  The code in Robot.h has dependency on i2c_datatypes.h.  As a first exercise, quickly sketch a block diagram of the organisation of the source code files.  Look to sketch the relationships, such as when code is nested within other code.  Don't worry too much about making this "correct" yet - as you continue to explore the code you can come back to correct your understanding.
+                  </li>
+        <li>			    <strong>Verify the example works:</strong> Before making any changes, it is best practice to first verify an example works.  This way, we will know if our changes have caused a fault or not.  Run the supplied line-following example and observe how the robot behaves when it is waiting, follows the line, and searches after losing it. You should be able to observe a sequence of behaviours.  Now inspect the example code.  Read the code to trace the execution path that reaches each <strong>robot.setMotorPWM(...)</strong> call.  Try to navigate each 'if' statement by considering possible alternative conditional values.  You can think of this as building a mental map of the logic of the code, and how it relates to robot behaviours.
+          <ul>
+        <li>From the Getting Started exercises, you should already be familiar with the fact that the runLineFollower(...) function will not operate until the button on the StampC3 is pressed.  This is useful functionality that we can keep.</li>
+        <li>The runLineFollower(...) function is called from update(...) within Controller_c.  Reviewing update(...), you should be able to confirm that update(...) only fully runs every 10 milliseconds.  This is achieved using TaskTimer_c, which was also covered in Getting Started. If update(...) is called before a full 10ms interval, update(...) simply returns (ends) having completed no work.  This is useful functionality to retain.  Check <strong>Controller.h</strong> and find the variable that currently sets the 10ms interval period.</li>
+        <li>The 10ms interval was specifically chosen to give the Pololu 3Pi+ sufficient time for it to operate it's own code.  The Pololu 3Pi+ robot continuously runs code to operate the sensors, motors, odometry - and to reply to requests made by the StampC3.  Reducing the interval below 10ms is not recommended.</li>
+          </ul>
+    </li>
+
+        <li><strong>Start by modifying existing code:</strong>   Using the runLineFollower(...) function as a template, create a new function with a new name, such as motorStartStopTest(...).  For example, simply copy-and-paste the runLineFollower(...) function, then rename it. 
+          <ol>
+            <li>You will need to provide your new function with the same input arguments that runLineFollower(...) had. The input argument <code>robot</code> allows this function to access the robot control functions.</li>
+            <li><strong>Call your function: </strong> Inside the controller update(...) function, comment-out the original call to runLineFollower(...), and now insert a call to your newly named function in the same block of code.  You can comment out a single line of code by prefixing the line with <code>//</code>. </li>
+            <li>For now, delete the contents of this function.  Therefore, your function should look something like:
+    <blockquote><code><pre>
+    void Controller_c::motorStartStopTest(Robot_c &amp;robot, unsigned long now) {
+
+    }</pre></code></blockquote>
+    <li>You must add a <strong>function prototype</strong> to <strong>Controller.h</strong>. Within Controller.h, find the list of current function names.  Add your new function name to this list.  Therefore, using the above defined function, you would add to Controller.h:
+      <blockquote><code><pre>
+  void motorStartStopTest(Robot_c &amp;robot, unsigned long now);
+</pre></code></blockquote>
+Notice that <code>Controller_c::</code> has been removed, and so have the curly-braces { }. We can think of this function prototype as adding an item to the contents page of a book.</li>
+
+          </ol>
+            <li><strong>Create a class variable to store a count:</strong> The controller update(...) function will call your newly named test function every 10ms (as defined in Controller.h).  If we want the test function to run for 3 seconds, we can count up the number of times the function has been called.  To do this, we need to: 
+              <ul>
+                  <li>Create a variable to store a count value.</li>
+                  <li>Initialise the variable to 0 at the beginning.</li>
+                  <li>Check if the count value maximum has been reached. If no, allow the test function to run.  If yes, stop the test function running.</li>
+                  <li>Add 1 to the count value every time the test function runs.</li>
+              </ul>
+              Because we will need the count variable to remember it's value in between calls to your test function, we will need the variable to be declared outside of the scope of the function itself.  Find the following section of code in Controller.h:
+              <blockquote><code><pre>
+class Controller_c {
+  
+  public:
+    /** @brief Editable local encoder-to-pose model; inspect odometry.pose.
+     * @note Controller mode resets do not reset this estimate. Use
+     * odometry.reset(...) explicitly to start a new physical trial.
+     */
+    OdometryModel_c odometry;
+              </pre> </code></blockquote>
+              This code is the start of the class definition.  Insert the following line of code:
+              <blockquote><code><pre>
+class Controller_c {
+  
+  public:
+    /** @brief Editable local encoder-to-pose model; inspect odometry.pose.
+     * @note Controller mode resets do not reset this estimate. Use
+     * odometry.reset(...) explicitly to start a new physical trial.
+     */
+    OdometryModel_c odometry;
+
+    // To keep track of how often a function is called.
+    int call_count;
+
+              </pre></code></blockquote>
+              This line creates a variable of type <code>int</code>, meaning it can store whole integers (negative and positive), and it has been given the name "call_count".  Importantly, this creates a global variable at the scope of the class - meaning that all functions within the class will be able to read and write to it, and it is persistent (it will retain it's value).
+             </li>
+
+        <li><strong>Initialise call_count: </strong> Next, we need to make sure that when the robot is powered-on, the call_count variable will start with a value of 0.  Within Controller.cpp, find the following function:
+          <blockquote><code><pre>
+  void Controller_c::reset() {
+    signal = 0;
+    mode = WAITING;
+    recovery_start_ms = 0;
+
+  }</pre></code></blockquote>
+
+  After <code>recovery_start_ms = 0;</code>, insert the line:
+       <blockquote><code><pre>
+    call_count = 0;
+       </pre></code></blockquote>
+      Read through Controller.cpp and find when and where this reset(...) function is called.
+  
+			    </li>
+          <li><strong>Check the call_count value:</strong> Revise your test function to look like the following:
+<blockquote><code><pre>
+void Controller_c::motorStartStopTest(Robot_c &amp;robot, unsigned long now) {
+  
+  // Call count has exceeded maximum
+  if( call_count > ???? ) {
+
+    // Set the motors off.
+
+
+    return;
+
+  } else {
+
+    // Increase the count of how many times this
+    // test function has been called.
+    call_count = call_count + 1;
+
+    // Set the motors on
+  }
+
+  return;
+}</pre></code></blockquote>
+<ol>
+<li>In the above code example, replace <code>????</code> with the count value that will occur once the test function has run for 3 seconds. </li>
+<li>In the above code example, use the setMotorPWM(...) function to turn the motors on or off, as appropriate (currently indicated by comments).</li>
+<li>For setMotorPWM(...), as input arguments use a positive value and a negative value to set one wheel to rotate forwards and the other backwards.  This will cause your robot to spin on the spot, rather than drive away.</li>
+</ol>
+          </li>
+			    <li><strong>Verify the test function:</strong> Compile and upload the code to the StampC3.  Test that your robot:
+            <ol>
+              <li>Waits for the button on the StampC3 to be pressed before it starts moving.</li>
+              <li>Activates the motors for 3 seconds, then deactivates them.</li>
+              <li>If your robot deviates from this, or does nothing, you may have forgotten to follow one of the above steps.  This is the real activity of programming - debugging!  Review your code. To find the problem, it can help to tell someone else what each line of your code is doing.</li>
+            </ol>
+          </li>
+          <li><strong>Implement a Soft Reset: </strong> A hard reset is when we power a device off and then on again.  A soft reset is when the state of the device is reverted in software only.  Currently, the only way to reset this test routine is to either press the StampC3 reset button, or to power cycle the whole robot.  Review your test function, and decide where to insert the following line to cause the reset() function to be called:
+            <blockquote>
+              <code>
+                <pre>setSignal(0);</pre>
+              </code>
+            </blockquote>
+            <ol>
+              <li>Test that, after your robot has operated for the motors for 3 seconds and stopped, that pressing the button on top of the StampC3 will cause your test function to run again.  </li>
+            </ol>
+
+			    
+                    <li><strong>Implement a Speed Ramp: </strong> A speed ramp means that the PWM value that is sent to the motors will either gradually increase or decrease.  In the previous steps, we have:
+                      <ul>
+                        <li>Implemented a class variable to retain a persistent count value.</li>
+                        <li>Ensured the class variable was initialise to 0.</li>
+                        <li>Used this count value to decide if the test function should activate the motors or not.</li>
+                        <li>Implemented a soft reset of the whole process.</li>
+                      </ul>
+                      Using the same techniques:
+                      <ol>
+                        <li>Implement a class variable to hold a modifiable PWM value to send to the motors.</li>
+                        <li>Ensure that the PWM variable is initialised to 0 in an appropriate place.</li>
+                        <li>Implement a class variable to store a smaller count to represent a shorter time period between modifying a PWM value.  For example, to count up to only 10.</li>
+                        <li>Within your test function, increment the count variable for modifying the PWM.  If this count exceeds 10, increment the PWM value.  Once you have incremented the PWM value, set the count variable back to 0 so that it counts to 10 again.</li>
+                        <li>Implement a constraint on the PWM value.  Decide a maximum PWM value that should not be exceeded.</li>
+                        <li>Verify that your speed ramp operates as expected.</li>
+                        <li>Extend the speed ramp routine so that the motors increase in speed, and then decrease in speed to stop at 0 again. You may need to consider the total time the test function runs for, as well as how often the PWM values are modified.  
+
+                          </li>
+                      </ol>
+
+                      
+                      
+                    </li>
+                    <li><strong>Going Further:</strong> With the techniques used so far, you should be able to build on the logic required for a speed ramp to implement a set of movements.  For example, to move the robot forwards for 2 seconds, turn for 1 second, and to repeat these both 3 times.</li>
+                    <li><strong>Going Further:</strong> In this exercise, we have used a class variable to count the calls (iterations) of the test function itself.  A more time-accurate approach would be to use the provided TaskTimer_c class: 
+                      <ul>
+                        <li><strong>TaskTimer_c</strong> In the Getting Started exercises, we used TaskTimer_c to schedule how frequently the StampC3 LED brightness was modified.  The same approach can be taken here, but with the Controller_c class construct.  Therefore, you can create an instance of TaskTimer_c within the class, as we did with <code>int call_count;</code> declaration. Instead of counting the calls of the function, the TaskTimer_c <code>isReady()</code> can instead be used to see if a period of time in milliseconds has elapsed.</li>
+                      </ul>
+                    </li>
+                  </ol>
+
+
+                    <strong>
+                      Expected Outcome: Build a first movement routine
+                    </strong>
+                    <p>
+                      After following these exercises, you should have written a simple controller that is able to periodically update the power sent to the robot motors.  Your simple controller should also be able to start and stop the robot in a controlled manner.  
+                    </p>
+
+                   
+                  </div>
+                  <div class="context-panel" data-panel="ai" hidden>
+                    <h3>
+                      Build and Verify a Simple Movement Routine
+                    </h3>
+                    <p>
+                      Use AI as a code-reading tutor and reviewer while you build the routine. Your own source inspection and observations of the physical robot remain the evidence: AI has not observed your robot and cannot establish how it behaved.
+                    </p>
+                    <p>Your first milestone is one short, deliberate start and stop with the wheels clear. Then build towards reset, ramp and timing checks below; you do not need to solve every part in one conversation. These milestones organise the work, rather than replace the final outcome. If you cannot begin a sketch or calculation, say where you are stuck: ask for a hint, then a small annotated example if needed, and try a similar step yourself. An incomplete first attempt is enough to start a useful conversation.</p>
+                    <ol>
+                      <li>
+                        <strong>Make your own map first.</strong> Before consulting AI, sketch the path from <code>loop()</code> in <strong>StampC3_Template.ino</strong>, through <code>Controller_c::update(...)</code>, to the selected controller routine and <code>Robot_c::setMotorPWM(...)</code>. Predict what should make the robot wait, start, move, and stop. Mark any connection you are unsure about rather than guessing.
+                      </li>
+                      <li>
+                        <strong>Check the map with a code-reading tutor.</strong> Give a repository-capable AI the public GitHub <a href="https://github.com/paulodowd/RoboticsScienceAndSystems" target="_blank" rel="noopener">RoboticsScienceAndSystems repository</a> and direct it to <strong>StampC3_Template</strong>. If it cannot inspect the repository, or you have changed the supplied code, provide the relevant excerpts from your own <strong>StampC3_Template.ino</strong>, <strong>Controller.h</strong>, <strong>Controller.cpp</strong>, and <strong>Robot.h</strong>. Require the AI to name the file and symbol supporting every code claim, then verify each claim yourself. Use your own working copy of the supplied <strong>StampC3_Template</strong> code, including your edits, to resolve any differences from the online version. Sharing excerpts means providing the relevant code directly to AI; you do not need to publish your code or make your team repository public. The supplied files do not include the opaque middleware implementation.
+                      </li>
+                    </ol>
+                    <div class="prompt-snippet">
+                      “Act as a code-reading tutor. Using the StampC3_Template directory at https://github.com/<wbr>paulodowd/<wbr>RoboticsScienceAndSystems, or the excerpts I provide from my working copy if it differs or you cannot open the link, help me check my call-path sketch from loop() to Robot_c::setMotorPWM(...). Ask me to explain one connection at a time before responding. For every correction, cite the exact file and symbol and label it as code evidence, inference, or something requiring a physical test. First help me identify which controller routine update(...) actually selects in my copy. Do not infer the opaque middleware implementation.”
+                    </div>
+                    <ol start="3">
+                      <li>
+                        <strong>Establish the starting behaviour safely.</strong> Before editing, place the robot upside-down on the table with its wheels free to rotate. Compile and upload your supplied example, identify which routine <code>update(...)</code> actually calls, and record what happens before and after pressing the StampC3 button. If your observation or local source differs from an AI explanation, retain the discrepancy and resolve it from your source rather than treating the explanation as evidence.
+                      </li>
+                      <li>
+                        <strong>Design before implementing.</strong> Write pseudocode for a named, non-blocking test routine that preserves the button-controlled start and 10&nbsp;ms controller interval, commands opposite wheel directions, stops after approximately three seconds, and leaves a route to a soft reset. Those directions would turn the chassis on the floor; in this wheels-clear test, observe the wheel rotations instead. Calculate the call-count threshold yourself and state the timing assumption behind it. Choose conservative PWM commands with your team; do not ask AI to choose supposedly safe values for your robot.
+                      </li>
+                      <li>
+                        <strong>Use AI to develop and review your plan.</strong> Show it your prediction and pseudocode before your implementation. Ask it to check the function declaration and definition, persistent class state, initialisation in <code>reset()</code>, the call from <code>update(...)</code>, and whether every path reaches a zero motor command. Try a correction; if syntax is preventing progress, ask for that small section with an explanation and predict its behaviour before using it. Do not use <code>delay()</code> or reduce the controller interval below 10&nbsp;ms.
+                      </li>
+                    </ol>
+                    <div class="prompt-snippet">
+                      “Act as a code-review tutor. I will provide my predicted behaviour and pseudocode for a three-second motor start/stop routine. Review one issue at a time against my Controller.h, Controller.cpp, Robot.h, and the supplied 10 ms update constraint. Invite my correction first; if I am stuck, explain or demonstrate the smallest useful change and leave me a check to perform. Check persistent state, reset initialisation, opposite-sign wheel commands, and whether all completion paths stop both motors. Do not rewrite the complete routine unless I ask, and do not claim that compilation proves the physical behaviour.”
+                    </div>
+                    <ol start="6">
+                      <li>
+                        <strong>Implement, predict, then test.</strong> Add the function prototype, implementation, class variable, initialisation, and call from <code>update(...)</code>. Compile before uploading. Before each physical trial, write down the command signs, expected motion, expected duration, and stopping condition. Keep the robot upside-down, upload the code, press the button, and record the actual start, rotation, stop, and duration. A successful compilation is only a software check; the observation tests your prediction.
+                      </li>
+                      <li>
+                        <strong>Debug from evidence.</strong> If the result differs from your prediction, give AI the relevant function and declaration, the exact compiler message or raw observation, and what you expected instead. Ask for competing hypotheses plus the smallest diagnostic check. Distinguish a suggested fix from code the tool actually compiled: ask what it checked, then compile your own copy and test one change at a time. Keep failed or unexpected trials. Do not share WiFi credentials, student identifiers, or other personal data.
+                      </li>
+                      <li>
+                        <strong>Test the reset before extending the movement.</strong> Once start and stop are reliable, explain where <code>setSignal(0)</code> belongs and ask AI to trace the state it resets. Keep an explicit <code>setMotorPWM(0, 0)</code> at completion: changing controller state is not itself a motor-stop command. Verify that a new button press starts one fresh trial and that the counter and timing state reset as you intended.
+                      </li>
+                      <li>
+                        <strong>Predict a ramp, then implement it.</strong> Draw requested PWM against time for a rise and return to zero. Choose a conservative maximum within the supported magnitude-200 limit. Ask AI to check your persistent PWM variable, update counter and boundary logic against that sketch, one issue at a time. Implement and test it with wheels clear. A ramp in requested PWM does not guarantee an identical ramp in physical speed; record what you actually observe.
+                      </li>
+                      <li>
+                        <strong>Explain what changed in your understanding.</strong> Compare call counting with an elapsed-time approach using <code>TaskTimer_c</code>. Predict what a delayed update would do in each case before asking AI for feedback. Redraw your call-path sketch from memory, check it against the source, and make a short table containing each claim, its code or robot evidence, and any remaining uncertainty. In your investigation notes, record one AI suggestion you accepted or rejected and the check behind that decision. Identify one part you can now explain without assistance.
+                      </li>
+                    </ol>
+                    <strong>
+                      Expected Outcome: Build a first movement routine
+                    </strong>
+                    <p>
+                      You should have a simple controller that periodically updates motor power, starts and stops in a controlled manner, and can be explained using exact source locations, recorded predictions, and physical observations.
+                    </p>
+                    <span class="ai-reminder">
+                      Keep the robot upside-down during these trials. AI suggestions are hypotheses until you verify them against the supplied interface and your robot.
+                    </span>
+                  </div>
+                </div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row">
+                    <span>
+                      <b>
+                        Vary
+                      </b>
+                      command magnitude or left/right relationship
+                    </span>
+                    <span>
+                      <b>
+                        Observe
+                      </b>
+                      start, stop, rotation, and speed changes
+                    </span>
+                    <span>
+                      <b>
+                        Record
+                      </b>
+                      command, duration, and visible result
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-02" class="exercise-card">
+            <div class="exercise-index">
+              02
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Encoder data · speed measurement
+                  </span>
+                  <h2>
+                    Measuring Wheel Speed: Encoders
+                  </h2>
+                </div>
+                <span class="time-badge">
+                  Approx. 1.5–3 hours
+                </span>
+              </div>
+              <div class="teaching-brief">
+                <p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/motor-exercise-02-encoder-speed.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+                <aside class="teaching-callout">
+                <h3>Stripped Gears</h3>
+                <p>Please do not stop the wheel rotation with your finger or by holding the robot still.</p>
+                <p>The motors of the robot contain a small gear train that is quite fragile.  If you stop the rotation of the wheel whilst the motor is powered, the motor will strip the teeth from the gears.  This will cause permanent damage to the robot.</p>
+                <p>  It is also possible to cause similar damage by pushing the robot along a surface at high speed.</p> 
+                </aside>
+			             <p>Using <strong>robot.setMotorPWM(...)</strong> sets the power to the motors, it does not control the <strong>speed</strong>. This is immediately clear if you consider that you can offer some light resistance to the wheel rotation with your finger and the wheel slows down.  In later exercises, we will characterise the motor by measuring it's speed.  Therefore, we need to learn how to detect and measure the wheel speed.</p>
+                  
+                  <p>Each motor on the robot is fitted with a quadrature encoder.  The encoder has a disc magnet which rotates above a <a href="https://en.wikipedia.org/wiki/Hall_effect_sensor">Hall Effect sensor</a>.  This means that when the motor shaft rotates an electronic pulse is created that can be counted.  More information on how the encoders work can be found in the <a href="https://www.pololu.com/docs/0J83/5.4">official documentation</a>.  In this course, counting the pulses and determining whether the wheel is rotating forwards or backwards has been implemented for you.  The robot will register a change in wheel rotation and either increment or decrement the rotation count.
+                </p>
+                <p>To read the current encoder count for the motors, we will utilise a helper function within the <strong>Robot_c</strong> class. In Robot_c, find</p>
+                <blockquote>getEncoders()</blockquote>  <p>Reviewing the code in this function, we can observe that the function requests a "snapshot".  You can find this snapshot (<code>RobotEncoders_t encoders; </code>) and other snapshot variables declared at the top of the Robot_c class.  This snapshot terminology reflects the fact that the encoder values retrieved were correct at the time they were requested, but that they may have since changed.  In real terms, if a snapshot of the encoder counts is retrieved, but the robot continues to move, then we expect that the count stored on the robot itself will have continued updating.  We will actually use this property to allow the robot to estimate wheel speed.</p>
+                
+                <p>Two more helper functions, <strong>getLeftEncoderCount()</strong>, and <strong>getRightEncoderCount()</strong>, are provided to attempt to reduce potential confusion about which count represents which wheel.  Reviewing the function getLeftEncoderCount(), we can observe that it has the <strong>return type</strong> of <strong>int32_t</strong>.  This means that the function will return a <strong>signed integer</strong> number value, whose range is represented across <strong>32 bits</strong>.  In actuality, 1 bit is reserved to represent the sign of the number (-/+) whilst the remaining 31 bits represent the numeric value.  Suffice to say, an int32_t can store very large number values.</p>
+                
+                <p>Counts of rotation produced by the encoder may seem confusing - how does this map to a rotation or distance travelled?  The official documentation for the <a href="https://www.pololu.com/docs/0J83/5.4">encoders</a> tells us that one whole rotation of the wheel produces 358.3 encoder counts.  We can therefore work out either how much rotation occurs for 1 encoder count ( degrees: \(\frac{360}{358.3}\), or radians: \(\frac{2\pi}{358.3}\)), or how much distance would be travelled by the wheel for one encoder count (wheel circumference divided by 358.3).  </p> 
+                <p>To estimate a wheel speed, we will apply the simple speed formula:</p>
+	                 <div class="equation">
+	                \(v = d / t\)
+	                </div>
+	                <p>where \(v\) is velocity, \(d\) is distance, and \(t\) is time.  To use this equation, where therefore need our robot to identify values of \(d\) and \(t\).</p>
+                
+                <p>For time, we currently understand that the controller update(...) function calls our test function every 10ms.  It is important to know that the exact timing is not strict - the function may not be called at exactly 10ms.  Furthermore, if a delay() is inserted, the 10ms timing will likely be lost entirely.</p>
+
+                <p>Next, we want to know how far the wheel rotated (or travelled along a surface), \(d\), within that same time interval.  To do this, we will need to capture the encoder counts before and after the time interval.  This is not as complicated as it might seem.  We only need to get the most recent value, and remember the previous value.</p>
+                
+                <p>We know that the controller code is iterative - meaning, it keeps repeating or looping.   Therefore, we can actually use the encoder count at time \(t-1\) (last time step) as the reference for the next encoder count at time \(t\) (current time step).  Our distance measurement is fundamentally the difference between two encoder counts.  The delta symbol, \(\Delta\), is commonly used to mean the difference: </p>
+                <div class="equation">
+                \(\Delta e^{left} = e^{left}_{t-1} - e^{left}_{t} \\ 
+                \Delta e^{right} = e^{right}_{t-1} - e^{right}_{t}\)
+                </div>
+                <p>where \(e^{left}\) and \(e^{right}\) represent the encoder counts for left and right motor respectively.  Once you have \(\Delta e^{left}\) and \(\Delta e^{right}\), you can choose whether to transform these into units of rotation (e.g., radians per second), distance (e.g., mm per second), or to leave it as change of encoder counts per ms.  You can choose the resolution of units based on what feels appropriate for your system - for example, mm/s, cm/s, m/s, and so on.</p>
+                <p>In the following steps, it is best to start by working on one motor only.  Once you have a speed estimation working reliably for one motor, it should be relatively simple to extend this for both motors.</p> 
+                
+              </div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Encoder speed measurement guidance">
+                    <button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">
+                      Self-Directed Route
+                    </button>
+                    <button class="context-tab" data-context="ai" role="tab" aria-selected="false">
+                      AI-Assisted Route
+                    </button>
+                  </div>
+                  <div class="context-panel active" data-panel="nonai">
+<h3>
+                    Implementing a Speed Measurement
+                  </h3>
+                  <ol>
+                    <li>
+                      <strong>Continue from Exercise 1.</strong> In exercise 1, you modified a copy of the runLineFollower(...) code to produce a simple motion routine.  Keep the code you developed in exercise 1 so that you can return to it later or use it as a reference point. In <code>Controller.cpp</code>, create a new function with a descriptive name such as <code>measureWheelSpeed(Robot_c &amp;robot, unsigned long now)</code>.  Like before, you may want to copy your movement routine and simply rename it, so that you can use the general structure of the code you developed.
+                    </li>
+                    <li>
+                      <strong>Select your new test function</strong> In <code>update(...)</code>, replace the call to the previous test function with a call to the new <code>measureWheelSpeed(robot, now)</code> function. Remember to comment out or remove the call to your last movement routine function.  In update(...), keep the existing button check and <code>signal</code> arrangement so that you can activate your controller code when you are ready by pressing the button on the StampC3.
+                    </li>
+                    <li>
+                      <strong>Add class variables.</strong> Add class variables to Controller_c (within Controller.h) to track: 
+                      <ul>
+                        <li><strong>Time:</strong> <code>unsigned long last_time_ms;</code> For this variable, we use the type <strong>unsigned long</strong> to match the return type of <code>robot.getMillis()</code>.  By reviewing Robot.h/Robot.cpp, we can ascertain the appropriate type to use.  We will track when the last speed measurement calculation was performed. This is to provide a better measurement of the time interval compared to the assumption that the test function will run every 10ms.</li>
+                        <li><strong>Encoder count:</strong> <code>int32_t last_count_left;</code> For this variable, we use the type <strong>int32_t</strong> to match the return type of the function <code>robot.getLeftEncoderCounts();</code> By reviewing Robot.h/Robot.cpp, we can ascertain the appropriate type to use.</li>
+                        <li><strong>Speed:</strong> <code> float speed_left;</code> For this variable, we use the type <strong>float</strong> because we expect to do a division operation, and the fractional part of the result is important (we don't want to lose it - such as if we used an <code>int</code> type, which can only store whole numbers).  </li> 
+                        </ul>
+							<ol>                      
+                      <li>You can add extra variables under the <strong>public:</strong> or <strong>private:</strong> qualifiers in the Controller_c class definition.  Variables added at these positions can be considered as "global within the class", meaning that they will persist outside of the class function calls.  
+                            <ul>
+                          <li><strong>Private:</strong> Variables of functions placed under the <strong>private:</strong> qualifier will not be accessible outside of the scope of your class. Public and private are tools to communicate to other software engineers the intended design and use of your code. Code under <strong>Private</strong> performs internal operations for the class, and are not intended to be accessed externally to the class.</li>
+                          <li><strong>Public:</strong>  You can think of code under <strong>Public</strong> as defining the interface to the class (how it should be used). Public variables and functions are intended to be accessed externally to the class.</li> 
+                        </ul>
+                  </li>
+                  <li>Add code to initialise these variables, similar to execise 1.</li>
+                                               
+                      </ol>
+                      <li><strong>Calculate a speed estimate:</strong> In your new test function (<code>measureWheelSpeed()</code>), add the following code:
+                        <blockquote><code><pre>
+  void Controller_c::measureWheelSpeed( Robot_c &amp;robot, unsigned long now ) {
+
+    // calculate time interval
+    float delta_ms = (float)(now - last_time_ms); 
+    
+    // calculate difference in encoder counts
+    int32_t delta_count = last_count_left - robot.getLeftEncoderCount();
+
+    // save the current encoder count as the "last count"
+    // for next time this function runs.
+    last_count_left = robot.getLeftEncoderCount();
+
+    // update the speed estimate
+    speed_left = (float)delta_count / delta_ms;
+
+    // Convert up to per second
+    speed_left = speed_left * 1000.0;
+
+    // Report speed to 3 decimal places
+    Serial.println(speed_left, 3);
+
+  }</pre></code> </blockquote>
+  <ol>
+    <li><strong>Make it safe:</strong> It is possible that your test function could be called at an interval faster than 1ms (for example, if something was to change elsewhere in the whole codebase).  Therefore, it is possible that the line <code>speed_left = (float)delta_count / delta_ms;</code> would result in a division by zero, and result in a significant error. Revise the above code to first check if more than 1ms has occured, before updating the speed estimate.</li>
+  </ol>
+
+                    <li>
+                      <strong>Run a physical trial.</strong> Run your first trial without setting the motor PWM.  Instead, slowly rotate the wheel with your hand.  Use  Serial.print() to inspect the values generated by your speed estimation code.  
+                      <ol> 
+                      <li>Remember to keep the USB cable plugged in to inspect Serial output. </li>
+                      <li>Remember to also press the button on the StampC3 to activate your test function. If you do not do this, you will not see anything on the Serial Monitor.</li>
+                      <li>If you do not comment out the line <code>publishTelemetry(robot, server, now);</code> in update(...), you will see your speed measurement reported alongside the general data from the robot published to the simulator.</li>
+                      <li>You may observe little change in value, which could be a rounding error produced by Serial.print().  When printing a float or double, you can specify how many decimal places to print.  For example, <code>Serial.println( my_float, 4 );</code> would print 4 digits after the decimal place.</li>
+                      <li>Check that the values are sensible via the Serial Monitor first.</li> 
+						 <li>Use the Serial Plotter to view the speed estimation as a plot over time. To use the Serial Plotter, it would be best to only report the speed estimate value (i.e., do not print the telemetry data as well).</li>
+             <li>The Serial Plotter does not scale the Y axis down below 3.  Therefore, you may need to scale-up the reported speed estimate value.  You can do this at the point of reporting via Serial, such as <code>Serial.println( (left_speed * 100.0), 3 );</code></li>
+						 </ol>                    
+                    </li>
+            <li><strong>Activate the Motor.</strong> To activate the motors, you can either:
+              <ul>
+                <li>Add in robot.setMotorPWM(...) commands to this test function <code>measureWheelSpeed(...)</code>.</li>
+                <li>Call <code>measureWheelSpeed(...)</code> from the test function developed in exercise 1, <code>testStartStopMotors(...)</code>.  Remember to provide the function with the arguments it requires.</li>
+              </ul>
+              <ol>
+              <li>Try different values of PWM, and check that the reported speed value also corresponds in a sensible way.</li>
+              <li>Does a positive speed correspond to a forward movement of the robot?</li>
+              <li>Compared to rotating the wheel by hand, you should be able to observe relatively stable speed estimation values when a PWM value is sent to a motor.</li>
+            </ol>
+            </li>
+                    <li>
+                      <strong>Improve the Implementation:</strong> There are a few ways to improve this implementation.  
+                      <ol>
+                      <li><strong>Slow down the frequency</strong> The update(...) function calls your test function every 10ms.  That is 100 times a second (100hz).  For our speed estimation this is actually very fast.  We know that the encoders provide 358.3 counts per full revolution of the wheel.  We also know the radius of the wheel.  Using these, we can calculate that if the robot is moving forwards at a steady 10mm/s, calling the speed measurement calculation at 100Hz would provide a difference of encoder counts of 0.36 at each time step. Because our encoder counts are stored as an int32_t (whole, signed integer values), 0.36 cannot be represented and will be lost (simply rounded down to 0).  Therefore, at slow robot velocity, a high frequency update of the speed estimate may lose information.
+                        <ol>
+                          <li>Use the technique you employed in the previous exercise to slow down the frequency of the speed estimation calculation without blocking the code - do not use delay().</li>
+                        </ol>
+                      </li>
+                      <li>Revise the speed estimation calculation to utilise a more meaningful unit of speed, for example mm/ms, or rads/s.  A meaningful unit is important later when discussing and reporting your work.  If you were to report your work in "difference in encoder counts per millisecond", your reader would need to go and research about your robot - for example, the counts per revolution of the encoder used, the wheel dimensions, and so on.</li>
+                     
+                     
+                      </ol>
+                      <li><strong>Implement for the other Motor:</strong> Once you are happy with your speed estimation implementation, implement the code required to provide an independent calculation for the other motor.  All later exercises will depend on your speed measurement code. </li>
+                      
+                    
+                  </ol>
+                  
+                  <strong>Expected outcome: a reusable speed measurement</strong>
+                  <p>
+                    You should now have a named, non-blocking test function that converts two encoder snapshots into counts per second. 
+                  </p>
+                  </div>
+                  <div class="context-panel" data-panel="ai" hidden>
+                    <h3>AI-assisted investigation brief</h3>
+                    <p>Use AI as a code-reading and calculation tutor. The purpose is to understand how two count snapshots become a speed estimate that you can trust in later experiments. AI has not observed your wheels; you will check its explanation against the supplied code and a short physical recording.</p>
+                    <p>Begin by explaining the previous exercise's start/stop logic without reopening the conversation. Your first milestone here is a checked speed calculation for one wheel; then verify the logger and extend it to both. If the calculation is unfamiliar, ask AI to demonstrate one labelled illustrative example, then change the interval and complete the next example yourself.</p>
+                    <ol>
+                      <li><strong>Draw the measurement before writing code.</strong> Sketch a timeline containing two acquisition times and two signed encoder counts for one wheel. Choose a small illustrative count change and calculate counts per second yourself. Label these invented numbers as a worked example, not robot data. Predict what should happen to the sign when the wheel reverses and to the estimate when the same count change takes twice as long.</li>
+                      <li><strong>Trace acquisition and access separately.</strong> Direct a repository-capable AI to <a href="https://github.com/paulodowd/RoboticsScienceAndSystems" target="_blank" rel="noopener">the public GitHub repository</a>, specifically <code>StampC3_Template/Robot.h</code>, <code>Robot.cpp</code> and <code>Controller.cpp</code>, or provide the relevant excerpts from your working copy of the supplied template. Include your changes when reviewing your implementation. Ask it to locate <code>getEncoders()</code>, <code>getLeftEncoderCount()</code> and <code>getRightEncoderCount()</code>. Check each file and symbol in your own copy. Which operation refreshes the cache, and which merely reads it? What remains in the cache after a failed request?</li>
+                      <li><strong>Review your pseudocode one decision at a time.</strong> Keep the button start, nominal 10 ms controller cycle and bounded start/stop routine from Exercise 1. Propose persistent previous-count and previous-time variables before asking AI for feedback.
+                        <ol>
+                          <li>Use the first successful acquisition to establish a baseline. Only calculate a speed after another successful acquisition with a positive elapsed interval.</li>
+                          <li>Use current count minus previous count with a stated forward-positive convention, and convert milliseconds to seconds explicitly. Update both saved values together after an accepted calculation.</li>
+                          <li>Check variable spelling, initialisation, floating-point division and failure handling. Acquire once per scheduled cycle and use the same snapshot for both wheels; do not add an unnecessary second request inside the test function.</li>
+                        </ol>
+                      </li>
+                    </ol>
+                    <div class="prompt-snippet">“Act as a patient code-review tutor. I will show my two-snapshot calculation and pseudocode first. Using my StampC3_Template excerpts, help me check the baseline, sign, elapsed time and saved-state update. After my attempt, propose small illustrative test cases for reverse counts, a failed read and zero elapsed time; keep these separate from robot data. Let me predict the outputs, then explain any disagreement and cite the relevant symbol. If implementation is blocking me, demonstrate the smallest relevant section. Leave me a calculation and physical check to perform; do not invent API methods or encoder observations.”</div>
+                    <ol start="4">
+                      <li><strong>Commission gently, then power the wheel.</strong> Compile the routine and check its Serial output with motor commands at zero, gently turning one wheel by hand. Never restrain a powered wheel or force the drivetrain. Then support the robot securely with wheels clear, keep cables away, and run a short conservative PWM trial with an explicit stop. Retain timestamps, cumulative counts, requested commands, wheel and trial labels; keep unrelated telemetry out of the measurement rows. Verify the direction physically before extending the calculation to the second wheel.</li>
+                      <li><strong>Ask what the sampling window hides.</strong> Use the Colab example to understand the plots, then load your own CSV. Compare short count intervals with a longer non-blocking calculation window. Ask AI to explain a sequence containing zero changes followed by non-zero changes: integer counts register discrete motion; a zero interval does not prove that fractional motion was discarded. Check one estimate by hand, and explain the trade-off between a steadier estimate and resolving a rapid change.</li>
+                      <li><strong>Explain the whole calculation unaided.</strong> Annotate one real pair of records with the count change, elapsed time, sign and units. Explain what a failed read would do and why counts per second are not automatically millimetres per second. Check your account against the code before asking AI to identify any remaining gap.</li>
+                    </ol>
+                    <strong>Expected outcome</strong>
+                    <p>A reusable non-blocking speed measurement for both wheels, retained raw count/time records, and an independently checked explanation of its timing, sign and resolution.</p>
+                  </div>
+                </div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row">
+                    <span>
+                      <b>
+                        Command
+                      </b>
+                      one wheel at a known PWM
+                    </span>
+                    <span>
+                      <b>
+                        Measure
+                      </b>
+                      count change over time
+                    </span>
+                    <span>
+                      <b>
+                        Calculate
+                      </b>
+                      encoder counts per second
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-03" class="exercise-card">
+            <div class="exercise-index">
+              03
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Threshold discovery · static test
+                  </span>
+                  <h2>
+                    Deadband: find where motion begins
+                  </h2>
+                </div>
+                <span class="time-badge">
+                  Approx. 2–4 hours
+                </span>
+              </div>
+              <div class="teaching-brief">
+                <p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/motor-exercise-03-deadband.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+                <p>
+                  <strong>Goal:</strong> use the encoder-speed measurement developed in Exercise 2 to determine whether each motor has a low-PWM command region in which no reliable wheel motion can be detected.
+                </p>
+                <p>
+                  Using robot.setMotorPWM(...) will generate a PWM signal for the left and right motors. At small command magnitudes, the available motor torque may be insufficient to overcome static friction in the motor, gearbox, bearings, tyre contact, or other properties of the task environment. Driver electronics, command handling, and the effective PWM duty cycle can also contribute. The resulting low-PWM command region, where changing the value produces no detectable sustained motion, is commonly described as a <strong>deadband</strong>.
+                </p>
+                <p>
+                  Deciding that motion has begun is not as simple as observing a change of one encoder count. A wheel may twitch and stop, begin moving only after a delay, or rotate so slowly that a short measurement time interval records no count change. Encoder resolution and timing therefore affect what you can detect.  Establishing an exact deadband threshold is therefore very difficult.
+                </p>
+                <p>
+                  Deadband is associated with starting from rest. Once the motor and wheel has started moving consistently, it will have overcome static friction and require less power to operate.  Therefore, the command that first causes a stationary wheel to turn may be larger than the command required to keep that wheel turning once it is already moving. These are breakaway and continued-motion behaviours.  It is for this reason that measuring deadband is not as simple as sweeping a PWM value from 0 to maximum - each PWM value needs testing from a stopped initial state.</p>
+                  
+              <figure class="motor-diagram">
+                <figcaption>
+                  Figure 1. An idealised centred deadband across the supported −200 to +200 PWM command range; the threshold positions are illustrative
+                </figcaption>
+                <img class="deadband-illustration" src="assets/images/motors/motor_deadband.png" width="100%" alt="Plot of normalised wheel response against requested motor PWM from minus 200 to plus 200. The response remains zero in a shaded deadband centred on zero between separate negative and positive thresholds, then increases outside those thresholds." />
+              </figure>
+                  <p>It is also important to note that a deadband region may also differ between the left and right motors, and between forward and reverse rotation. Robot support, weight distribution, surface contact, mechanical load, and the time allowed at rest can change the result.  In this exercise, you should evaluate both motors independently.
+                </p>
+                <p>
+                  Deadband matters in robot control, and particularly in Digital Twin systems. When deadband exists, a controller that assumes a small non-zero command creates a proportional movement will be wrong. On a real robot, this discontinuity in the relationship between power and motion can create stuttering or the inability to move at low velocity.  In simulation, assuming that a deadband does not exist would mean that any controllers developed in simulation are unlikely to perform as expected when transferred to a real robot.</p>
+                <p>
+                  In this exercise your objective is to determine the lowest PWM value that can generate consistent wheel rotation.  It is important to conduct your tests with the robot starting at rest (no motor activation).  This is to ensure that the motor activation must overcome static friction.  These tests can be conducted manually - meaning, simple setting a PWM value, observing the result, and then reprogramming the robot with the next PWM value.  However, it is recommended that you instead pursue an automated method, where your robot will test a set of PWM values for itself, and store the corresponding wheel speed registered.
+                </p>
+                <figure class="motor-diagram">
+                <figcaption>
+                  Figure X
+                </figcaption>
+                <p align="center">
+                <img src="assets/images/motors/deadband_pseudocode.png" width="75%" alt="" />
+                </p>
+              </figure>
+                <p>
+                The above pseudocode describes a general test process.  Pseudocode is an informal yet concise way to report algorithms.  Importantly, pseudocode does not necessarily take the target technology platform or application into consideration. In the above pseudocode, we can observe the use of a while() loop.  On our platform, we will want to avoid using any while() loops to achieve <strong>non-blocking</strong> code.  The concept of "<i>doing something while</i>" is still applicable.  Therefore, pseudocode often requires some translation into real implementation.</p>
+
+              <p>At the top of the pseudocode, some variables are identified and you will need decide their values. These are the starting PWM value to test (\(PWM_{min}\)), the last PWM value to test (\(PWM_{max}\)) and the increment value (\(\Delta PWM\)) to test PWM values between start and last values.  You should also decide how much time is required to allow the robot to come to a full stop (resting, \(T_{rest}\)) between each PWM trial, and how much time the robot should be given with a motor activated (\(T_{run}\)) - called a settling time.</p> 
+
+
+         
+         <p>Within the the time period \(T_{run}\), we want the robot to collect a quantity of  measurements \(N_{s}\).  Line 9 indicates a relationship between \(T_{run}\) and \(N_{s}\): the larger \(N_{s}\) within the period \(T_{run}\), the smaller the time between samples (\(\Delta t\)).  The update(...) function of the Controller_c class is configure to operate every 10ms.  Keeping within the framework presented by the Controller_c class, you should therefore assume that the smallest sample interval is 10ms. You can decide how to configure the test routine overall to account for the sampling time, the trial run time, and the number of samples taken.</p>
+         
+	         <p>Line 11 has the operation <code>Report (<i>pwm, trial, sample, speed</i>)</code>.  Therefore, at each iteration of your code, we would expect to view on the Serial Monitor an output like:</p>
+	         <blockquote>25, 1, 1, 0.16<br>25, 1, 2, 0.13<br>25, 1, 3, 0.15<br>25, 1, 4, 0.14<br>25, 1, 5, 0.11<br>25, 2, 1, 0.15<br>...</blockquote>
+					<p>In the above example output, each row is a reported result from an iteration of the code.  We can see that the final value (speed) is fluctuating. The first value is constant - that is because it is PWM 25 that is currently being tested.  The second value remains at 1 (first trial), until the sample reaches 5, and then trial increments to 2 and sample resets to 1.
+                </p>
+                <p>You can exercise your judgement to increase the quantity of data reported. For example, providing the exact time or time interval for a given sample may help provide evidence for how robust or reliable the measurements are.</p>
+              </div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Deadband guidance">
+                    <button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">
+                      Self-Directed Route
+                    </button>
+                    <button class="context-tab" data-context="ai" role="tab" aria-selected="false">
+                      AI-Assisted Route
+                    </button>
+                  </div>
+                  <div class="context-panel active" data-panel="nonai">
+<h3>
+                    Investigation brief
+                  </h3>
+                  <ol>
+                    <li>
+                      <strong>Start from Exercise 2.</strong> Create a new function such as <code>testDeadband(Robot_c &amp;robot, unsigned long now)</code> and reuse the speed estimation calculation developed in exercise 2.
+                    </li>
+                    <li>
+                      <strong>Select the new test.</strong> Change the single test-function call in <code>update(...)</code> to <code>testDeadband(robot, now)</code>.  
+                      <ol>
+                      <li>You are strongly encouraged to keep using the Controller_c class framework.  This is because the Controller_c class is intended to later allow you to transfer code between the real robot and the Digital Twin simulation.  Therefore, you should allow loop() to call controller.update(), and then allow update() to call your new function.</li>
+                      <li>By adopting the Controller_c framework, you code will also wait for a button press before it begins.  This will allow you to start your tests when you are ready, rather than your robot surprising you.</li>
+	                    
+                      </ol>
+                    </li>
+                      
+                      
+                      <li><strong>Implement the pseudocode</strong> Using the pseudocode as a general schematic, implement the while() and for() loops but as non-blocking operations, using your experience creating class variables in exercises 1 and 2.
+                        <ol>
+                          <li>Whilst solving problems with your code, it will probably be better to flip your robot upside down so that it doesn't suddenly drive away and get damaged.</li>
+
+                          <li>In exercise 2, we calculated a new value of the variable <code>left_speed</code>, which was declared as a class variable. This means it is accessible to other functions within the Controller_c class.  In the following exercises concerning the motors, the USB cable is likely to become inconvenient, or even interfere with your results.  You can switch from Serial.print() to server.printf() to report results over a Wi-Fi connection.  To use server.printf(), your code attempting to make the call server.printf() will need to have visibility of the variable <code>server</code>. Presently, this is passed into the update(...) function, but we have not passed it into the test functions we have been developing in exercises 1 and 2. You have a choice:
+                            <ul>
+                              <li>Increase the number of arguments for your test function, to include <code>RobotWifiAP_c &amp;server</code>.  This will make server visible to the receiving function.</li>
+                              <li>Place your measurement reporting code within the update(...) function.  </li>
+                            </ul>
+						  </li>
+                          <li>Create class variables for the other variables described in the pseudocode (e.g., \(PWM_{min}\)).</li>
+                          <li>Start by configuring your test function to only activate 1 motor, either left or right. This should cause your robot to drive in a small circle, pivoting on the wheel that is not activated.</li>
+                          <li>We can predict that the deadband region will be a set of values around zero, not at the extreme PWM values. Motor-command magnitude extends from 0 to 200, with the sign setting direction. For this investigation, limit your maximum magnitude to 100 initially.</li>
+                        </ol>
+                    </li>
+                    <li>
+                      <strong>Run the physical trials.</strong> In your initial trials, start by turning your robot upside down so that it does not suddently drive away.  Begin with one wheel and one direction.  By activating just one motor, your robot should move in a small circle.  
+                      <ol>
+                      
+                      <li><strong>Verify:</strong> check that the value you have given to \(T_{rest}\) is long enough for the robot to come to a complete stop. </li>
+                      <li><strong>Verify:</strong> Inspect your measurements to check that \(T_{run}\) and \(N_{s}\) are interacting in the way you intended - that is, the correct number of samples within the period, and the correct sample time interval.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Calculate and plot.</strong> Plot the estimated wheel speed against requested PWM.  Annotate the plot at the point of the PWM command with no sustained motion and the first command with sustained motion. 
+                      <ol>
+                      <li>It is expected that on the first attempt, your dataset will give a rough indication of the deadzone, but more data collection will be necessary.  This is a normal experience.  First tests are initially coarse in their resolution to first identify the region of interest.  Once this has been established, the tests can be repeated with a smaller range focused on the region of interest, and with a finer resolution of increments.  You should repeat your tests to improve your estimates of the deadband zone and threshold values.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Test assumptions: </strong> The measurements you have collected are representative of the performance of this motor under the tested conditions.  There are still variables that may change the measured performance:
+                      <ul>
+                        <li>If you have tested only the positive PWM values, you should go back to test the negative PWM values.</li>
+                        <li>If you have only captured tests for one motor, you should now conduct tests for the other motor.  The two motors are unlikely to be symmetrical.</li>
+                        <li>We have so far tested the robot pivoting on one deactivated motor. It would be interesting to see if the performance changes with both wheels operating - one forwards and one backwards, to cause the robot to rotate on the spot.</li>
+                        <li>Within your team you will have access to more robots.  You could also test how deadband varies between the robots by simply downloading this same code on to another robot.</li>
+                      </ul>
+                    
+					</li>
+				  </ol>
+                  <strong>Expected outcome: an evidence-backed threshold interval</strong>
+                  <p>
+                    You should have a test that sweeps small commands without blocking and a defensible rule for separating a twitch from sustained movement.
+                  </p>
+                  </div>
+                  <div class="context-panel" data-panel="ai" hidden>
+                    <h3>AI-assisted investigation brief</h3>
+                    <p>Use AI as an experimental-design critic. You are trying to decide when sustained motion becomes detectable, so your definition of motion and your measurement window matter as much as the PWM value. AI has not seen your apparatus and cannot supply its breakaway threshold.</p>
+                    <p>A useful first milestone is a checked rest–run–stop trial for one wheel and direction, followed by a rough threshold interval. Refine and extend it only after inspecting that pilot. If turning the timeline into code is the obstacle, give AI your verified speed routine, source declarations and intended phases. You may ask it to draft one non-blocking transition; explain its persistent state and stop behaviour, compile it, and test it before requesting another.</p>
+                    <ol>
+                      <li><strong>Make a prediction with a reason.</strong> Sketch the speed response you expect near zero for one wheel and direction. Explain why starting from rest might differ from reducing the command while a wheel is already turning. Propose a rule that distinguishes sustained motion from one count or a brief twitch, including how long you will observe it. Ask AI what result would challenge that rule.</li>
+                      <li><strong>Turn the supplied pseudocode into a timeline.</strong> Draw the rest, command, measurement and stop phases yourself. Choose a coarse set of small commands, initially no greater than magnitude 100, and plan repeated starts from rest at each command. Leave enough rest for the wheel actually to stop. Ask AI to review how the run duration, sample count and actual sample intervals fit together; preserve the controller's nominal 10 ms cycle.</li>
+                      <li><strong>Review the implementation before a full sweep.</strong> Reuse your verified speed routine in a named test such as <code>testDeadband(...)</code>. Give AI your state diagram and the relevant <code>Controller.h</code>, <code>Controller.cpp</code> and <code>Robot.h</code> excerpts. Check its file and symbol references, persistent counters, button start and reset logic yourself. Only one test should command the motors; every completion or abort must explicitly stop both wheels. Implement phases without blocking loops or <code>delay()</code>.</li>
+                    </ol>
+                    <div class="prompt-snippet">“Act as an experimental-design partner. Here are my prediction, sustained-motion rule and rest–run–stop timeline. Help me turn them into a short trial table with command, rest time, observation window and repeat labels. Question one weak choice and offer an example if I am stuck. Distinguish a twitch, a delayed start and sustained movement using counts and actual times. Review or draft a small code section only against the excerpts I provide from my supplied StampC3_Template code, with a check I can perform. Do not guess a hidden threshold or fabricate results.”</div>
+                    <ol start="4">
+                      <li><strong>Check the sequence physically.</strong> Support the robot with its wheels clear for the first short trial. Confirm the button start, rest period, command changes, sample count and final stop. Do not hold a powered wheel. Keep PWM, cumulative encoder counts, actual times, derived speed, wheel, direction and repeat number. Record battery and support conditions. If you later test floor contact, use a clear bounded area and label that as a different loading condition; an unloaded threshold need not transfer.</li>
+                      <li><strong>Use the first plot to choose the next measurement.</strong> Run the Colab example, replace it with your data, and plot repeated speeds against PWM. Apply your motion rule before asking AI to interpret the result. Mark the last tested command without sustained motion and the first with it. Repeat with finer spacing near that interval, keeping unsuccessful starts visible. Ask whether a longer observation could distinguish “not moving” from “too slow to resolve”.</li>
+                      <li><strong>Test the scope of your explanation.</strong> Repeat for both wheels and both signs. Keep any continued-motion test separate from the starts-from-rest dataset. Give AI your proposed threshold intervals and ask which claims exceed the evidence. Finish by explaining, in your own words, how resolution, loading and repeat variation limit each interval, and what a Digital Twin would need to reproduce.</li>
+                    </ol>
+                    <strong>Expected outcome</strong>
+                    <p>A checked non-blocking test, a defensible sustained-motion criterion, and repeated evidence supporting threshold intervals for the tested wheel and direction combinations. An unresolved boundary is useful when you can explain the measurement that would narrow it.</p>
+                  </div>
+                </div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row">
+                    <span>
+                      <b>
+                        Vary
+                      </b>
+                      small commands from rest
+                    </span>
+                    <span>
+                      <b>
+                        Measure
+                      </b>
+                      motion onset + repeats
+                    </span>
+                    <span>
+                      <b>
+                        Report
+                      </b>
+                      thresholds + uncertainty
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-04" class="exercise-card">
+            <div class="exercise-index">
+              04
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Actuator limit · static test
+                  </span>
+                  <h2>
+                    Saturation: find where power does not increase speed
+                  </h2>
+                </div>
+                <span class="time-badge">
+                  Approx. 1.5–3 hours
+                </span>
+              </div>
+              <div class="teaching-brief">
+                <p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/motor-exercise-04-saturation.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+              
+              <aside class="teaching-callout">
+                <h3>Motor burn out</h3>
+                <p>In this exercise you are guided to run the motors at the upper limits of wheel speed (e.g., fast motors).  If you leave a motor operating at the maximum PWM for a long time, it will get hot and eventually burn out - <strong>causing permanent damage</strong>.  Therefore, you should write code to operate the motors at high speed only for short intermittent periods. </p>
+                <p>In application, you will find that the discovered upper limit of motor PWM values produce robot movement that is too fast to be useful.</p> 
+                </aside>
+                
+                <p>
+                  When you increase the PWM command to a wheel, you might expect its speed to keep increasing. A real motor system has a finite operating range, so eventually a larger input to the motor may produce little or no repeatable increase in output. There are also other factors that must be considered.  An electronic motor can have varied electrical efficiency across it's input range or with respect to the load it experiences (for more insight, review the plots in the <a href="https://www.pololu.com/file/0J1487/pololu-micro-metal-gearmotors-rev-6-2.pdf">official motor datasheet</a>).  <strong>Saturation</strong> describes this loss of output response to further input. </p>
+                  
+                  <p>In this exercise, your goal is to determine whether saturation is visible in your measurements and to state the conditions under which you observed it.  On a command-versus-speed plot, saturation may appear as a plateau (a flat portion of the plot).  The fastest output response of the motor is not by itself evidence of saturation. A supported claim of saturation needs a repeatable flattening across several PWM command levels.  </p>
+                
+					<figure class="motor-diagram">
+                <figcaption>
+                  Figure 2. An idealised motor response in which settled wheel speed reaches a plateau; the saturation boundary is illustrative
+                </figcaption>
+                <img class="saturation-illustration" src="assets/images/motors/motor_saturation.png" width="100%" alt="Plot of normalised settled wheel speed against requested motor PWM magnitude from zero to 200. An idealised response rises with PWM before levelling at an illustrative saturation boundary. A dashed line shows the proportional response that would continue without a limit, and the shaded high-command region indicates that additional PWM produces little or no additional settled speed." />
+              </figure>
+                <p>
+                  Observing a plateau in output does not necessarily reveal its cause. Experimentally, we need to construct an argument for the most likely causes.  Possible motor-system limits include the motor driver, supply voltage and current, the motor and gearbox, battery condition, and the load at the wheel. Friction, wheel contact, floor surface, and payload can change the response too. These are competing explanations to test.  For example, you may discover that the operating surface does or does not have a signficant impact.  In these exercises, we can also adopt some sensible assumptions.  For example, for this class of robot, we expect it to operate on a level plane.  Whether or not your robot will carry extra load (weight) or operate on a smooth surface will be determined by the project context your team has selected for <strong>Phase 2</strong> of this course.
+                </p>
+                <p>
+                  This upper limit matters to motion control. If a controller asks an already saturated motor for more output speed, the motor has no further capability in reality and cannot increase.  For a two-wheel differential steer robot, if one wheel is not able to respond as expected, the total motion of the robot is likely to behave unexpectedly.  Therefore, knowing saturation limits can be accounted for in better control schemes.  In the context of this course, we also want to ensure that the Digital Twin simulation is an accurate and useful model of the real robot system.  If we do not, any behaviours or parameters determined in simulation are unlikely to have utility in reality.
+                </p>
+                <p>
+                  Exercise 3 tasked you with measuring the wheel speed of a motor across a set of discrete PWM values to find the deadband region.  This likely means that you have collected some speed measurements correlating to PWM, but only in a small subset of PWM values.  In this exercise you will investigate the other, higher range of PWM values.  Similar to exercise 3, you may need to repeat some tests with improved resolution across a smaller range at the upper limit of the motor operation.
+                </p>
+                <aside class="teaching-callout">
+                <h3>Run away robot</h3>
+                <p>When experimenting with high motor speeds, it is very likely that your robot could run away from you and damage itself.  Very common <strong>permanent damage</strong> to the robot occurs when the robot falls from a height and <strong>bends a motor axle</strong>.</p>
+                <p>To prevent this, please develop your test function with the robot flipped over, wheels facing up.</p>
+                <p>To test high motor speeds in contact with the surface, you should <strong>operate the motors in opposite directions</strong>.  This way, your robot will spin on the spot, rather than suddenly running away from you.</p> 
+                </aside>
+              </div>
+              
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Saturation guidance">
+                    <button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">
+                      Self-Directed Route
+                    </button>
+                    <button class="context-tab" data-context="ai" role="tab" aria-selected="false">
+                      AI-Assisted Route
+                    </button>
+                  </div>
+                  <div class="context-panel active" data-panel="nonai">
+<h3>
+                    Investigation brief
+                  </h3>
+                  <ol>
+                    <li>
+                      <strong>Start from Exercise 3.</strong> Keep your deadband test function from Exercise 3 and speed-measurement function from Exercise 2. Create a new <code>testSaturation(Robot_c &amp;robot, unsigned long now)</code> function.  In this exercise, we will re-use the same operation in principle.  However, you should adjust your values of \(PWM_{min}\), \(PWM_{max}\) and \(\Delta PWM\) to investigate the upper region of PWM.   
+                      <ol>
+                      <li>Unlike deadband, it is not necessary for your robot to come to a complete stop after each PWM test.  However, you may need a <strong>settling period</strong> when a new PWM is set, before the test period is used to take measurements. This should ensure that a stable speed is achieved once a PWM value is set. To implement this, you could reuse \(T_{rest}\) as \(T_{settle}\).</li>
+                      <li><strong>Motor Burnout</strong>To avoid motor burnout, you should avoid long periods of motor operation at high PWM.  To collect an interesting set of data, the operation of the motor for a few seconds should be sufficient.  For example, sampling at 10Hz (10 times a second), 3 seconds of operation would collect 30 samples for 1 trial.  Repeating a trial 10 times would provide 300 samples overall for one PWM value.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Select the new test.</strong> Call only <code>testSaturation(robot, now)</code> from the Controller_c <code>update(...)</code> function.
+                      <ol>
+                      <li>To begin with, test your function is operating as expected and reporting useful results.  To conduct this quick test, you can flip your robot upside down.</li>
+                      <li>Once you are confident with your test performance, a sensible way to test the upper limits of wheel speed are to command one motor backwards and one forwards.  This way, the robot will spin on the spot, and not run away from you.  Robots falling off tables is a very common cause of permanent damage.</li>
+                      </ol>
+                      </li>
+                      
+                    <li>
+                      <strong>Collect Measurements, Calculate and Plot.</strong> Plot settled encoder speed against requested PWM. Calculate the change in speed divided by the change in PWM for neighbouring points. A sustained reduction towards zero slope is evidence for saturation.
+                      <ol>
+                        <li>Similar to exercise 3, you are encouraged to format your data reporting to label each measurement with the PWM value, trial number, sample number and measurement - and for these to be printed line by line (rows).  This will make plotting in Python much easier.</li>
+                        <li>From your collected measurements and plots, note down where you believe the point of saturation is reliably reached.  Write this value down as an interval, for example \(240 \leq x \leq 250\), or \(x \in (240, 250)\).  Providing an interval indicates the observed range of the determined value, rather than presenting a single value as an objective truth.
+                      </ol>
+                    </li>
+                  </ol>
+                  
+                  <strong>Expected outcome: an upper operating-range estimate</strong>
+                  <p>
+                    You should have a command-versus-settled-speed plot and a justified statement about whether a saturation region was observed within the range you safely tested.
+                  </p>
+                  </div>
+                  <div class="context-panel" data-panel="ai" hidden>
+                    <h3>AI-assisted investigation brief</h3>
+                    <p>Use AI to question what would count as evidence for a plateau. It has not observed the motor, battery or test surface. A smooth curve or a confident explanation cannot establish why the response stops increasing.</p>
+                    <p>Start with one wheel and direction: your first milestone is a plot that shows whether neighbouring commands differ compared with the repeat spread. If plotting is the obstacle, provide the CSV header, a few labelled rows, the plotting cell and your intended comparison, without credentials or personal data. Ask for two plot layouts and choose which makes that comparison clearer. Run the chosen cell yourself and trace a plotted point back to its source rows; code suggested by AI is not yet an executed analysis.</p>
+                    <ol>
+                      <li><strong>Describe the comparison you need.</strong> Sketch a response that continues rising and one that flattens over several commands. Explain why the largest speed in a dataset does not, by itself, distinguish them. Review your earlier records and propose a set of higher commands within the supported range of −200 to +200. Ask AI whether their spacing and repeats could resolve a change relative to the variation you have already observed.</li>
+                      <li><strong>Adapt the test and check its timing.</strong> Keep the earlier tests and create a separate <code>testSaturation(...)</code> using the same non-blocking framework. Draw a settling period followed by a measurement period for each command, with short powered trials and stopped cooling intervals. Ask AI to review your plan against your <code>Controller.cpp</code> and <code>Robot.h</code> excerpts, naming the supporting symbols. Retain the button start and a final zero command; check that a settling interval is not accidentally included in the settled-speed average.</li>
+                      <li><strong>Run a cautious pilot.</strong> First support the robot securely with both wheels clear and keep cables and fingers away. Check the sequence, acquisition intervals and stop before collecting repeated measurements. Avoid prolonged high-PWM operation. If floor contact matters to your project, use a clear area and controlled opposite-direction wheel commands, recording that loading condition separately. Stop an abnormal trial and retain the reason; AI cannot judge whether your physical setup is safe.</li>
+                      <li><strong>Inspect observations before asking for an interpretation.</strong> Retain requested PWM, wheel, direction, trial, raw counts, times and derived settled speed, together with battery and loading notes. Open the Colab example to learn the plotting sequence, then load your measurements. Plot the repeat spread and calculate the change in settled speed divided by the change in PWM between neighbouring commands. Check one calculation yourself. Where is that slope consistently small, and where is the evidence still sparse?</li>
+                    </ol>
+                    <div class="prompt-snippet">“Help me make and interpret an honest comparison plot. I will show my labelled rows, plotting cell, operating notes and initial interpretation. Suggest two ways to display neighbouring responses and their repeats, explain their trade-offs, then help implement the one I choose. State whether you actually ran the code or only reviewed it. Help me check a point and slope against the raw rows, then question my plateau claim and suggest a physical check within the supported PWM range. Do not invent a saturation value or hidden mechanism.”</div>
+                    <ol start="5">
+                      <li><strong>Challenge one competing explanation.</strong> A plateau could involve the command path, power supply, loading or measurement method. Choose a check you can actually perform, such as revisiting earlier commands after the high-command trials or extending the settling period. Predict the result before running it. Keep both records and explain whether the check strengthens your interpretation or leaves the causes unresolved.</li>
+                      <li><strong>Report a boundary that the data can support.</strong> Give an interval between tested commands, with the associated speed spread and conditions. Repeat for the other wheel and direction before claiming a common limit. Explain your result to AI without looking at its earlier response, then ask it to identify an unsupported inference. It is acceptable to conclude that no plateau was resolved in the range you tested.</li>
+                    </ol>
+                    <strong>Expected outcome</strong>
+                    <p>Repeated settled-response plots, checked neighbouring slopes, and an operational upper-range estimate whose physical limits and competing explanations you can justify.</p>
+                  </div>
+                </div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row">
+                    <span>
+                      <b>
+                        Vary
+                      </b>
+                      commands across and above the usable range
+                    </span>
+                    <span>
+                      <b>
+                        Measure
+                      </b>
+                      settled speed
+                    </span>
+                    <span>
+                      <b>
+                        Report
+                      </b>
+                      upper limit, plateau + uncertainty
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-05" class="exercise-card">
+            <div class="exercise-index">
+              05
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Response scale · static test
+                  </span>
+                  <h2>
+                    Gain: measure the response slope
+                  </h2>
+                </div>
+                <span class="time-badge">
+                  Approx. 1.5–3 hours
+                </span>
+              </div>
+              <div class="teaching-brief">
+                <p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/motor-exercise-05-local-linear-gain.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+                <p>
+                  Once the deadband and saturation regions are known, the next question is how strongly the wheel responds within the usable range between them. This response scale is described by the
+                  <strong>gain</strong>. For a motor, gain tells us how much the wheel speed changes for a change in requested PWM. A larger gain means that the same PWM step produces a larger change in wheel speed.  In this exercise, we will determine a gain with the assumption that the motor response behaves linearly between input PWM and output wheel speed.
+                </p>
+                <p>
+                  Let \(u\) be requested motor PWM and let \(\hat{\omega}\) be the model's predicted output wheel speed. An ideal proportional model would be:
+                </p>
+                <div class="equation" role="img" aria-label="Predicted settled encoder speed omega hat equals gain G multiplied by requested PWM u">
+                  \[
+                    \hat{\omega}=Gu
+                  \]
+                </div>
+                <p>
+                  Here, \(G\) is the gain, a conversion factor whose units depend on how command and wheel speed are represented.  For example, if the \(u\) was measured in encoder counts per second, then a value \(G=4\) would predict that increasing \(u\) by 25 PWM changes the output wheel speed by \(4\times25=100\) encoder counts per second. 
+                </p>
+                <figure class="motor-diagram">
+                <figcaption>
+                  Figure 3a. An illustrative local gain fit. The points and region boundaries are synthetic examples, not expected robot values. The line is fitted only to the green points; the orange point is held back for validation.
+                </figcaption>
+                <img class="gain-illustration" src="./assets/images/motors/motor_gain_linear_fit.png" width="100%" alt="Synthetic settled encoder-speed measurements against requested PWM. Green points inside the selected usable range define a local straight-line fit, an orange point is held back, and grey and amber bands mark illustrative deadband and saturation regions." />
+              </figure>
+                <p>
+                  We know from previous exercises that the motors exhibit a deadband.  That means that the output response of the motor will not pass through the origin on a plot. A more useful model is therefore the equation of a straight line:
+                </p>
+                <div class="equation" role="img" aria-label="Predicted settled encoder speed omega hat equals slope G multiplied by requested PWM u plus intercept c">
+                  \[
+                    \hat{\omega}=Gu+c
+                  \]
+                </div>
+                <p>
+                  We can interpret this equation in the context of our robotic application: \(G\) represents the slope of the motor response, whilst \(c\) adjusts for the point at which a given PWM coincides with no motor output speed.  In this exercise we will experimentally determine a value for \(G\) and \(c\).  It is important to recognise that any variation in the task or environment will effect the response of the motor. It is therefore more correct to refer to \(G\) as an <strong>operational gain</strong> (correct within specific operational constraints). The gain we will determine is not intrinsic to the motor.</p>
+                
+                <p>
+                During this exercise, you may notice that your motor response is non-linear.  Exercise 6 investigates non-linearity specifically.  Even if a response can be seed to be non-linear, applying a linear model to a smaller region can still be useful.  Sometimes, non-linearity sits outside of the useful range of a response, and so the impact is not as significant.  By completing both exercises 5 and 6, you will be able to make an informed choice about which model is better suited to your application, and whether a more sophisticated model is worth the added complexity.
+                </p>
+                <p>Once you have collected speed measurements for your robot over a range of PWM, we will plot the result and conduct a linear fit.  With a linear fit equation, each original data point (measured wheel speed) can be evaluated against the line of fit.  Or in other words, we can measure how well a linear fit maps to the motor reponse.  To do this, for each PWM observation calculate the measured speed minus the predicted speed from the linear fit, \(\omega-\hat{\omega}\).  The results of this simple calculation is called a <strong>residual</strong>. Plotting the residuals then helps us to observe the quality of the fit.</p>
+                              <figure class="motor-diagram">
+                <figcaption>
+                  Figure 3b. Residuals from the same illustrative fit, calculated over the complete measured command range. Their systematic pattern outside the fitting region shows where one local gain no longer describes the response well.
+                </figcaption>
+                <img class="gain-illustration" src="./assets/images/motors/motor_gain_residuals.png" width="100%" alt="Residuals calculated as measured settled speed minus locally predicted speed over the complete command range. Residuals remain near zero in the selected fitting region but form clear patterns in the illustrative deadband and saturation regions." />
+              </figure>  
+                <p>
+                Plotting the residuals can reveal interesting characteristics for analysis and evaluation.  In the above example plot, the residuals visually communicate where the linear fit is appropriate, and where it is a poor representation.  As expected, the deadband and saturation regions are not well represented by a linear fit - which is clear from large residual values.  In the linear region, residuals that are clustered around a zero value support the approximation of the linear fit.  The distribution of residuals can be analysed more closely to compare one fit against another.
+                </p>
+                <p>                
+                Depending on how much data you collected during exercise 3 Deadband and exercise 4 Saturation, you may be able to combine the datasets to perform a linear fitting process.  If you find that your data in the middle PWM region is sparse, that may be good enough to perform a linear fit.  When developing a model of a system, it is possible to intentionally <strong>hold back</strong> some testing intervals to serve as unseen data points to test the predictive power of the model. The first step you should take is to review your existing data and to decide whether you want to collect more measurements.
+                </p>
+                <p>At this point in following these exercises, you should already notice that you are able to re-use a significant portion of your code to capture subsequent measurements.  This is expected.  Generally, repeating source code (copy-and-paste) is not recommended.  However, in this set of exercises it may be useful to retain all your tests functions so that you can more easiliy return to previous work to repeat measurements if it becomes necessary to do so.</p>
+              </div>
+              
+
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Gain guidance">
+                    <button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">
+                      Self-Directed Route
+                    </button>
+                    <button class="context-tab" data-context="ai" role="tab" aria-selected="false">
+                      AI-Assisted Route
+                    </button>
+                  </div>
+                  <div class="context-panel active" data-panel="nonai">
+<h3>
+                    Investigation brief
+                  </h3>
+                  <ol>
+                    <li>
+                      <strong>Review the evidence you already have.</strong> Begin with the raw measurements and plots from Exercises 3 and 4. Mark the approximate deadband and saturation regions, then identify the moving, unsaturated range between them. If your earlier measurements cover this range at useful intervals, you can reuse them. If there are large gaps, plan a small number of additional PWM conditions rather than repeating the whole investigation.
+                      <ol>
+                        <li>Start with one wheel and one direction so that the first analysis remains manageable.</li>
+                        <li>Choose PWM values across the proposed usable range. Include enough points to reveal whether a straight line is a reasonable approximation.</li>
+                        <li>Before fitting anything, select at least one PWM condition to hold back. You will use this later to test a prediction made by the fitted model.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Prepare a separate gain test.</strong> Keep the test functions you have written in the earlier exercises.  Create a new function such as <code>testGain(Robot_c &amp;robot, unsigned long now)</code>.  By keeping each of your test functions, you can more easily go back to repeat work if it later becomes necessary.  As with previous exercises, call only <code>testGain(robot, now)</code> from <code>update(...)</code> while collecting these measurements. You may need to make some small changes to the logic that starts and stops the motors, and any settling or stopped time periods.
+                      <ol>
+                        <li>First run a short test with the robot upside down and check that the PWM changes, timing, stopping behaviour, and reported values occur in the order you expect.</li>
+                        <li>Once the sequence is working, use the same safe physical arrangement adopted for your earlier motor tests. Avoid allowing the robot to drive unattended or fall from the work surface.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Check the data format before a full run.</strong> Report one measurement per row and give each row enough information to identify its test condition. Look to retain the requested PWM, measured encoder speed, wheel, trial or repeat number, and timing information. Run a few trials and confirm that the columns can be plotted correctly. This small check can prevent a long experiment producing ambiguous data, saving you time in the long run.
+                    </li>
+                    <li>
+                      <strong>Collect a consistent set of measurements.</strong> Measure the settled encoder speed at each planned PWM.  Repeat the trials within a selected and controlled environment (i.e., a smooth flat surface) so that you can see how much the result varies. Keep the surface, settling time, measurement duration, and other variables as consistent as practical. Save every raw observation rather than recording only an average. If a value looks surprising, keep it, note anything unusual about the trial, and continue to capture repeat trials before deciding how to interpret it.
+                    </li>
+                    <li>
+                      <strong>Plot the response before fitting a line.</strong> Plot the settled  speed, \(\omega\), against requested PWM, \(u\), using the complete dataset. Plot the distribution of your data to show repeated observations rather than hiding them behind a single mean. Compare the plot with the deadband and saturation boundaries estimated earlier, and decide which points belong to the moving, unsaturated region. A first selection does not need to be perfect, but it should be based on the physical response and recorded before you inspect different fits.
+                    </li>
+                    <li>
+                      <strong>Fit the local gain model.</strong> Review your total dataset, and decide which subset portion of the dataset contains the usable-region measurements.  If you remember, we will apply a linear fit to the linear region of data only.  Do not delete the other rows from your dataset. Using Python, it is quite straight forward to process data without deleting any.  Fit \(\hat{\omega}=Gu+c\), where \(G\) is the slope and \(c\) is the intercept. The downloadable notebook below can support this analysis. Record:
+                      <ul>
+                        <li>the PWM range and observations used for the fit;</li>
+                        <li>the fitted values of \(G\) and \(c\), including their units;</li>
+                        <li>the variation between repeated measurements and an uncertainty estimate; and</li>
+                        <li>which observation was held back and therefore not used to determine the line.</li>
+                      </ul>
+                    </li>
+                    <li>
+                      <strong>Use residuals to check where the model works.</strong> For every measured PWM, including points outside the fitting region, calculate the predicted speed and the residual \(\omega-\hat{\omega}\). Plot the residuals against PWM and look for evidence rather than expecting a particular shape.
+                      <ol>
+                        <li>Small residuals scattered on both sides of zero support the straight-line approximation over that region.</li>
+                        <li>A repeatable pattern, such as residuals changing steadily with PWM, suggests that one straight line is missing part of the response.</li>
+                        <li>One unusual point may instead reflect measurement variation or a changed test condition, so inspect the raw record.  Because we are looking to achieve a good linear fit, there may be a reasonable argument to exclude some outlier measurements. If we were instead reporting an experiment, outliers should be retained as a matter of interest.</li>
+                      </ol>
+                      If you change the fitting region, keep a record of the original choice and explain what evidence justified the revision.  When investigating the quality of your linear fit, a high \(R^2\) score can be deceiving.  A high \(R^2\) score can be achieved by limiting the fit to a very small region of data.  However, a small region of data would not be very useful in application, in controlling  the motor.  Therefore, a high \(R^2\) on a very narrow interval is not, by itself, evidence that the model predicts well across the usable range.
+                    </li>
+                    <li>
+                      <strong>Test a prediction the model has not seen.</strong> Freeze the fitted values of \(G\) and \(c\), then use them to predict the settled speed at the PWM condition you held back (i.e., that you have not directly measured). Test that command under the same physical and timing conditions. Report the measured speed, predicted speed, and signed prediction error. Compare this error with the variation in your repeated measurements: this will help you judge whether the disagreement is important at the resolution of your experiment.
+                    </li>
+                    <li>
+                      <strong>Decide how widely the result applies.</strong> After completing your first full set of measurements and analysis, consider which other measurements may need investigating.  For example, repeat the same process for the other wheel and the opposite direction. Do not assume that one fitted gain must describe every case. Compare the prediction errors and decide whether separate gains improve the digital twin enough to justify the extra parameters.
+                    </li>
+                    <li>
+                      <strong>Check that your conclusion matches your evidence.</strong> You may find a broad linear region, a narrow region where a line is useful, or no convincing linear region at all. Each is a valid result when supported by your measurements. Your final record should include the raw data, tested conditions, selected fitting range, coefficients with units, repeat variation, uncertainty, residual plot, and held-back prediction. State clearly which wheel, direction, PWM range, and physical conditions your gain estimate describes.
+                    </li>
+                  </ol>
+                  <strong>Expected outcome: a tested response slope</strong>
+                  <p>
+                    You should have a gain estimate tied to one stated wheel, direction, operating range, and set of physical conditions, plus residual and held-out evidence showing where that local slope predicts adequately—not a universal constant copied into every case.
+                  </p>
+                  </div>
+                  <div class="context-panel" data-panel="ai" hidden>
+                    <h3>AI-assisted investigation brief</h3>
+                    <p>Use AI as a plotting tutor and a reviewer of your model choices. You will decide where a straight line could be useful, then test that decision. AI has not observed your robot and cannot turn a fitted slope into a universal motor constant.</p>
+                    <p>Your first milestone is one line whose selected rows, units and prediction you can explain for one wheel and direction. Decide whether you need help with the equation, a notebook cell or interpretation, and request that help rather than restarting the whole analysis. For example, an illustrative prediction of 100 counts/s and observation of 110 counts/s gives a +10 counts/s residual: the model underpredicts. These are teaching values, not expected robot readings. Ask for another example if the sign is unclear, then check a real row yourself.</p>
+                    <ol>
+                      <li><strong>Choose a useful question from your earlier evidence.</strong> For one wheel and direction, mark the moving, unsaturated region on your complete response plot. Draw an approximate line by hand and estimate its slope from two points, including the units. This rough slope is a check on scale, not the final regression. Reserve at least one whole PWM condition before fitting. Ask AI to question your proposed interval and explain why a very narrow interval with a high fit score might be unhelpful for control.</li>
+                      <li><strong>Decide whether more measurements are needed.</strong> Review gaps, repeats and changed battery or loading conditions yourself. If necessary, adapt the settle-and-measure routine into <code>testGain(...)</code>, with only that test called from <code>update(...)</code>. Have AI review the changed code against the methods declared in your supplied <code>Robot.h</code> and controller files, one issue at a time. Keep the button start, 10 ms scheduling, short trials and explicit stop. Check with wheels clear first; never restrain a powered wheel or leave a moving robot unattended.</li>
+                      <li><strong>Keep the data selection visible.</strong> Retain raw counts, actual times, PWM, speed, wheel, direction and trial labels. Run the Colab example, load your CSV, and show repeated responses across the complete command range. Ask AI to explain the small section that selects fitting rows. Check that it excludes the reserved PWM condition, retains excluded rows in the original table and does not silently pool different wheels or conditions.</li>
+                      <li><strong>Fit and check the meaning of the line.</strong> Fit \(\hat{\omega}=Gu+c\) within your stated interval. Read the notebook's printed equation and coefficients; explain the units of \(G\) and \(c\) before asking AI for feedback. Calculate one prediction and measured-minus-predicted residual independently. Plot residuals for the complete measured range, marking fitting and held-back observations separately. Ask how repeat spread and changes between trials affect your confidence in the slope.</li>
+                    </ol>
+                    <div class="prompt-snippet">“Act as a model-review tutor. Here are my rough slope, chosen interval, labelled data and reserved PWM condition. Ask me to justify the interval before helping me fit speed = G × PWM + c. Explain one analysis cell at a time, preserve raw rows, show units and residuals across the full range, and help me assess coefficient uncertainty from my repeats. Do not choose a better-looking range silently or use reserved observations to tune the model.”</div>
+                    <ol start="5">
+                      <li><strong>Make the prediction before revealing the test.</strong> Freeze the coefficients and predict the reserved command. Measure its settled response under comparable conditions, or reveal the record you kept separate. Compare signed error with repeat variation. If you revise the range after seeing this result, retain the first model and reserve new evidence for a fresh evaluation.</li>
+                      <li><strong>Explain where the model belongs.</strong> Repeat the comparison for the other wheel and opposite direction before adopting shared coefficients. Write your own short account of the usable range, fitted equation, uncertainty and failed predictions. Ask AI to identify an unclear sentence or unsupported claim without adding results; revise it yourself and check it against the plotted evidence. Finish by explaining why a local gain may be useful even when the full response is curved. Keep one accepted or rejected suggestion and its evidence in your existing notes, not a separate conversation transcript.</li>
+                    </ol>
+                    <strong>Expected outcome</strong>
+                    <p>A reproducible local gain fit, checked units and residuals, and a held-back prediction that supports a stated scope of use. You should be able to justify the fitting interval and any decision to use separate wheel or direction models.</p>
+                  </div>
+                </div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row">
+                    <span>
+                      <b>
+                        Vary
+                      </b>
+                      command above threshold
+                    </span>
+                    <span>
+                      <b>
+                        Measure
+                      </b>
+                      settled wheel speed
+                    </span>
+                    <span>
+                      <b>
+                        Report
+                      </b>
+                      slope, fit, prediction
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-06" class="exercise-card">
+            <div class="exercise-index">
+              06
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Response shape · static test
+                  </span>
+                  <h2>
+                    Non-linearity
+                  </h2>
+                </div>
+                <span class="time-badge">
+                  Approx. 2–4 hours
+                </span>
+              </div>
+              <div class="teaching-brief">
+                <p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/motor-exercise-06-model-comparison.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+                <p>
+                  <strong>Goal:</strong> determine whether the straight-line gain model developed in Exercise 5 is adequate across the usable motor range, and whether either of two simple non-linear models makes better predictions for commands that were not used to fit any model.
+                </p>
+                <p>
+                  Exercise 5 treated gain as a local slope. If the response were linear across the whole usable range, equal increases in requested PWM would produce approximately equal increases in settled encoder speed. A <strong>non-linear response</strong> has a changing slope: the response may be relatively flat at lower commands and steeper later, or it may rise quickly and then flatten. This is different from saturation, where further command produces little or no additional response at the upper boundary. A curve can contain both a non-linear moving region and a separate saturation plateau.
+                </p>
+                <p>
+                  The residual plot from Exercise 5 provides a useful starting point. Residuals that are small and irregular across the usable range support a straight-line approximation. A repeatable sequence of residuals that begins on one side of zero, crosses it, and then moves to the other side suggests that the line is missing a curved structure. One unusual measurement is not sufficient: changed battery condition, load, wheel contact, settling time, deadband, saturation, or measurement variation can produce a similar visual impression.
+                </p>
+                <p>
+                  We will compare two simple curved candidates with the straight-line model. The first is a <strong>power law</strong>. Let \(x\) be a normalised requested PWM and let \(\hat{v}\) be the predicted normalised settled speed:
+                </p>
+                <div class="equation" role="img" aria-label="Predicted normalised settled speed v hat equals normalised requested PWM x raised to gamma">
+                  \[
+                    \hat{v}=x^\gamma
+                  \]
+                </div>
+                <p>
+                  The exponent \(\gamma\), pronounced “gamma”, controls the curve. When \(\gamma=1\), the power law has a linear shape. When \(\gamma>1\), the predicted response is flatter at lower commands and becomes steeper later. When \(0&lt;\gamma&lt;1\), it rises more sharply at first and then flattens. Figure 4a shows these different shapes. Gamma describes a fitted relationship; it is not evidence that the motor contains a physical component or hidden parameter called gamma.
+                </p>
+                <figure class="motor-diagram">
+                  <figcaption>
+                    Figure 4a. Illustrative power-law shapes. These curves explain the effect of gamma; they are not measurements or expected parameter values for the robot.
+                  </figcaption>
+                  <img class="nonlinearity-illustration" src="./assets/images/motors/motor_nonlinearity_candidate_shapes.png" alt="Three illustrative power-law curves of predicted normalised settled speed against normalised requested PWM. Gamma equal to one is linear, gamma below one rises quickly and then flattens, and gamma above one is flatter initially and then steepens." />
+                </figure>
+                <p>
+                  The second candidate is a <strong>second-order polynomial</strong>, also called a quadratic model. It extends a straight line by adding a squared-command term:
+                </p>
+                <div class="equation" role="img" aria-label="A linear model predicts v hat equals A plus B x; a quadratic model predicts v hat equals A plus B x plus C x squared">
+                  \[
+                    \begin{aligned}
+                    \text{linear:}\quad &amp;\hat{v}=A+Bx\\
+                    \text{quadratic:}\quad &amp;\hat{v}=A+Bx+Cx^2
+                    \end{aligned}
+                  \]
+                </div>
+                <p>
+                  In both equations, \(A\) is the intercept and \(B\) describes the linear trend. The additional coefficient \(C\) allows the quadratic slope to change with command: its sign determines the direction of curvature and its magnitude controls how strongly the curve bends. A complete quadratic graph is a parabola, but the usable motor range may show only a gentle segment of that shape. The equation is therefore a flexible candidate description, not a claim that one quadratic physical mechanism causes the response.
+                </p>
+                <p>
+                  Normalisation places command and speed on comparable scales before fitting the power law. Let \(u_{\min}\) and \(u_{\max}\) be the lower and upper boundaries of the usable command range established from your deadband and saturation evidence. Let \(\omega_{\min}\) and \(\omega_{\max}\) be the corresponding operational settled-speed reference values. Create derived columns:
+                </p>
+                <div class="equation" role="img" aria-label="Normalised requested PWM x equals u minus u minimum divided by u maximum minus u minimum; normalised settled speed v equals omega minus omega minimum divided by omega maximum minus omega minimum">
+                  \[
+                    x=\frac{u-u_{\min}}{u_{\max}-u_{\min}},
+                    \qquad
+                    v=\frac{\omega-\omega_{\min}}
+                    {\omega_{\max}-\omega_{\min}}
+                  \]
+                </div>
+                <p>
+                  Within the stated boundaries, \(x\) and \(v\) are intended to run approximately from 0 to 1. Keep the requested PWM \(u\) and measured encoder speed \(\omega\) unchanged in the raw dataset and add \(x\) and \(v\) only for analysis. Normalisation changes the numerical scale; it does not calibrate PWM into voltage, current, torque, or mechanical power, and it does not remove uncertainty in the estimated boundaries.
+                </p>
+                <p>
+                  Compare the linear, quadratic, and power-law candidates using exactly the same fitting observations and the same held-back commands. For observation \(k\), calculate the normalised residual \(e_k=v_k-\hat{v}_k\). You can summarise prediction error using mean absolute error:
+                </p>
+                <div class="equation" role="img" aria-label="Mean absolute error equals one over N multiplied by the sum of the absolute measured normalised speed minus predicted normalised speed">
+                  \[
+                    e_k=v_k-\hat{v}_k,
+                    \qquad
+                    \operatorname{MAE}
+                    =\frac{1}{N}\sum_{k=1}^{N}|v_k-\hat{v}_k|
+                  \]
+                </div>
+                <p>
+                  Figure 4b illustrates this comparison. The residual patterns reveal structure hidden by the overlaid curves, while the shaded held-back commands test prediction rather than fit. A quadratic has more adjustable coefficients than the power law and can often follow fitting data more closely. That extra flexibility is useful only if it gives repeatably better predictions; otherwise it may be fitting measurement variation. Prefer the simplest model that predicts adequately over the range needed by your digital twin.
+                </p>
+                <figure class="motor-diagram">
+                  <figcaption>
+                    Figure 4b. Three candidate models fitted to the same synthetic motor observations, with two commands held back from every fit. The lower panel compares residual structure. The result illustrates the method, not which model a team should expect to select.
+                  </figcaption>
+                  <img class="nonlinearity-illustration" src="./assets/images/motors/motor_nonlinearity_model_comparison.png" alt="Two-panel illustrative motor model comparison. The upper panel shows synthetic normalised speed observations with fitted linear, quadratic, and power-law curves; amber bands and orange diamonds identify two held-back commands. The lower panel shows residuals for all three models across the same command range." />
+                </figure>
+                <p>
+                  Begin with the raw measurements retained from Exercise 5. If their command spacing is too coarse to resolve the apparent bend, collect additional observations only where needed and keep the new trial identifiable rather than silently merging measurements taken under changed conditions. Analyse one wheel and direction first, then repeat the same comparison for the other cases. A defensible conclusion may retain the straight line, support one curved candidate only over a stated range, require different models by wheel or direction, or reject all three candidates.
+                </p>
+              </div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Non-linearity guidance">
+                    <button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">
+                      Self-Directed Route
+                    </button>
+                    <button class="context-tab" data-context="ai" role="tab" aria-selected="false">
+                      AI-Assisted Route
+                    </button>
+                  </div>
+                  <div class="context-panel active" data-panel="nonai">
+                  <h3>
+                    Investigation brief
+                  </h3>
+                  <ol>
+                    <li>
+                      <strong>Return to your Exercise 5 evidence.</strong> Begin with the complete raw dataset, the range of data used for the linear fit and the residual plot. Work with one wheel and one direction at first. Look for any repeatable pattern in the residuals and write down what it might mean before fitting another model. For example, residuals scattered around zero may support retaining the straight line, while a smooth change across PWM may suggest that the response contains curvature. Treat this as a hypothesis to test.
+                      <ol>
+                        <li>If you measured and evaluated some held-back PWM values in exercise 5, keep the same values held-back again in this exercise. To provide a fair prediction test, the held-back values must remain unseen by every fitting process.</li>
+                        <li>When creating your non-linear fit, exclude data values that exist within the deadband region, or after the point of saturation (i.e., no actual change of response from the motor).  Remember that, you shouldn't need to delete any of your data.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Check whether the existing measurements are sufficient.</strong> You may already have all the data you need. Review the spacing of the PWM conditions, the number of repeats, and the coverage of the usable range. Ask whether the observations are close enough together to reveal a gradual bend and whether the test conditions were reasonably consistent. If the response shape is already clear enough to compare models, continue with the Exercise 5 records. If there are important gaps, plan only the additional measurements needed to fill them.
+                    </li>
+                    <li>
+                      <strong>Collect targeted evidence if there are gaps.</strong> Keep <code>testGain(...)</code> so that you can return to it, and create a new function such as <code>testResponseShape(Robot_c &amp;robot, unsigned long now)</code>. Call only <code>testResponseShape(robot, now)</code> from <code>update(...)</code> while running the new test. Reuse the non-blocking settle-and-measure sequence developed in the earlier exercises rather than rebuilding it.
+                      <ol>
+                        <li>First check the command sequence, timing, stopping behaviour, and reported columns with the robot upside down.</li>
+                        <li>Use the same wheel, direction, surface, timing, and measurement units as the dataset you intend to extend. It would be good to repeat some PWM commands so that you can compare the variation in the old and new trials.  If you observe significant differences, you may need to recapture full dataset.</li>
+                        <li>Give every new row a trial label and retain its raw PWM, encoder speed, and timing information. If conditions such as the battery state or general environment have changed, record that change and analyse the trials separately before deciding whether they can reasonably be combined.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Define and record the normalisation boundaries.</strong> State the values of \(u_{\min}\), \(u_{\max}\) (PWM), \(\omega_{\min}\) and \(\omega_{\max}\) (wheel speeds), and explain how each was estimated from your deadband, saturation, and settled-speed evidence. We will need to use these values within Python to apply the normalisation process prior to the non-linear fitting.
+                    </li>
+                    <li>
+                      <strong>Add normalised columns without changing the raw data.</strong> Keep requested PWM, \(u\), and measured encoder speed, \(\omega\), in their original columns. Add new columns for normalised command, \(x\), and normalised speed, \(v\), using the equations given in the introduction. Check a few rows by hand and confirm that observations at the stated boundaries map approximately to 0 and 1. Use one fixed set of boundaries for the fitting data and the held-back data.
+                    </li>
+                    <li>
+                      <strong>Set up a fair model comparison.</strong> Choose the fitting rows before comparing the results and use exactly the same rows for the linear, quadratic, and power-law candidates. The downloadable notebook below can support this analysis. Fit each model and record the applicable coefficients \(A\), \(B\), \(C\), and \(\gamma\), together with their uncertainty estimates. Plot all three predictions over the same normalised observations so that differences in shape can be inspected directly.
+                      <ol>
+                        <li>Do not give one model extra measurements or a more favourable fitting range.</li>
+                        <li>Do not choose a preferred model only because its curve passes closest to every fitting point. The quadratic has more adjustable coefficients, so it may follow measurement variation without improving prediction.</li>
+                        <li>Keep a record of the rows used for fitting so that another member of your team could reproduce the comparison.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Compare the fitting errors consistently.</strong> For every fitting observation and every candidate model, calculate the residual \(v-\hat{v}\) and plot it against \(x\). Calculate MAE using the same rows and definition for all three models. Use the numerical errors together with the residual patterns:
+                      <ul>
+                        <li>small residuals scattered on both sides of zero support the model over the fitted range;</li>
+                        <li>a smooth or repeated residual pattern suggests that the model is missing structure; and</li>
+                        <li>a lower fitting MAE is useful only when the improvement is large enough to matter compared with repeat variation and is supported by unseen predictions.</li>
+                      </ul>
+                      If none of the residual plots looks convincing, keep that possibility open rather than forcing a choice between the three candidates.
+                    </li>
+                    <li>
+                      <strong>Test predictions using the held-back commands.</strong> Freeze every fitted coefficient before using the reserved observations. For each model, predict \(v\) at the held-back values of \(x\), then compare the predictions with the measurements. Report the signed error and absolute error in both normalised speed and the original encoder-speed units. Check whether the model that fitted best also predicts best. If the ranking changes, discuss why the held-back result provides a stronger test than the fitting error alone.
+                    </li>
+                    <li>
+                      <strong>Investigate how widely the result applies.</strong> Once the complete comparison works for one wheel and direction, repeat it for the other wheel and, where practical, the opposite direction. Use the same procedure, but allow the measured boundaries and fitted coefficients to differ. Decide whether one shared response shape predicts all cases adequately or whether separate models provide a worthwhile improvement for the added complexity in your digital twin.
+                    </li>
+                    <li>
+                      <strong>Check that the conclusion follows from the evidence.</strong> It is valid to retain the straight line, support a quadratic or power law over a stated range, or conclude that none of the three candidates is adequate. Your record should include the untouched raw data, trial conditions, stated normalisation boundaries, fitting and held-back rows, derived columns, model coefficients with uncertainty, residual plots, MAE values, and held-back prediction errors. State clearly which wheel, direction, command range, and physical conditions your conclusion applies to, as well as any limitations in the experiment.
+                    </li>
+                  </ol>
+                  <strong>Expected outcome: a justified response-shape model</strong>
+                  <p>
+                    You should be able to state whether the straight line remains adequate over the tested usable range or whether a quadratic or power-law candidate improves held-back prediction enough to justify its additional complexity. Your conclusion should identify the wheel, direction, range, conditions, uncertainty, and limitations to which it applies.
+                  </p>
+                  </div>
+                  <div class="context-panel" data-panel="ai" hidden>
+                    <h3>AI-assisted investigation brief</h3>
+                    <p>Use AI as a critic of model comparisons. It can help you understand the equations and inspect the analysis, but it has not measured the response. Your task is to decide whether added curvature improves prediction enough to be useful.</p>
+                    <p>Before reopening earlier AI responses, explain one residual and the reason for holding back a whole command. Your first milestone is an inspectable comparison for one wheel and direction; extend the same checked method afterwards. Choose the help you need: a worked normalisation example, a small comparison cell, or a challenge to your model choice. If you request code, first state its inputs, grouping and expected output, then verify one prediction yourself. You need not repeat a tutor-led quiz for steps you can already explain.</p>
+                    <ol>
+                      <li><strong>Explain the pattern before choosing a curve.</strong> Revisit your Exercise 5 residuals for one wheel and direction. Sketch what a straight line, quadratic and power law might predict across the usable range, and identify where they would differ most. Ask AI to question your interpretation and suggest another cause of the pattern, such as changed loading or incomplete settling. A curve is a hypothesis, not evidence of a particular hidden mechanism.</li>
+                      <li><strong>Protect the comparison.</strong> List fitting commands and whole held-back commands before examining candidate scores. Keep previously reserved conditions excluded from all fits. If their results have already influenced your choices, obtain a new reserved condition for the final test. Review whether additional measurements are needed near a suspected bend. For new trials, reuse your checked non-blocking routine, confirm the stop with wheels clear, stay within ±200 PWM and retain short runs, repeats, raw counts, times and operating notes.</li>
+                      <li><strong>Explain the normalisation yourself.</strong> State the command and speed boundaries from your earlier evidence, then calculate one \(x\) and \(v\) using the equations above. Keep one fixed set of boundaries for fitting and evaluation, and preserve signed raw PWM and speed. For reverse motion, state whether you analyse signed values or magnitudes within that direction. Ask AI to check the mapping and denominator; do not silently clip inconvenient observations into the interval.</li>
+                      <li><strong>Inspect what the notebook actually compares.</strong> Run the Colab example, then load your measurements. Its linear reference is the fixed line \(\hat v=x\); distinguish that from the fitted Exercise 5 line. If you also compare a fitted line, label it separately. Ask AI to walk through the quadratic and power-law fits and the selected condition summaries. Check that all candidates use the same fitting conditions, fixed boundaries and evaluation rows. Retain the repeated readings and show their spread alongside the summaries.</li>
+                    </ol>
+                    <div class="prompt-snippet">“Act as a model-comparison tutor. First ask me to explain my residual sketch, normalisation and held-back split. Then review the supplied notebook or the cells I provide, one decision at a time. Distinguish the fixed linear reference from a fitted line, preserve raw trial groups, and compare candidates using the same summaries and residual definition. Help me verify a coefficient, prediction and MAE calculation. Do not infer hidden parameters or invent uncertainty estimates.”</div>
+                    <ol start="5">
+                      <li><strong>Judge prediction as well as fit.</strong> Read the printed coefficients and equations, check one predicted value and residual by hand, and compare MAE on identical observations. State whether each scored observation is a condition mean or a raw reading. Freeze all coefficients before evaluating the reserved commands. Convert errors back to the original speed units and compare the improvement with repeat variation and sensitivity to the chosen boundaries.</li>
+                      <li><strong>Make a justified choice.</strong> Repeat for the other wheel and direction, allowing separate boundaries where the evidence requires them. Explain your preferred model to a team member before asking AI to critique it. Keep a simpler model, a restricted range or rejection of all candidates when that is what prediction supports. Record what would need checking before transferring the equation into the Digital Twin.</li>
+                    </ol>
+                    <strong>Expected outcome</strong>
+                    <p>A fair, inspectable comparison with retained raw evidence, stated normalisation, coefficients, uncertainty or sensitivity, residuals and held-back errors. You should be able to explain why the chosen complexity is warranted.</p>
+                  </div>
+                </div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row">
+                    <span>
+                      <b>
+                        Vary
+                      </b>
+                      command in usable range
+                    </span>
+                    <span>
+                      <b>
+                        Measure
+                      </b>
+                      settled speed + repeats
+                    </span>
+                    <span>
+                      <b>
+                        Report
+                      </b>
+                      models, residuals, prediction
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-07" class="exercise-card">
+            <div class="exercise-index">
+              07
+            </div>
+            <div class="exercise-content">
+              <div class="exercise-heading">
+                <div>
+                  <span class="concept-tag">
+                    Actuator dynamics · step test
+                  </span>
+                  <h2>
+                    Slew-rate and lag
+                  </h2>
+                </div>
+                <span class="time-badge">
+                  Approx. 3–6 hours
+                </span>
+              </div>
+              <div class="teaching-brief">
+                <p><a class="template-link" href="https://colab.research.google.com/github/semtm0043-42/semtm0043-42.github.io/blob/main/notebooks/motor-exercise-07-slew-lag.ipynb" target="_blank" rel="noopener">Open in Google Colab</a></p>
+                <p>
+                  Exercises 5 and 6 used requested PWM to predict a <strong>settled</strong> wheel speed. That static relationship identifies the destination of a change, but not how the wheel gets there. When a command changes, motor current, the rotor, gearbox, wheel, robot body, and any embedded processing all take time to respond. A digital twin that jumps immediately to the new settled speed may therefore predict the final motion correctly while predicting the path, stopping distance, or controller timing poorly.
+                </p>
+                <p>
+                  A useful experiment is a <strong>step test</strong>: hold one command until the wheel speed is steady, change the command once, then retain the complete time series until the new speed settles. Let \(\omega_0\) be the initial speed and let \(\omega_\infty\) be the final settled speed predicted by the static model. Several simple temporal models could connect these two values; they are candidate descriptions to test, not mechanisms to assume.
+                </p>
+                <p>
+                  In a <strong>slew-rate model</strong>, wheel speed cannot change faster than a limiting rate \(S\):
+                </p>
+                <div class="equation" role="img" aria-label="The magnitude of the predicted wheel-speed rate of change is less than or equal to the slew-rate limit S">
+                  <span>
+                    \(|d\hat{\omega}/dt|\)
+                  </span>
+                  <b>
+                    ≤
+                  </b>
+                  <span>
+                    \(S\)
+                  </span>
+                </div>
+                <p>
+                  Here, \(\hat{\omega}\) is predicted encoder speed and \(S\) has units of encoder-speed change per second, such as counts s<sup>−2</sup>. A sufficiently large command step then produces an approximately straight ramp whose slope is bounded by \(S\). The same limit need not describe rising and falling responses, both wheels, or both directions.
+                </p>
+                <p>
+                  A different candidate is a <strong>first-order lag</strong>. Its rate of change is proportional to the remaining distance from the final speed:
+                </p>
+                <div class="equation" role="img" aria-label="Time constant tau multiplied by the rate of change of predicted wheel speed equals final settled speed minus predicted wheel speed">
+                  <span>
+                    \(\tau\,d\hat{\omega}/dt\)
+                  </span>
+                  <b>
+                    =
+                  </b>
+                  <span>
+                    \(\omega_\infty-\hat{\omega}\)
+                  </span>
+                </div>
+                <div class="equation" role="img" aria-label="Predicted wheel speed after a step equals initial speed plus the total speed change multiplied by one minus e raised to negative elapsed time divided by tau">
+                  <span>
+                    \(\hat{\omega}(t)\)
+                  </span>
+                  <b>
+                    =
+                  </b>
+                  <span>
+                    \(\omega_0+(\omega_\infty-\omega_0)(1-e^{-(t-t_0)/\tau})\)
+                  </span>
+                </div>
+                <p>
+                  The time constant \(\tau\) sets the response timescale. For a pure first-order step, the prediction has completed about 63.2% of its total change at \(t=t_0+\tau\). This shortcut is not a general definition of motor response time: it is only a valid estimate of \(\tau\) when a first-order model is adequate and a slew limit is not controlling the early response.
+                </p>
+              </div>
+              <figure class="motor-diagram">
+                <figcaption>
+                  Figure 5a. Candidate responses to the same illustrative command step
+                </figcaption>
+                <img class="dynamics-illustration" src="./assets/images/motors/motor_dynamics_candidate_responses.png" alt="Four synthetic normalised wheel-speed responses to the same command step. An instantaneous candidate jumps to the final response, a slew-limited candidate rises as a straight ramp, a first-order lag curves towards the final response, and a combined candidate begins gradually before approaching the same endpoint." />
+              </figure>
+              <div class="teaching-brief">
+                <p>
+                  Figure 5a shows why a single rise-time value is not enough. A slew-limited response has an approximately constant slope while the limit is active. A first-order response changes fastest initially, then its slope decreases as it approaches \(\omega_\infty\). A combined model may begin with pronounced curvature and take longer to settle. At a slow sampling or reporting rate these shapes can look deceptively similar, so the evidence must include timestamps and more than a few points across the transient.
+                </p>
+                <p>
+                  The measured trace also includes the <strong>measurement pipeline</strong>. The supplied controller requests a new cached encoder snapshot on a nominal 10 ms update cycle, whereas <code>publishTelemetry(...)</code> emits records on a separate nominal 50 ms cycle. Wheel speed is itself calculated from a count difference over a time interval. That interval, irregular execution timing, delayed records, or additional averaging can smooth a sharp change. Record the actual elapsed time for every successful snapshot, and distinguish acquisition, speed calculation, and reporting before interpreting a curve as motor physics.
+                </p>
+                <p>
+                  Compare every candidate against the same observations. Fit parameters using one or more repeated steps, plot residuals against elapsed time, and look for structure rather than relying on a fit score alone. Then freeze the parameters and predict a new transition—for example, a different step size or a falling step. Figure 5b illustrates this logic with synthetic data. It does not show the response students should expect: its purpose is to demonstrate how a model that follows one trace can still fail on a genuinely new transition.
+                </p>
+              </div>
+              <figure class="motor-diagram">
+                <figcaption>
+                  Figure 5b. Illustrative fitting, residuals, and held-back prediction
+                </figcaption>
+                <img class="dynamics-illustration" src="./assets/images/motors/motor_dynamics_model_comparison.png" alt="Two-column synthetic model comparison. A rising step is used to fit slew-only, lag-only, and combined candidates, with residuals shown below. The frozen models then predict a held-back falling step, where the residual patterns reveal different predictive performance." />
+              </figure>
+              <div class="teaching-brief">
+                <p>
+                  Choose steps inside the moving, unsaturated range established earlier, so deadband and saturation do not dominate the transient. Begin and end each trial with a long enough hold to estimate \(\omega_0\) and \(\omega_\infty\), repeat selected trials, and preserve wheel, direction, command, timestamps, counts, calculated speed, and trial identity. A clear slew limit, a clear first-order lag, a combination, or no resolvable delay at the available sampling rate are all legitimate evidence-led outcomes. State the tested range and resolution rather than converting an unresolved effect into a fitted certainty.
+                </p>
+              </div>
+              <div class="exercise-grid">
+
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Dynamics guidance">
+                    <button class="context-tab active" data-context="nonai" role="tab" aria-selected="true">
+                      Self-Directed Route
+                    </button>
+                    <button class="context-tab" data-context="ai" role="tab" aria-selected="false">
+                      AI-Assisted Route
+                    </button>
+                  </div>
+                  <div class="context-panel active" data-panel="nonai">
+                  <h3>
+                    Investigation brief
+                  </h3>
+                  <ol>
+                    <li>
+                      <strong>Choose a useful command step.</strong> Begin with the deadband, saturation, gain, and response-shape evidence from Exercises 3–6. For one wheel and one direction, choose an initial PWM and a final PWM that both lie comfortably inside the moving, unsaturated range. The change should be large enough to produce a measurable transient, but it does not need to approach the limits of the motor.
+                      <ol>
+                        <li>Write down the instantaneous, slew-only, and first-order candidates that you will compare. Treat a combined slew-and-lag model as an additional candidate to use only if the simpler models leave clear evidence unexplained.</li>
+                        <li>Choose in advance which repeated transitions will be used for fitting and which different transition will be held back for prediction. A falling step or a new step size can provide a useful held-back test.</li>
+                        <li>Record why the selected commands avoid the deadband and saturation regions. This helps separate dynamic behaviour from the static limits investigated earlier.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Prepare a separate step-response test.</strong> Keep the functions developed in the earlier exercises and create <code>testStepResponse(Robot_c &amp;robot, unsigned long now)</code>. Call only <code>testStepResponse(robot, now)</code> from <code>update(...)</code> while collecting this dataset. Use a test phase and <code>TaskTimer_c</code> to implement the sequence without blocking:
+                      <ol>
+                        <li>hold the initial command until the speed is steady;</li>
+                        <li>apply the final command once and mark the step time;</li>
+                        <li>continue collecting encoder snapshots while the speed changes;</li>
+                        <li>hold the final command long enough to estimate the settled speed; and</li>
+                        <li>stop the motor safely before ending or repeating the trial.</li>
+                      </ol>
+                      Keep command generation separate from telemetry reporting so that printing or transmitting a record cannot alter the intended step timing.
+                    </li>
+<div class="equation" role="img"
+       aria-label="Non-blocking motor step-response test sequence">
+
+  \[
+  \begin{aligned}
+  &\textbf{Inputs: }u_0,\ u_1,\ T_{\mathrm{initial}},\ T_{\mathrm{final}} \\[2pt]
+  &\textbf{Persistent state: }\mathrm{phase},\ t_{\mathrm{phase}},\
+  t_{\mathrm{step}},\ u_{\mathrm{requested}} \\[6pt]
+
+  &\textbf{On trial start:} \\
+  &\quad \mathrm{phase}\leftarrow\mathrm{INITIAL\_HOLD} \\
+  &\quad t_{\mathrm{phase}}\leftarrow t \\
+  &\quad u_{\mathrm{requested}}\leftarrow u_0 \\
+  &\quad \operatorname{setTestWheelPWM}(u_0) \\[6pt]
+
+  &\textbf{On each non\text{-}blocking controller update at time }t\textbf{:} \\[2pt]
+
+  &\quad \textbf{if }\operatorname{getEncoders}()\text{ succeeds then} \\
+  &\qquad \operatorname{store}\bigl(
+      \mathrm{trial},\mathrm{phase},t,u_{\mathrm{requested}},
+      n_L,n_R
+  \bigr) \\
+  &\quad \textbf{end if} \\[4pt]
+
+  &\quad \textbf{if }\mathrm{phase}=\mathrm{INITIAL\_HOLD}
+         \textbf{ and }t-t_{\mathrm{phase}}\geq T_{\mathrm{initial}}
+         \textbf{ then} \\
+  &\qquad u_{\mathrm{requested}}\leftarrow u_1 \\
+  &\qquad t_{\mathrm{step}}\leftarrow t \\
+  &\qquad \operatorname{setTestWheelPWM}(u_1) \\
+  &\qquad \operatorname{storeStepEvent}(t_{\mathrm{step}},u_0,u_1) \\
+  &\qquad \mathrm{phase}\leftarrow\mathrm{FINAL\_HOLD} \\
+  &\qquad t_{\mathrm{phase}}\leftarrow t \\[4pt]
+
+  &\quad \textbf{else if }\mathrm{phase}=\mathrm{FINAL\_HOLD}
+         \textbf{ and }t-t_{\mathrm{phase}}\geq T_{\mathrm{final}}
+         \textbf{ then} \\
+  &\qquad \operatorname{setMotorPWM}(0,0) \\
+  &\qquad u_{\mathrm{requested}}\leftarrow 0 \\
+  &\qquad \mathrm{phase}\leftarrow\mathrm{STOPPED} \\
+  &\quad \textbf{end if} \\[4pt]
+
+  &\quad \textbf{if abort or safety timeout then} \\
+  &\qquad \operatorname{setMotorPWM}(0,0) \\
+  &\qquad \mathrm{phase}\leftarrow\mathrm{ABORTED} \\
+  &\quad \textbf{end if}
+  \end{aligned}
+  \]
+</div>
+
+
+                    <li>
+                      <strong>Check the sequence safely before a full trial.</strong> First run the function with the robot upside down. Confirm that the initial command, single step, final hold, and stop occur in the intended order. Check that every reported row identifies the trial, wheel, direction, requested PWM, timestamp, and encoder count. It is also useful to report the current test phase so that you can locate the command change when analysing the data.
+                    </li>
+                    <li>
+                      <strong>Pilot the measurement timing.</strong> Preserve the actual timestamp and encoder count at every accepted snapshot, then calculate speed using the measured elapsed interval. Do not assume that a nominal 10 ms task period means that every observation is exactly 10 ms apart. Check separately how often encoder snapshots are acquired, wheel speed is calculated, and records are reported.
+                      <ol>
+                        <li>Plot the command and the unaveraged speed from one pilot trial against time.</li>
+                        <li>Count how many observations occur while the speed is changing. If there are only one or two, the available timing may not distinguish an instantaneous response from a short lag or slew-limited ramp.</li>
+                        <li>Avoid adding smoothing simply to make the curve look cleaner. Smoothing can hide the early response that this exercise is intended to investigate.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Collect repeated transitions.</strong> Begin with a moderate rising step and repeat it under comparable conditions. Keep the surface, wheel loading, battery condition, initial hold, final hold, and sampling procedure as consistent as practical. Then collect the different step chosen for held-back prediction, such as another step size or a falling step, if it is safe to do so. Retain every raw record and label each trial rather than saving only an average response.
+                    </li>
+                    <li>
+                      <strong>Prepare the time-series data for comparison.</strong> Preserve the original timestamps, encoder counts, commands, and trial labels. Add derived columns for elapsed time from the command step and calculated wheel speed. For each trial, estimate \(\omega_0\) from the initial hold and \(\omega_\infty\) from the final hold, recording the interval and observations used for each estimate.
+                      <ol>
+                        <li>Plot individual repeated trials before calculating any average so that differences in timing and response remain visible.</li>
+                        <li>Check that the initial and final holds are long enough to support stable estimates. If they are not, revise the trial timing and collect the measurement again.</li>
+                        <li>Keep unusual observations and inspect their timestamps and trial conditions before deciding whether they represent measurement variation, a reporting problem, or repeatable behaviour.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Fit the candidate models fairly.</strong> Fit the instantaneous, slew-only, and first-order candidates using the same named fitting trials and compare their predictions over the complete transient. Add the combined model only if the residuals from the simpler candidates show a repeatable structure that the extra parameter could reasonably address. Record the fitted slew rate, time constant, and any other applicable parameters with units and uncertainty or sensitivity estimates.
+                      <ol>
+                        <li>Plot every candidate against the same measured trace and calculate residuals in the original speed units at the same timestamps.</li>
+                        <li>Look for residual patterns over time. For example, a model may predict the early response poorly even if it reaches the correct final speed.</li>
+                        <li>Use the same error summary for every candidate and compare its size with variation between repeated trials. A more complicated model is useful only if its improvement is meaningful at the resolution of the experiment.</li>
+                        <li>Use the 63.2% shortcut to estimate \(\tau\) only when the trace is consistent with a first-order response and the early change is not controlled by a slew limit.</li>
+                      </ol>
+                    </li>
+                    <li>
+                      <strong>Test a complete held-back transition.</strong> Freeze the fitted parameters before examining the reserved trial. Use each candidate to predict the full response to the new step, then compare prediction and observation at the recorded timestamps. Plot the held-back residuals and report their size in the original speed units. A different step size or a falling step is a stronger test of the model than withholding a few samples from the same fitted trace.
+                    </li>
+                    <li>
+                      <strong>Investigate how widely the result applies.</strong> Once the method works for one wheel and direction, consider repeating it for the other wheel, the opposite direction, or a different part of the usable command range. Use the same procedure, but allow the fitted parameters to differ. Decide whether a shared dynamic model predicts these cases adequately or whether separate parameters provide a worthwhile improvement for your digital twin.
+                    </li>
+                    <li>
+                      <strong>State what the experiment can resolve.</strong> Your evidence should include the raw timestamped records, tested commands and conditions, acquisition and reporting intervals, repeated trials, model equations, fitted parameters with units, uncertainty, residual plots, and held-back prediction errors. Conclude whether the observations support slew limiting, first-order lag, a combination, another explanation, or no resolvable delay at the available sampling rate. State the wheel, direction, command range, surface, load, and timing resolution to which the conclusion applies.
+                    </li>
+                  </ol>
+                  <strong>Expected outcome: a timestamped dynamic response</strong>
+                  <p>
+                    You should finish with a reproducible step-test dataset and a model comparison that distinguishes what happened immediately after a command change from the settled response measured earlier. A justified detection limit or rejection of all proposed models is a valid result.
+                  </p>
+                  </div>
+                  <div class="context-panel" data-panel="ai" hidden>
+                    <h3>AI-assisted investigation brief</h3>
+                    <p>Use AI as a timing reviewer and a tutor for dynamic models. A rounded speed trace could reflect the motor response, the measurement process, or both. AI has not observed the robot, so you will need to make those possibilities distinguishable through recorded commands, counts and times.</p>
+                    <p>Your first milestone is a pilot trace with enough timing information to decide whether the transition can be resolved, not a fitted time constant. Choose whether AI would be most useful for the logger, a worked model update or a comparison plot. Provide only the relevant source or notebook cell, labelled data excerpt and the question it should answer. If it cannot read your plot, describe the axes and provide the values behind the feature. Ask what was actually inspected or executed before relying on its account.</p>
+                    <ol>
+                      <li><strong>Predict three possible responses.</strong> Choose a step between two moving, unsaturated commands using your earlier evidence. Sketch an instantaneous change, a rate-limited ramp and a first-order approach to the final speed. Explain what observations could separate them. Choose repeated fitting transitions and reserve a complete different step size or falling transition before fitting anything.</li>
+                      <li><strong>Trace three clocks.</strong> Draw when commands change, encoders are acquired, and measurements are reported. Give AI the relevant <code>Controller.cpp</code>, <code>Robot.cpp</code> and <code>TaskTimer</code> source excerpts and ask it to verify each arrow by file and symbol. Retain the nominal 10 ms acquisition cycle; the separate telemetry period is not the sampling interval. Explain how a speed calculated over a count window averages motion within that window.</li>
+                      <li><strong>Review a bounded state machine.</strong> Write pseudocode for initial hold, one marked command step, final hold and stop, then ask AI to inspect one transition at a time. Use persistent state and timers without blocking. Preserve button start, explicit completion and abort stops, and one active motor-command routine. Compile and pilot with wheels clear, cables away and short moderate commands within ±200 PWM. Do not restrain a powered wheel.</li>
+                    </ol>
+                    <div class="prompt-snippet">“Act as a timing and code-review tutor. I will show my predicted traces and step-test timeline first. Use the excerpts I provide from my supplied StampC3_Template code to check command events, successful encoder acquisition, speed windows and reporting separately. Ask me to explain each state transition and stop path before suggesting a correction. Do not smooth the observations or assume that a rounded trace proves motor lag.”</div>
+                    <ol start="4">
+                      <li><strong>Check what the pilot can resolve.</strong> Retain raw cumulative counts, actual times, requested PWM, step-event time, wheel, direction, phase and trial identity. Plot command and unsmoothed derived speed before collecting the full repeated dataset. Count the observations during the change and compare the holds for stability. Ask AI to review whether the measurement window could conceal the difference between your sketches. One or two changing samples may justify a detection limit rather than a fitted time constant.</li>
+                      <li><strong>Compare candidates at the measured times.</strong> Run the Colab example, then inspect and adapt its cells for your data. Use the same fitting trials to compare instantaneous, slew-only and first-order candidates; consider a combined candidate only if simpler residuals leave repeatable structure. Record equations, units, parameter choices and sensitivity. Check one count-window speed and one model update yourself. A slew rate in speed units is not a PWM slew rate, and the 63.2% shortcut applies only to an adequate first-order response.</li>
+                      <li><strong>Predict an entire new transition.</strong> Freeze dynamic parameters before evaluating the reserved trial. State how its starting and final speeds are obtained. If you first measure where this new trial settles, you can ask whether the model describes <em>how it gets there</em>; that is a conditional test of transient shape, not a prediction of its endpoint. Using the earlier frozen static model for the final speed also tests <em>where it will settle</em>. Keep these two questions distinct. Compare all candidates at the same timestamps, using residuals in the same speed units, and explain how count-window averaging was treated.</li>
+                      <li><strong>Consolidate the evidence.</strong> Compare repeated traces and, where practical, another wheel or direction. Write your own account of the model's useful range and unresolved effects. Ask AI to challenge the strongest claim using the raw record. Retain a simpler model or no resolvable delay when the timing and repeat variation do not justify more. Explain your model and one limitation to a team member without the conversation open. In your notes, identify which assistance advanced the work, the check that justified accepting it, and what you can now carry into the Digital Twin independently.</li>
+                    </ol>
+                    <strong>Expected outcome</strong>
+                    <p>A reproducible step-test record and a checked comparison of transient predictions, with a clear distinction between measured motor behaviour, measurement-window effects and the limits of the available timing.</p>
+                  </div>
+                </div>
+                <div class="investigation exercise-evidence">
+                  <div class="measure-row">
+                    <span>
+                      <b>
+                        Vary
+                      </b>
+                      step size + direction
+                    </span>
+                    <span>
+                      <b>
+                        Measure
+                      </b>
+                      timestamped counts + speed
+                    </span>
+                    <span>
+                      <b>
+                        Report
+                      </b>
+                      models + residuals + prediction
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+          <!--
+          <section id="validation" class="validation">
+            <div>
+              <span class="section-kicker">
+                08 · Capstone validation
+              </span>
+              <h2>
+                Now test the model you built
+              </h2>
+              <p>
+                Use only part of your measurements to fit the parameters. Before running the final trial, predict an unseen command sequence that includes a reversal. Compare the prediction and its uncertainty with the physical observation.
+              </p>
+            </div>
+            <div class="validation-list">
+              <span>
+                □ Fit on training data
+              </span>
+              <span>
+                □ Predict before measuring
+              </span>
+              <span>
+                □ Explain residuals
+              </span>
+              <span>
+                □ Verify every claim
+              </span>
+            </div>
+          </section>
+        -->
+          <footer>
+          <span>
+            Designed and written by Paul O'Dowd for the University of Bristol, UK (2026)
+          </span>
+        </footer>
+        </main>
+      </div>
+    </body>
+  </html>

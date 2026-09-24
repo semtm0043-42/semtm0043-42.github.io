@@ -11,36 +11,30 @@
     <link rel="stylesheet" href="vendor/katex/katex.min.css" />
     <script src="vendor/katex/katex.min.js" defer></script>
     <script src="vendor/katex/contrib/auto-render.min.js" defer></script>
-    <script src="app.js?v=10" defer>
+    <script src="app.js?v=11" defer>
     </script>
   </head>
   <body>
     <div class="site-shell">
       <aside class="sidebar" aria-label="Course navigation">
         <a class="brand" href="index.html"><span class="brand-mark">CW</span><span><strong>SEMTM0043/42</strong><small>Robotics Science &#38; Systems</small></span></a>
-        <div class="course-status"><span class="status-dot"></span>Course learning journey</div>
-        <nav data-course-navigation>
-          <p class="nav-label">Journey</p>
-          <a class="nav-item" href="index.html"><span>00</span>Course overview</a>
-          <a class="nav-item" href="getting-started.html"><span>Start</span>Getting Started</a>
-          <a class="nav-item" href="phase-1.html"><span>01</span>Characterise the robot</a>
-          <a class="nav-item active" href="#overview"><span>02</span>Update the twin</a>
-          <a class="nav-item" href="going-further.html"><span>+</span>Going Further</a>
-        </nav>
+        
+        <nav data-course-navigation></nav>
       </aside>
+
       <main id="top" class="main-content">
-        <header class="topbar"><div class="breadcrumb"><a href="index.html">CW2026</a><b>/</b><strong>Phase 2</strong></div>
-<span class="save-state"><span class="save-dot"></span>Digital Twin investigation</span></header>
+        
         <section id="overview" class="intro">
-          <div class="eyebrow"><span class="eyebrow-line"></span>Phase 2</div>
-          <h1>Update the<br /><em>Digital Twin.</em></h1>
-          <p class="lead">A Digital Twin is a model, not an authority. Use the evidence gathered from the real robot to decide which assumptions matter, change them deliberately, and test whether the revised simulation makes better predictions.</p>
+          <div class="eyebrow"><span class="eyebrow-line"></span>SEMTM0043/42, Phase 2:</div>
+          <h1>Update the Digital Twin<br /><em>Evaluate by Project Theme.</em></h1>
+          
+          <!--<p class="lead">A Digital Twin is a model, not an authority. Use the evidence gathered from the real robot to decide which assumptions matter, change them deliberately, and test whether the revised simulation makes better predictions.</p>-->
         </section>
         <section class="orientation-card">
           <div class="orientation-icon">i</div>
-          <div><span class="section-kicker">Draft material</span><h2>Detailed update guidance will be developed here</h2>
+          <div><span class="section-kicker">Groupwork Basis</span><h2>Update the Simulation, Evaluate by Project Theme</h2>
           <p>This page establishes the intended workflow. It will later point to the simulator components and provide practical exercises for revising and testing them.</p>
-</div>
+					</div>
         </section>
         
         
@@ -114,9 +108,9 @@
 										<li>Select <strong>Tools  → Port</strong> and select the port for the StampC3.</li>
 										<li>Select <strong>Tools  → Serial Monitor</strong>.  You may need to change the baud rate - use the drop-down list to select <code>115200</code>.
 											<p><img src="./assets/images/setup/serial_monitor.png" alt="Screenshot of the Serial Monitor" width="100%"></p>
-											<li>In the <strong>StampC3_Template</strong> code, navigate to the <strong>Robot.h</strong> tab, and search for the function named <strong>publishTelemetry(...)</strong>.
+											<li>In the <strong>StampC3_Template</strong> code, navigate to the <strong>Controller.cpp</strong> tab, and search for the function named <strong>publishTelemetry(...)</strong>.
 												<ol>
-													<li>The functions <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> both report 13 variables.  Which aspect of the robot do you think each variable corresponds to? </li>
+													<li>The functions <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> both report 14 variables.  Which aspect of the robot do you think each variable corresponds to? </li>
 													<li>Both <strong>server.printf(...)</strong> and <strong>Serial.printf(...)</strong> has a string formatted like <code>%lu,%.2f,%.2f,%.5f,%d,%d,%ld,%ld,%u,%u,%u,%u,%u,%u</code>.  You might think this looks a bit strange - but you can also discover what these mean.  Use the internet to search for what each of these formatters means (e.g., <strong>%.5f</strong>). </li>
 												</ol>              
 											</li>
@@ -153,38 +147,17 @@
 					</article>
         
         </div>
-        <section class="selection-section">
-          <div class="section-heading"><span class="section-number">01—03</span><div><span class="section-kicker">Model revision loop</span><h2>Make assumptions testable</h2></div>
-</div>
-          <div class="journey-grid journey-grid-three">
-            <article class="journey-card is-static"><span class="section-number">01</span><h3>Locate the assumption</h3>
-            <p>Read the supplied model and identify where its motor, sensor, geometry, surface, or timing assumptions are represented.</p>
-</article>
-            <article class="journey-card is-static"><span class="section-number">02</span><h3>Revise from evidence</h3>
-            <p>Use your measurements to justify one change at a time. Record the value, method, and uncertainty rather than treating a fit as unquestionable truth.</p>
-</article>
-            <article class="journey-card is-static"><span class="section-number">03</span><h3>Predict and compare</h3>
-            <p>Choose motion or sensing data not used to set the model, then compare the new simulation prediction with an independent observation.</p>
-</article>
-          </div>
-        </section>
-        <section id="future-surface-sensing" class="selection-section">
-          <div class="section-heading"><span class="section-number">+</span><div><span class="section-kicker">For later revision</span><h2>Going Further with surface sensing</h2></div>
-</div>
-          <p class="section-lead">These possible Phase 2 extensions have been retained here while the detailed Digital Twin guidance is developed.</p>
-          <div class="subsystem-grid">
-            <article class="subsystem-card is-static"><span class="section-number">01</span><h3>Line-position estimation</h3>
-            <p>Keep the robot stationary and place a line at known lateral positions beneath the five-sensor array. Use calibrated readings to estimate line position, then validate the estimator at positions not used to construct it. This combines channel calibration, spatial footprint, and any supported cross-channel interaction into an array-level sensing task.</p>
-<span class="card-link">From five readings to line position</span></article>
-            <article class="subsystem-card is-static"><span class="section-number">02</span><h3>Ambient-light effects</h3>
-            <p>Repeat a controlled reference measurement under different documented lighting conditions and compare the raw five-channel readings, variation, and calibration validity. Treat ambient IR as an environmental condition to measure, not as a nuisance to dismiss; explain whether your calibration remains useful when the lighting changes.</p>
-<span class="card-link">Test environmental robustness</span></article>
-          </div>
-        </section>
-        <section class="validation"><div><span class="section-kicker">Useful disagreement</span><h2>Mismatch is evidence</h2>
-        <p>When the physical robot and simulation disagree, ask what the mismatch says about the model, measurement method, environment, or trajectory—not which system should be trusted by default.</p>
+        
+
+        <section class="validation"><div><span class="section-kicker">More Coming Soon</span><h2>Developing the Simulation / Robot Behaviours</h2>
+        <p>This page will be expanded soon to include exercises both for developing the simulation tool further, and for programming more adavanced behaviours for the robot.</p>
 </div>
 </section>
+        <!--
+        <section class="validation"><div><span class="section-kicker">Useful disagreement</span><h2>Mismatch is evidence</h2>
+        <p>When the physical robot and simulation disagree, ask what the mismatch says about the model, measurement method, environment, or trajectory. We can also review our understanding of how the real robot operates.</p>
+</div>
+</section>-->
         <footer><span>CW2026 · Phase 2</span><span>Updating the Digital Twin Simulation</span></footer>
       </main>
     </div>

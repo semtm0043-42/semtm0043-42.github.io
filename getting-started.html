@@ -9,7 +9,7 @@
 		<link rel="stylesheet" href="vendor/katex/katex.min.css" />
 		<script src="vendor/katex/katex.min.js" defer></script>
 		<script src="vendor/katex/contrib/auto-render.min.js" defer></script>
-		<script src="app.js?v=10" defer></script>
+		<script src="app.js?v=11" defer></script>
 	</head>
 	<body>
 		<div class="site-shell">
@@ -19,12 +19,19 @@
 				<nav data-course-navigation></nav>
 			</aside>
 			<main id="top" class="main-content">
+				<div class="course-introduction-column">
+       			 <section id="overview" class="intro">
+          		<div class="eyebrow"><span class="eyebrow-line"></span>SEMTM0043/42:</div>
+          		<h1>Getting Started</h1>
+          
+					
+			<section class="orientation-card">
+          	<div class="orientation-icon">?</div>
+         	<div><span class="section-kicker">Getting Set Up</span><h2>Installing Tools, Programming the StampC3.</h2>
+         	 <p>The following tasks provide instructions to set up the software tools you require for this course. There are 4 exercises to help you get familiar with programming the StampC3.</p></div>
+        	</section>
 
-					<h1>Getting Started</h1>
-
-
-					<p class="lead">The following tasks provide instructions to set up the software tools you require for this course. </p>
-				</section>
+					
 				<div class="sequence-actions" aria-label="Exercise section controls"><button type="button" data-exercise-action="collapse">Collapse all</button><button type="button" data-exercise-action="open">Open all</button></div>
 				<div class="exercise-sequence">
 					<article id="exercise-01" class="exercise-card">
@@ -32,34 +39,75 @@
 						<div class="exercise-content">
 							<div class="exercise-heading"><div><span class="concept-tag">Hardware orientation · robot and controller</span><h2>Meet the 3Pi+ and StampC3</h2></div><span class="time-badge">10–15 min</span></div>
 							<div class="teaching-brief">
-								<figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3.png" alt="Top view of the Pololu 3Pi+ robot with the StampC3 controller mounted at its centre" width="100%" /></figure>
+								<figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3.png" alt="Top view of the Pololu 3Pi+ robot with the StampC3 controller mounted at its centre" width="50%"/></figure>
 								<p>Your physical system combines a <a href="https://www.pololu.com/docs/0J83">Pololu 3Pi+ 32U4 mobile robot</a> with an <a href="https://docs.m5stack.com/en/core/stamp_c3">M5Stack StampC3 controller</a>. Inspect the system to identify the parts that sense, move, and communicate.</p>
-								<p>For this coursework, you will program the <strong>StampC3 controller</strong>. The Pololu 3Pi+ runs supplied middleware that operates its motors and sensors; the StampC3 requests sensor information and sends motor commands.</p>
+								<p>For this coursework, you will program the <strong>StampC3 controller</strong>, which is the grey box on the top of the robot.</p>
 								<figure class="orientation-figure"><img src="assets/images/pololu3pi_stampc3/Pololu3Pi_StampC3_Annotated_Simple.png" alt="Annotated top view of the robot labelling the StampC3, reset button, on-off button, push-button input, and USB-C programming port" width="100%" /></figure>
+								<div class="exercise-grid"><div class="investigation"><h3>Exercises:</h3>
+								<p>
+								Identify the following parts of your robot:
+
+								<ol>
+								<li><strong>StampC3: </strong>The StampC3 is the device we will write code for in this course.  The StampC3 is the grey block on the top surface of the robot.  Identify the following on the StampC3 itself:
+									<ul>
+										<li><strong>USB-C Port:</strong> The small metal (silver) aperture is the USB port we will use to program the StampC3.  You should have been provided with a USB-C cable.</li>
+										<li><strong>Push Button Input: </strong>This button is the larger square tab of plastic adjacent to the USB-C port. Try pressing it, you should feel a gentle click. This button can be used to provide input to your robot whilst it is powered-on and operating.</strong>
+										<li><strong>Reset Button:</strong> This button is beneath a small piece of the grey plastic shell of the StampC3.  Try pressing it, you should feel a gentle click.</li>
+				
+									</ul>
+								<li><strong>On/Off Button:</strong> This small square block with a black circle is the on-off button for your robot. When batteries have been installed, pressing this button once should cause a blue light to appear beneath the robot, indicating the Pololu 3Pi+ robot is powered-on.  Pressing the button once again will disable the power, but it may take a second for the power to be turned off.  Depending on what code has been programmed on to the StampC3, you may see an LED illuminate on top of the StampC3. 
+									<ul>
+										<li>If you plug your USB cable into your StampC3, this will provide power to both the StampC3 and the robot.  </li>
+										<li>However, power from the USB cable only is not enough to operate the motors.  To operate the motors, you will need to press the On/Off button to activate the battery power to the Pololu 3Pi+ robot.</li>
+									</ul>
+
+								<li><strong>Surface Reflectance Sensors:</strong> flip the robot over, so that you are looking at the underside.  Look for the small black squares with two bumps. There are 5 of them. Inspect the small white writing on the circuit board - you should be able to find <code>DN1, DN2, DN3, DN4, DN5</code>.</li>
+								<li><strong>Battery Compartments:</strong> Before inserting any batteries, pay attention to the small graphic indicating the correct orientation of each battery to be inserted.</li>
+								<li><strong>Wheels and Ball-caster:</strong> Note that your robot has two wheels and a ball-caster, forming three points of contact with the surface.  Driving each wheel is a motor which will will write code to control from the StampC3.</li>
+
+								</ol>
+							</p>
+								</div>
 							</div>
 						</div>
 					</article>
 					<article id="exercise-02" class="exercise-card">
 						<div class="exercise-index">02</div>
 						<div class="exercise-content">
-							<div class="exercise-heading"><div><span class="concept-tag">Development environment · hardware</span><h2>Install and Configure the Arduino IDE</h2></div><span class="time-badge">20–30 min</span></div>
+							<div class="exercise-heading"><div><span class="concept-tag">Development environment · hardware</span><h2>Install and Configure the Arduino IDE</h2></div><span class="time-badge">20–40 min</span></div>
 							<div class="teaching-brief">
-								<p>We will use the Arduino framework to program the StampC3. Arduino IDE is the core editor, compiler, and upload tool for the supplied robot program. We will also install some software libraries to operate some sensors on the robot.</p></div>
+								<p>We will use the Arduino framework to program the StampC3. Arduino IDE is a code editor, compiler, and upload tool.  To upload code to the StampC3 we will need to configure Arduino to support the device (board).  We will also install some software libraries to operate some sensors on the robot.  The following steps will guide you to complete this process.</p>
+								<p>In these steps, you will need to download some large files that may take a while to complete.</p>
+								</div>
 							<div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3>
 									<ol>
 										<li>Download and Install <a href="https://www.arduino.cc/en/software" target="_blank" rel="noopener">Arduino IDE</a>.</li>
-										<li>In Preferences, add M5Stack's Board Manager URL by copying-and-pasting the following line into the blank text input area:
+										<li>Once installed, open the Arduino IDE.</li>
+										<li><strong>Configure Preferences:</strong>:
+											<ul>
+												<li>On Windows or Linux, select <strong>File  → Preferences</strong> from the main application toolbar.</li>
+												<li>On MacOS, select <strong>Arduino IDE  → Settings</strong> from the main application tool bar.</li>
+											</ul>
+										 </li>
+										 <li>In the Preferences panel, add M5Stack's Board Manager URL by copying-and-pasting the following line into the blank text input area:
 										<aside class="teaching-callout"> <blockquote><code>https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json</code></blockquote></aside>
 										<figure class="orientation-figure"><img src="assets/images/setup/arduino_preferences.png" alt="Screenshot of the preferences panel in Arduino IDE" width="100%" /></figure></li>
-										<li>Whilst the Preferences window is open, tick the checkbox <strong>Display Line Numbers</strong>. Close the preferences window by clicking "OK".</li>
+										<li>Whilst the Preferences window is open, tick the checkboxes for:
+										<ul>
+											<li><strong>Verify code after Upload</strong></li>
+											<li>Show verbose output during <strong>compilation</strong> and <strong>upload</strong></li>
+											<li>If the above checkboxes are not available to you, simply move on from this step for now.</li>
+											<li>Close the preferences window by clicking "OK".</li>
+
+										</ul>
+										</li>
 										<li>Select <strong>Tools  → Board  → Board Manager... </strong>.  In Board Manager, type <strong>StampC3</strong> into the blank text input area, wait for the list to update.  Click "install" on the entry for the M5Stack board package.  This is a large package and may take some time to download and install. Once installed, click "close". <figure class="orientation-figure"><img src="assets/images/setup/arduino_boards_manager.png" alt="Screenshot of the boards manager panel in Arduino IDE" width="100%" /></figure></li>
 										<li>Select <strong>Tools → Board → M5Stack Arduino → M5StampC3</strong>.
 										<p align="center"><img src="./assets/images/setup/arduino_select_board.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p></li>
 										<li>Set <strong>Tools → USB-CDC On Boot → Disabled</strong>.
 																		<p align="center"><img src="./assets/images/setup/arduino_usb_cdc_disabled.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p>
 										</li>
-										<li>Change <strong>Upload Speed</strong> to <strong>115200</strong><p align="center">
-											<img src="./assets/images/setup/arduino_upload_speed.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p></li>
+										
 										<li><strong>Install Libraries:</strong> We also require two library packages to operate the IMU sensor on board the Pololu 3Pi+ robot.  These are <strong>LIS3MDL</strong> and <strong>LSM6</strong>.
 											<ul>
 										<li>Select <strong>Sketch → Include Library → Manage Libraries</strong>. <figure class="orientation-figure"><img src="assets/images/setup/arduino_tools_libraries.png" alt="Screenshot of the libraries manager panel in Arduino IDE" width="100%" /></figure></li>
@@ -68,7 +116,17 @@
 <li>In the search field, enter LIS3MDL, wait for the list panel to update. Find the library named "lsm6" and click install.<figure class="orientation-figure"><img src="assets/images/setup/install_lsm6.png" alt="Screenshot of the libraries manager panel in Arduino IDE" width="100%" /></figure>
 										</li>
 										<li>Click close to finish installing libraries.</li>
+
+
+
+
 									</ol>
+									<aside class="teaching-callout">
+										<p>If you have an issue using the Serial port or uploading to the StampC3, you may need to perform the following step.</p></aside>
+									<ul>
+									<li><strong>Optional: Change Upload Speed</strong> to <strong>115200</strong>.  If you have trouble uploading to the StampC3, this is recommended.  You can try leaving this at 921600 to begin with.<p align="center">
+											<img src="./assets/images/setup/arduino_upload_speed.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p></li>
+										</ul>
 									<div class="measure-row"><span><b>Check</b> M5StampC3 is selected</span><span><b>Set</b> USB-CDC On Boot</span><span><b>Keep</b> setup errors</span></div></div></div>
 						</div>
 					</article>
@@ -77,15 +135,23 @@
 						<div class="exercise-content">
 							<div class="exercise-heading"><div><span class="concept-tag">Physical robot · recoverable baseline</span><h2>Prepare a Copy of the StampC3 Template</h2></div><span class="time-badge">10–15 min</span></div>
 							<div class="teaching-brief">
-								<p>Your supplied local course workspace contains <strong>StampC3_Template</strong>, <strong>DigitalTwin</strong>, and <strong>investigations</strong>. Preserve the supplied template as a known-working recovery point before changing code.</p></div>
+								<p>In this course, we will use some template code as a starting point for developing all further work.  The template code includes an example robot behaviour of line following, which we will investigate later.</p>
+								<p>As you progress through this course, you may at some point want to return your code to the beginning.  You can simply follow these steps to download the template code again.</p>
+								<p>Once you have downloaded the template code, it is important to configure it for your own purposes.  In the classroom, there will be many students starting from this same template.  The template code configures the StampC3 to host a Wi-Fi network.  By default, this will appear in your computer's network manager as "myAP" with a default password of "myPassword".  Clearly, if there are many students with this same configuration, you will not know which Wi-Fi connection is originating from your robot.</p>
+								<p>Therefore, it is important to download the template code and configure it.  The following steps will guide you in this process.</p>
+								
 							<div class="exercise-grid"><div class="investigation"><h3>Workspace checklist</h3>
 									<ol>
+										<li>Using a web browser, navigate to <a href="https://github.com/paulodowd/RoboticsScienceAndSystems">https://github.com/paulodowd/RoboticsScienceAndSystems</a>. You should see a webpage that looks similar to the below.</li>
+<p align="center"><img src="./assets/images/setup/download_template_code.png" alt="" width="100%"></p>
+										<li>On the webpage, click the green box labelled <strong>code</strong>, then select Download ZIP (marked with pink * in the above image).  This will download a zip folder of the template code.</li>
+										<li><strong>Extract the ZIP:</strong> It is very important that you extract this ZIP file into a folder somewhere on your computer. If you do not extract this file, and instead open a file from within the ZIP, you will not be able to edit the file.</li>
 										<li>Copy the complete <strong>StampC3_Template</strong> folder to a new location on your computer.  It is best to decide a location on your computer storage where you will collect together all your work for this course.  We will refer to this as your <strong>working directory</strong>.</li>
-										<li>Rename the copied folder and its main <strong>.ino</strong> file to the same meaningful name, such as <strong>DemonstrationTest</strong>.</li>
-										<li>Open the copied <strong>.ino</strong> file in Arduino IDE.</li>
+										<li>Rename the copied folder and its main <strong>.ino</strong> file to the same meaningful name, such as <strong>DemonstrationTest</strong>.  If you do not rename both the folder and the .ino file, Arduino will present you with an error message.  The .ino file must have the same name as the folder it is within.</li>
+										<li>Open the copied <strong>.ino</strong> file in Arduino IDE.  </li>
 										<li>We are going to make a small change so that you will be able to connect to your robot over WiFi to run the digital twin demonstration.  At the top of the opened file, you will see the line of code:
 											<blockquote><code>RobotWifiAP_c server("myAP", "myPassword", 80);</code></blockquote> Edit <code>myAP</code> to a new unique name and set <code>myPassword</code> to a password. In this case, we simply set a password to limit the access to your robot to you.  You will only use this password to connect your computer to this robot.</li>
-											<aside class="teaching-callout"><strong>Do not use a password you use for other accounts!  You should never normally store a password in plain text.  </strong></aside>
+											<aside class="teaching-callout"><strong>Do not use a password you use for other accounts!  You should never normally store a password in plain text. Here, we are using this only to restrict who can access your robot. </strong></aside>
 										<p align="center"><img src="./assets/images/setup/first_edit_and_compile.png" alt="" width="100%"></p>
 										<li>Finally, click the tick icon to compile the code.  If nothing else has changed, the code should compile without any errors.  In the black box area at the bottom of the Arduino IDE, you should see a message logged like:
 											<blockquote><code>Sketch uses 986377 bytes (75%) of program storage space. Maximum is 1310720 bytes.<br>
@@ -114,6 +180,7 @@
 							<div class="exercise-heading"><div><span class="concept-tag">Physical robot · known baseline</span><h2>Upload to the StampC3</h2></div><span class="time-badge">20–30 min</span></div>
 							<div class="teaching-brief">
 								<p>In this step we will upload the code edited in the previous exercise to the StampC3.  This is an activity you will do very frequently in this course.  You will need to upload code to the StampC3 every time you wish to change the robot behaviour.  You will need to connect your computer to the StampC3 via a USB-C cable.</p>
+								<aside class="teaching-callout">When you upload code to the StampC3, you should see a small progress indicator in the bottom pane of the Arduino IDE.  When the upload process has completed successfully, you will see the message <strong>Hard resetting via rts pin... </strong></aside>
 								<p>There are some common questions about this upload process:
 								<ol>
 									<li><strong>When does my code run?</strong> When you upload code to the StampC3, it will activate straight away and then run this code forever, until new code is uploaded. The current code completes some setup activities, and will then wait for you to press the button.</li>
@@ -125,7 +192,7 @@
 								<div class="exercise-grid"><div class="investigation"><h3>Upload Steps</h3>
 										<ol>
 											<li>Connect the StampC3 to your computer by using a USB-C cable.</li>
-											<li><strong>Make sure that the correct board is connected:</strong> Select <strong>Tools → Board → M5Stack Arduino → StampC3</strong>
+											<li><strong>Make sure that the correct board type is selected for programming:</strong> Select <strong>Tools → Board → M5Stack Arduino → StampC3</strong>
 											<p align="center"><img src="./assets/images/setup/arduino_select_board.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p></li>
 											<li>Change <strong>Upload Speed</strong> to <strong>115200</strong><p align="center">
 											<img src="./assets/images/setup/arduino_upload_speed.png" alt="Illustration of the basic interfaces to the StampC3" width="100%"></p></li>            
@@ -152,11 +219,11 @@
 												<div class="measure-row"><span><b>Edit</b> your copied sketch</span><span><b>Compile</b> in Arduino IDE</span><span><b>Record</b> the upload result</span></div></div></div>
 						</div>
 					</article>
-					
+				
 					<article id="exercise-05" class="exercise-card">
 						<div class="exercise-index">05</div>
 						<div class="exercise-content">
-							<div class="exercise-heading"><div><span class="concept-tag">Beginner support</span><h2>Learning by Modifying, Exploring and Playing</h2></div><span class="time-badge">Time to be confirmed</span></div>
+							<div class="exercise-heading"><div><span class="concept-tag">First Programming exercises</span><h2>Learning by Modifying, Exploring and Playing</h2></div><span class="time-badge">30-40 min</span></div>
 							<div class="teaching-brief">
 								<p>This exercise is intended to help anyone very new to programming, or who needs a refresher for programming in C/C++. In this exercise, we will start with some very simple example code that flashes an LED between colours. We will start by making some very simple modifications to establish how changing code can help us to understand how it operates, as well as how to find out more information.  
 								As you progress, you are encouraged to explore and make up your own modifications.  If you encouunter an error message, see if you can work out what it means.  Remember that, if  something goes wrong, you can also change the code back again.  
@@ -240,7 +307,7 @@ void loop() {
 					<article id="exercise-6" class="exercise-card">
 						<div class="exercise-index">06</div>
 						<div class="exercise-content">
-							<div class="exercise-heading"><div><span class="concept-tag">Beginner support · placeholder</span><h2>Error Messages are your Friends</h2></div><span class="time-badge">Time to be confirmed</span></div>
+							<div class="exercise-heading"><div><span class="concept-tag">First programming exercises</span><h2>Error Messages are your Friends</h2></div><span class="time-badge">15-30 min</span></div>
 							<div class="teaching-brief">
 								<p>When learning to write code, error messages can be scary and frustrating.  Often, error messages seem cryptic and not helpful. In robotics, we have a more significant and frustrating problem: when there are no error messages.</p>
 								<p>Consider this: you feel good about your code, and it compiles without any errors.  You upload your code to your robot.  You watch your robot operating for 1 minute, but then it does something unexpected and strange.  When you reset your robot to try it again, it works fine with no problems.  However, now you've lost confidence in your code.   So you reset your robot and try it again - this time, it also does something unexpected.  At this point, you definitely have a problem, but you don't have any clues about where to start looking for the problem.  If only there was an error message!</p>
@@ -280,7 +347,7 @@ exit status 1</code></li>
 					<article id="exercise-7" class="exercise-card">
 						<div class="exercise-index">07</div>
 						<div class="exercise-content">
-							<div class="exercise-heading"><div><span class="concept-tag">Beginner support · placeholder</span><h2>Blocking and Non-Blocking Code</h2></div><span class="time-badge">Time to be confirmed</span></div>
+							<div class="exercise-heading"><div><span class="concept-tag">First programming exercises</span><h2>Blocking and Non-Blocking Code</h2></div><span class="time-badge">20-30 min</span></div>
 							<div class="teaching-brief">
 								<p>In the previous exercise, we realised that the button is only activating a beep sound infrequently.  The reason for this is that the example code in the previous exercise is <strong>blocking</strong>.  In particular, it is the function <code>delay()</code> that blocks.  The <code>delay()</code> function stops the progression of your code for a quantity of milliseconds provided as an input, for example, <code>delay(1000);</code> will stop the progression of your code for 1 second.</p>
 								<p>In robotics, blocking code is very problematic.  For example, if we want our robot to drive around and avoid obstacles, we need the robot to be able to continuously read the sensors, decide an action, and then activate it's motors.  The robot will need to do this repeatedly and quickly to respond to changes in the environment.  If we also wanted to flash an LED every second, blocking code would stop the robot from being able to read it's sensors if it must wait for <code>delay()</code> to run for 1 second. The robot could travel very far in 1 second, and without reading sensors, crash.</p>
@@ -382,7 +449,7 @@ robot.setLED( 255, 0, 0, led_brightness );
 					<article id="exercise-8" class="exercise-card">
 						<div class="exercise-index">08</div>
 						<div class="exercise-content">
-							<div class="exercise-heading"><div><span class="concept-tag">Beginner support · placeholder</span><h2>Controller_c: Line Avoidance</h2></div><span class="time-badge">Time to be confirmed</span></div>
+							<div class="exercise-heading"><div><span class="concept-tag">First Programming exercises</span><h2>Controller_c: Line Following &amp; Avoidance</h2></div><span class="time-badge">1-2 hours</span></div>
 							<div class="teaching-brief">
 								<p>In the previous exercises we have worked by modifying some simple code to toggle an LED colour, brightness, frequency of flashing, and reading the push button on the top surface of the StampC3 device.</p>
 								<p>In this exercise, we will take a similar approach to exploring and modifying the example line following behaviour provided to you.  At first, the location and format of the code to create the line following behaviour may seem complicated and confusing - that is OK.  Once we start exploring and working with the full robotic system, you will discover that there are lots of different files to become familiar with.</p>
@@ -462,6 +529,11 @@ void loop() {
 							<li><strong>LINE_FOLLOW_GAIN: </strong> This parameter determines how aggressively the robot will turn to follow a line on the surface.  If the line is not detected, it has no effect.</li>
 							<li><strong>RECOVERY_LEFT, RECOVERY_RIGHT: </strong> These two parameters determine what the motors and wheels should do if the line is not detected.  By default, one is set positive and one negative, which will cause the robot to rotate on the spot.  BASE_PWM is not used if the robot cannot detect the line.</li> </ul>
 							<li><strong>Play: </strong> depending on what you observe your robot to do, see if changing the above parameters to see if there is a noticeable. To begin with, a modification doesn't necessarily need to be beneficial.  We can start by exploring values to gain an understanding of how they correlate to the actual behaviour of the real robot. </li>
+
+<aside class="teaching-callout">
+	It is expected that simply changing the parameter values will not necesarily help you to achieve good line following performance.  Instead, you will need to investigate what values the sensors are reporting.  You will need to operate more like a detective or scientist. To do this, you can use the Serial Monitor and Serial Plotter, discussed in the next step.
+</aside>
+
 							<li><strong>Too Challenging: </strong> If you find that it is very challenging to get the robot to achieve stable line following you may need to <strong>decompose the problem</strong>.  This means working to isolate different parts of the system or behaviour.  A good starting point would be the following:
 							<ul>
 							<li>Set BASE_PWM to 0.  This will stop the robot from travelling forwards.  By stopping the robot from travelling forwards, we have decomposed line following from two parts (moving forwards and turning) to one part, just turning.</li>
@@ -476,15 +548,27 @@ void loop() {
 							
 							
 																	</li>
+<li><strong>Going Further:</strong> So far, we have been working to improve the line following behaviour. Just for fun, we can invert the problem: can you change the code so that the robot avoids the black line?  The test sheet provided to you should have a large black box printed on one side.  Change the code so that the robot stays within the black boundary of the box.
+<ol>
+<li>There is no single solution to this problem.  You can make a solution which is complicated, or one that is simple.</li>
+<li>When you have a solution, test the solution under different starting conditions.  For example, what happens if the robot starts exactly perpendicular to the line?</li>
+</ol> 
 									</ol>
+									<aside class="teaching-callout">
+									As you continue, do not forget the other tools at your disposal.  You can use the LED - set different colours within different parts of your code.  This way, you will be able to see (by colours) which parts of your code are currently running.  You can also make the robot beep, and you can use the push button as input to your robot.
+									</aside>
 									</p>
 								</div></div>
 						</div>
 					</article>
 				</div>
-				<section class="validation"><div><span class="section-kicker">Next</span><h2>Turn a working baseline into an investigation</h2>
-						<p>Use the questions raised by the demonstration to explore the available project directions with your team.</p></div><div class="validation-list"><a href="select-a-project.html">Continue to Select a Project →</a></div></section>
-				<footer><span>CW2026 · Getting Started</span><span>Tools, examples, and shared observations</span></footer>
+				<section class="validation"><div><span class="section-kicker">Next</span><h2>Turn the provided example into an investigation</h2>
+						<p>Use the questions raised by the example demonstration to explore the possible project directions with your team.</p></div><div class="validation-list"><a href="select-a-project.html">Continue to Select a Project →</a></div></section>
+				        <footer>
+          <span>
+            Designed and written by Paul O'Dowd for the University of Bristol, UK (2026)
+          </span>
+        </footer>
 			</main>
 		</div>
 	</body>
