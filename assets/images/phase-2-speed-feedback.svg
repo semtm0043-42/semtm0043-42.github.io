@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="650" viewBox="0 0 680 650" role="img" aria-labelledby="title description">
+  <title id="title">Feedback control of one wheel's speed</title>
+  <desc id="description">Subtract measured speed from demanded speed. A P, PI or PID calculation produces a PWM request, limited between zero and the chosen maximum before driving the left motor. Encoder count change divided by elapsed seconds estimates speed, which returns to the subtraction. The trial state machine enables this loop and overrides its output to stop.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#277052" />
+    </marker>
+  </defs>
+  <rect width="680" height="650" rx="8" fill="#fff" />
+  <g font-family="Arial, sans-serif" text-anchor="middle" fill="#243b30">
+    <text x="390" y="28" font-size="19">Demand r: encoder counts/s</text>
+    <g fill="none" stroke="#277052" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M390 39 V65" />
+      <path d="M390 125 V157" />
+      <path d="M390 220 V252" />
+      <path d="M390 315 V347" />
+      <path d="M390 410 V442" />
+      <path d="M390 510 V555 H75 V95 H217" />
+    </g>
+    <g stroke="#80a995" stroke-width="1.5">
+      <rect x="220" y="68" width="340" height="57" rx="8" fill="#f0f5f1" />
+      <rect x="220" y="160" width="340" height="60" rx="8" fill="#e1f3e9" />
+      <rect x="220" y="255" width="340" height="60" rx="8" fill="#fff3ce" />
+      <rect x="220" y="350" width="340" height="60" rx="8" fill="#f0f5f1" />
+      <rect x="220" y="445" width="340" height="65" rx="8" fill="#f0f5f1" />
+    </g>
+    <g font-size="20">
+      <text x="390" y="103">Error e = demand − measured</text>
+      <text x="390" y="197">Controller: P, then PI, then PID</text>
+      <text x="390" y="280">Limit the requested PWM</text>
+      <text x="390" y="303" font-size="17">0 ≤ u ≤ chosen maximum</text>
+      <text x="390" y="387">Left motor and wheel</text>
+      <text x="390" y="470">Encoder speed estimate v</text>
+      <text x="390" y="495" font-size="17">Count change / elapsed seconds</text>
+    </g>
+    <g font-size="17">
+      <text x="145" y="77">Subtract v</text>
+      <text x="225" y="582">Measured speed: counts/s</text>
+      <text x="340" y="627">Trial state enables the loop and overrides it to stop.</text>
+    </g>
+  </g>
+</svg>

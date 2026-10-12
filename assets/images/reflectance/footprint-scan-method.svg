@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="610" viewBox="0 0 760 610" role="img" aria-labelledby="title description">
+  <title id="title">Register strip and dot scans independently of the sensor reading</title>
+  <desc id="description">A sensor reference crosses the short width of a long strip. Position x is measured from the strip centre, not from the response peak. A candidate uniform window covers some black and some white. For a dot, a centred traverse and a parallel offset traverse have different black coverage; both coordinates must be recorded.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto-start-reverse">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#277052"/>
+    </marker>
+  </defs>
+  <rect width="760" height="610" rx="10" fill="#f8fafc"/>
+  <g font-family="Arial, sans-serif" fill="#243b30">
+    <text x="28" y="32" font-size="20" font-weight="bold">1. Strips: cross the width, not the length</text>
+    <rect x="290" y="87" width="120" height="159" fill="#171717"/>
+    <path d="M290 72 H410" stroke="#277052" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="350" y="61" text-anchor="middle" font-size="17">Measured width w</text>
+    <path d="M350 89 V288" stroke="#92a69b" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <rect x="330" y="126" width="180" height="80" fill="#77c4aa" fill-opacity=".4" stroke="#087c60" stroke-width="2" stroke-dasharray="6 4"/>
+    <circle cx="420" cy="166" r="5" fill="#087c60"/>
+    <path d="M420 171 V288" stroke="#087c60" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="532" y="141" font-size="16">Candidate window</text>
+    <text x="532" y="164" font-size="16">of width L</text>
+    <text x="532" y="191" font-size="16">● Sensor reference</text>
+    <path d="M350 280 H420" stroke="#277052" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="382" y="269" text-anchor="middle" font-size="17">x</text>
+    <text x="350" y="309" text-anchor="middle" font-size="15">Strip centre: x = 0</text>
+    <path d="M66 216 H235" stroke="#277052" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="65" y="164" font-size="16">Scan across</text>
+    <text x="65" y="187" font-size="16">the long edges</text>
+    <text x="532" y="234" font-size="15">Overlap with black</text>
+    <text x="532" y="255" font-size="15">changes with x</text>
+    <path d="M28 333 H732" stroke="#cbd5cf"/>
+    <text x="28" y="369" font-size="20" font-weight="bold">2. Dots: keep both placement coordinates</text>
+    <circle cx="355" cy="460" r="65" fill="#171717"/>
+    <path d="M355 390 V546" stroke="#92a69b" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <path d="M204 460 H535" stroke="#159a75" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M204 420 H535" stroke="#159a75" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+    <text x="38" y="465" font-size="16">Centred path</text>
+    <text x="38" y="425" font-size="16">Offset path</text>
+    <path d="M558 423 V457" stroke="#277052" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+    <text x="578" y="437" font-size="16">Known sideways</text>
+    <text x="578" y="460" font-size="16">offset</text>
+    <text x="355" y="552" text-anchor="middle" font-size="16">Register the printed centre before viewing the response.</text>
+    <text x="380" y="589" text-anchor="middle" font-size="16">Stop, allow settling, then capture at each measured position.</text>
+  </g>
+</svg>

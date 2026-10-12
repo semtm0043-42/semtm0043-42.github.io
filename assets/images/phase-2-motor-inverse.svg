@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="440" viewBox="0 0 680 440" role="img" aria-labelledby="title desc">
+  <title id="title">Forward prediction and inverse-model feedforward control</title>
+  <desc id="desc">A forward model predicts settled speed from PWM. An inverse model chooses PWM from a speed demand. The real motor produces measured speed, which is compared with demand for evaluation only. There is no feedback correction in this experiment.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8" fill="none" stroke="#475569" stroke-width="1.2"/></marker>
+  </defs>
+  <rect width="680" height="440" rx="12" fill="#f8fafc"/>
+  <g font-family="Arial, sans-serif" fill="#243746">
+    <text x="28" y="33" font-size="17" font-weight="700">Forward model: “What will this PWM do?”</text>
+    <rect x="28" y="54" width="150" height="60" rx="7" fill="#fff" stroke="#a0aebb"/>
+    <rect x="245" y="54" width="190" height="60" rx="7" fill="#e8f5f3" stroke="#087f8c"/>
+    <rect x="502" y="54" width="150" height="60" rx="7" fill="#fff" stroke="#a0aebb"/>
+    <path d="M178 84 H239" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M435 84 H496" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g text-anchor="middle" font-size="15">
+      <text x="103" y="89">PWM u</text>
+      <text x="340" y="78">Measured-response</text>
+      <text x="340" y="99">model f(u)</text>
+      <text x="577" y="78">Predicted</text>
+      <text x="577" y="99">settled speed</text>
+    </g>
+    <text x="28" y="165" font-size="17" font-weight="700">Inverse model: “What PWM should I choose?”</text>
+    <rect x="28" y="188" width="150" height="62" rx="7" fill="#fff" stroke="#a0aebb"/>
+    <rect x="245" y="188" width="190" height="62" rx="7" fill="#e8f5f3" stroke="#087f8c"/>
+    <rect x="502" y="188" width="150" height="62" rx="7" fill="#fff" stroke="#a0aebb"/>
+    <path d="M178 219 H239" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M435 219 H496" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g text-anchor="middle" font-size="15">
+      <text x="103" y="213">Speed demand r</text>
+      <text x="103" y="234">(counts/s)</text>
+      <text x="340" y="213">Inverse + range checks</text>
+      <text x="340" y="234">PWM = f⁻¹(r)</text>
+      <text x="577" y="213">Real motor</text>
+      <text x="577" y="234">receives PWM</text>
+    </g>
+    <rect x="245" y="308" width="190" height="62" rx="7" fill="#fff0d9" stroke="#bb8a35"/>
+    <rect x="502" y="308" width="150" height="62" rx="7" fill="#fff" stroke="#a0aebb"/>
+    <path d="M577 250 V302" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M502 339 H441" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M103 250 V339 H239" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+    <g text-anchor="middle" font-size="15">
+      <text x="577" y="333">Encoder-based</text>
+      <text x="577" y="354">measured speed v</text>
+      <text x="340" y="333">Compare r and v</text>
+      <text x="340" y="354">for evaluation</text>
+    </g>
+    <text x="340" y="408" text-anchor="middle" font-size="15">No measured-error correction to PWM in this experiment</text>
+  </g>
+</svg>

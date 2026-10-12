@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="850" viewBox="0 0 560 850" role="img" aria-labelledby="title description">
+  <title id="title">Explore, avoid the boundary, and finish a timed trial</title>
+  <desc id="description">Initialise in WAITING. A button press starts the trial and EXPLORING. A detected black line starts REVERSING for 350 milliseconds, then TURNING for 600 milliseconds. After turning, return to EXPLORING if clear, otherwise reverse again. A 20-second deadline takes priority from every moving state and enters FINISHED until reset.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#277052" />
+    </marker>
+  </defs>
+  <rect width="560" height="850" rx="8" fill="#fff" />
+  <rect x="20" y="200" width="520" height="380" rx="12" fill="#fafcfb" stroke="#80a995" stroke-dasharray="6 5" />
+  <g font-family="Arial, sans-serif" text-anchor="middle" fill="#243b30">
+    <text x="280" y="26" font-size="17">Initialise / reset</text>
+    <g fill="none" stroke="#277052" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M280 36 V62" />
+      <path d="M280 135 V212" />
+      <path d="M280 285 V352" />
+      <path d="M280 425 V492" />
+      <path d="M150 530 H40 V250 H147" />
+      <path d="M410 530 H520 V390 H413" />
+      <path d="M280 580 V600" />
+      <path d="M280 687 V722" />
+    </g>
+    <g stroke="#80a995" stroke-width="1.5">
+      <rect x="150" y="65" width="260" height="70" rx="8" fill="#f0f5f1" />
+      <rect x="150" y="215" width="260" height="70" rx="8" fill="#e1f3e9" />
+      <rect x="150" y="355" width="260" height="70" rx="8" fill="#fff3ce" />
+      <rect x="150" y="495" width="260" height="70" rx="8" fill="#fff3ce" />
+      <rect x="150" y="725" width="260" height="70" rx="8" fill="#f0f5f1" />
+    </g>
+    <g font-family="monospace" font-size="21" font-weight="bold">
+      <text x="280" y="94">WAITING</text>
+      <text x="280" y="244">EXPLORING</text>
+      <text x="280" y="384">REVERSING</text>
+      <text x="280" y="524">TURNING</text>
+      <text x="280" y="754">FINISHED</text>
+    </g>
+    <g font-size="17">
+      <text x="280" y="119">PWM: left 0, right 0</text>
+      <text x="280" y="269">PWM: left 30, right 30</text>
+      <text x="280" y="409">PWM: left −30, right −30</text>
+      <text x="280" y="549">PWM: left −30, right 30</text>
+      <text x="280" y="779">PWM: left 0, right 0</text>
+      <text x="295" y="164" text-anchor="start">Button pressed:</text>
+      <text x="295" y="186" text-anchor="start">start trial timer</text>
+      <text x="295" y="325" text-anchor="start">Line detected</text>
+      <text x="295" y="465" text-anchor="start">After 350 ms</text>
+      <text x="95" y="430">After</text>
+      <text x="95" y="451">600 ms:</text>
+      <text x="95" y="476">clear</text>
+      <text x="465" y="430">After</text>
+      <text x="465" y="451">600 ms:</text>
+      <text x="465" y="476">line</text>
+      <text x="280" y="625">From any moving state:</text>
+      <text x="280" y="650" font-weight="bold">Trial elapsed ≥ 20,000 ms</text>
+      <text x="280" y="675" font-size="15">Checked first, including during avoidance</text>
+      <text x="280" y="830">Stay in FINISHED until reset</text>
+    </g>
+  </g>
+</svg>

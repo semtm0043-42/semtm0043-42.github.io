@@ -33,7 +33,7 @@
         <section class="orientation-card">
           <div class="orientation-icon">i</div>
           <div><span class="section-kicker">Groupwork Basis</span><h2>Update the Simulation, Evaluate by Project Theme</h2>
-          <p>This page establishes the intended workflow. It will later point to the simulator components and provide practical exercises for revising and testing them.</p>
+          <p>This page has guidance to help you develop your work further, specifically in the context of your project theme involving both the real robot and the counterpart simulation.  It will help if you have first completed the Getting Started section, as well as some initial exercises in Phase 1: Characterise the robot.</p>
 					</div>
         </section>
         
@@ -45,11 +45,11 @@
 						<div class="exercise-content">
 							<div class="exercise-heading"><div><span class="concept-tag">Simulation environment · visual model</span><h2>Install and Configure Processing IDE</h2></div><span class="time-badge">10–20 min</span></div>
 							<div class="teaching-brief">
-								<p>Processing runs the supplied Digital Twin on your computer. Processing is a very convenient tool to generate graphical outputs that requires minimal setup and configuration.  The provided Processing code has been written to provide:
+								<p>Processing runs the supplied Digital Twin simulation counterpart on your computer. Processing is a very convenient tool to generate graphical outputs that requires minimal setup and configuration.  The provided Processing code has been written to provide:
 								<ol>
 									<li>A simple simulation model of the robot.  This simulation can be used independently of the StampC3.</li>
 									<li>To connect to the StampC3 (your robot) over WiFi.  When connected, to visualise the data sent back from your robot</li>
-									<li>To run the same <strong>controller</strong> code on both the StampC3 and the simulated robot.  This will allow you to compare and investigate differences between the real robot and simulation. </li>
+									<li>To implement corresponding <strong>controller behaviour</strong> on the StampC3 and the simulated robot. The two versions use separate C++ and Processing code; the next exercise explains how their interfaces correspond, so you can compare prediction with physical behaviour.</li>
 								</ol>  
 								Processing is separate from Arduino IDE, which edits and uploads the StampC3 controller.</p></div>
 							<div class="exercise-grid"><div class="investigation"><h3>Setup checklist</h3>
@@ -69,12 +69,243 @@
 											<div class="measure-row"><span><b>Check</b> Processing opens</span><span><b>Identify</b> Run and console</span><span><b>Keep</b> launch errors</span></div></div></div>
 						</div>
 					</article>
-					<article id="exercise-02" class="exercise-card">
-						<div class="exercise-index">02</div>
+          <article id="exercise-02" class="exercise-card simulation-exercise">
+            <div class="exercise-index">02</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Simulation orientation · controller contract</span><h2>Explore the Simulation and Its Controller</h2></div><span class="time-badge">40–60 min</span></div>
+              <div class="teaching-brief">
+                <p>Following the previous exercise, you should be able to run the Processing based simulation. Before connecting it to your robot, let's get comfortable with what it represents and how its parts work together. The moving robot on screen is being operated by some code called a controller, just as your physical robot has been. However, with the robot we compile the code and upload it to the real robot.  For the simulation counterpart, all code remains within the Processing environment.  The simulation counterpart of the real robot also provides interfaces to read simulated sensors and operate simulated motors.   The simulated robots measurements and motion, come from simple models provided in the Processing code. In the group work section of this course, you will want to review the simulation in comparison to your real robot, and begin to decide which parts may need updating.</p>
+                <p>By exploring the code in the Processing simulation provided to you, you will notice that a class named <code>Controller_c</code> exists again, just like the StampC3_Template code used as a starting point with the real robot. The duplication of the Controller_c class is an intentional design choice. In the simplest terms, the intention is that, by doing your code development within the Controller_c class, you should be able to move code you have developed between the robot and the Processing simulation with only very minor modifications.</p>
+                <p>Whilst the Processing environment and Arduino environment do appear very similar, there are important differences.  Fundamentally, Processing and Arduino require code in different languages.  Arduino expects C/C++, whilst Processing is based in Java.  Both languages have a C-style of syntax, such as the use of semi-colons to terminate a line of code, and curly-braces for code encapsulation.  Other important differences emerge from each platforms intended use or target.  For example, Arduino has built in functions such as <code>Serial.println(...)</code>, which is designed to interface to a common Serial interface across Arduino microcontrollers. Processing does not have Serial as a common interface, it is not designed to program microcontrollers, so <code>Serial.println(...)</code> does not exist as a built in function. If you copy your controller code from Arduino to Processing, you will likely get some errors such as Processing not recognising <strong>Serial.println(...)</strong>.   Likewise, if you develop Controller_c code in Processing that uses more advanced Java features, such as <code>ArrayList</code>, you will not be able to immediately transfer your Processing Controller_c to Arduino, compile and upload without errors.</p>
+                <p>When you want to move your developed code from Arduino (the robot) to the Processing simulation, you will want to move only the additional code you have authored.  For example, if you attempt to copy the entire <strong>Controller.cpp</strong> file from Arduino into Processing, Processing will generate an error against the <code>Serial.printf(...)</code> command within the <code>Controller_c::publishTelemetry(...)</code> function (see <a href="https://github.com/paulodowd/RoboticsScienceAndSystems/blob/5c49e88142a21b64a3eb78cc4eff370ee1885ec0/StampC3_Template/Controller.cpp#L141">here</a>).</p>
+                <p>We can review the similarities between the most important parts of the Controller_c class in both the StampC3_Template example code and the DigitalTwin Processing code:</p>
+                <!-- Code comparison placeholder:
+                     Escape < as &lt; and & as &amp; inside code extracts. -->
+                <div class="code-comparison">
+                  <figure>
+                    <figcaption>Controller_c::update(...), StampC3_Template (Arduino / C++, comments have been removed)</figcaption>
+                    <pre><code>
+void Controller_c::update(Robot_c &robot, RobotWifiAP_c &server) {
+  unsigned long now = robot.getMillis();
+
+  if (!update_timer.isReady(now)) {
+    return;
+  }
+
+  update_timer.resetTimer(now);
+
+  robot.getSurfaceSensors();
+  if (robot.getEncoders()) {
+    odometry.update(robot.getLeftEncoderCount(), robot.getRightEncoderCount());
+  }
+  robot.getPose();
+
+  if (signal == 0) {
+    if (robot.isButtonPressed()) {
+      setSignal(1);
+    }
+  }
+
+  if (signal == 1) {
+    runLineFollower(robot, now);
+  }
+
+  if (telemetry_timer.isReady(now)) {
+    telemetry_timer.resetTimer(now);
+    publishTelemetry(robot, server, now);
+  }
+}</code></pre>
+                  </figure>
+                  <figure>
+                    <figcaption>Controller_c::update(...) — DigitalTwin (Processing / Java, comments have been removed)</figcaption>
+                    <pre><code>
+  void update(Robot_c robot) {
+    long now = robot.getMillis();
+    
+    if( !update_timer.isReady(now) ) {
+      return;
+    }
+    
+    update_timer.resetTimer( now );
+
+    robot.getSurfaceSensors();
+    robot.getEncoders();
+    robot.getPose();
+    
+    if (signal == 1) {
+      runLineFollower(robot, now);
+    }
+    
+    if( telemetry_timer.isReady(now) ) {
+      telemetry_timer.resetTimer(now);
+      publishTelemetry(robot); 
+    }
+  }</code></pre>
+                  </figure>
+                </div>
+                <!-- End code comparison placeholder. -->
+                <p>Comparing these two code extracts, we can see that the essential logic and operations between the two update functions is consistent.  The Processing code is missing the <code>if( robot.isButtonPressed() )</code> block because the simulation does not include a button model.  Another difference is that the StampC3_Template version includes the line of code <code>odometry.update(...)</code>, which is supports the odometry subsystem investigation specific to the real robot (i.e., not relevant to the simulation). We can also observe that the arguments provided to the <code>update(...)</code> function call differ slightly - the StampC3_Template version expects both <code>Robot_c &robot, RobotWifiAP &server</code>, whilst DigitalTwin only expects <code>Robot_c robot</code>.  The <code>server</code> interface only exists on the real robot StampC3 because it is hosting a Wi-Fi network which your computer connects to, this does not have a simulated counterpart.</p>
+
+                <p>It is also important to notice that for reading the sensors and commanding the motors, both code extracts are accessing the <strong>robot</strong> interfance, for example, <code>robot.setMotorPWM(...)</code>, <code>robot.getEncoders()</code> and <code>robot.getSurfaceSensors()</code>.  In this way, the <strong>robot</strong> class (Robot.cpp/.h in StampC3_Template Arduino code, and RobotSimulation.pde in the DigitalTwin Processing code) provides a common interface, or Application Programmer Interface (API) to interchangably operate either the real robot or the simulated robot.</p>
+                <p>We can consider the Controller_c class framework and Robot_c class as a type of contract of use for both systems.  Whilst the Robot_c class attempts to provide a common interface to the robot, you will need to exercise some decision making and discretion when developing code across both the real robot and the simulation.  Our aim is to generally follow a measurement–decision–command pattern of code in each, and to identify what must be adapted when transferring a controller.  As you make progress, you will want to explore further into the simulated models of the motors and sensors, and then selectively develop each to better align the operation of both the real robot and the simulated robot.</p>
+                <p>We can review the implementation of the <strong>runLineFollower(...)</strong> function that is provided as an example in both StampC3_Template Arduino code and the DigitalTwin Processing code:</p>
+<!-- Code comparison placeholder:
+                     Escape < as &lt; and & as &amp; inside code extracts. -->
+                <div class="code-comparison">
+                  <figure>
+                    <figcaption>runLineFollower(...), StampC3_Template (Arduino / C++, comments have been removed)</figcaption>
+                    <pre><code>
+void Controller_c::runLineFollower(Robot_c &robot, unsigned long now) {
+  bool line_detected = lineDetected(robot);
+
+  if (!line_detected && mode == FOLLOWING_LINE) {
+    mode = SEARCHING_FOR_LINE;
+    recovery_start_ms = now;
+  }
+
+  if (mode == SEARCHING_FOR_LINE) {
+    if (line_detected) {
+      mode = FOLLOWING_LINE;
+    } else if (now - recovery_start_ms >= RECOVERY_TIMEOUT_MS) {
+      mode = STOPPED;
+    }
+  }
+
+  if (mode == STOPPED) {
+    robot.setMotorPWM(0, 0);
+    return;
+  }
+
+  if (mode == SEARCHING_FOR_LINE) {
+    robot.setMotorPWM(RECOVERY_LEFT_PWM, RECOVERY_RIGHT_PWM);
+    return;
+  }
+
+  float error = (float)robot.surface.reading[1] - (float)robot.surface.reading[3];
+  float turn = error * LINE_FOLLOW_GAIN;
+  robot.setMotorPWM(BASE_PWM - turn, BASE_PWM + turn);
+}</code></pre>
+                  </figure>
+                  <figure>
+                    <figcaption>runLineFollower(...) — DigitalTwin (Processing / Java, comments have been removed)</figcaption>
+                    <pre><code>
+  void runLineFollower(Robot_c robot, long now) {
+    boolean detected = lineDetected(robot);
+
+    if (!detected && mode == FOLLOWING) {
+      mode = SEARCHING;
+      recoveryStartMs = now;
+    }
+    
+    if (mode == SEARCHING && detected) {
+      mode = FOLLOWING;
+    }
+    if (mode == SEARCHING && now - recoveryStartMs >= RECOVERY_TIMEOUT_MS) {
+      mode = STOPPED;
+    }
+
+    if (mode == STOPPED) {
+      robot.setMotorPWM(0, 0);
+      return;
+    }
+    if (mode == SEARCHING) {
+      robot.setMotorPWM(RECOVERY_LEFT_PWM, RECOVERY_RIGHT_PWM);
+      return;
+    }
+    
+    float turn = (robot.surface.reading[1] - robot.surface.reading[3]) * LINE_FOLLOW_GAIN;
+    robot.setMotorPWM(BASE_PWM - turn, BASE_PWM + turn);
+  }</code></pre>
+                  </figure>
+                </div>
+                <!-- End code comparison placeholder. -->
+              <p>As in the previous code extracts, we can observe that the same overall logic and functionality is consistent - but some syntax or use of constructs varies.  In the following exercise steps you are first guided to simply run the DigitalTwin example without making any changes.  If you have started on the exercises in Phase 1: Characterise the roboot, then you could also see if you can transfer some of your measurement functions from the real robot code into this simulation, making the necessary amendments so that it runs without errors.</p>
+                <aside class="teaching-callout">
+                <p>If you have made extensive use of Serial.print() in Arduino, this can be substituted in Processing with just <code>print()</code> and <code>println()</code> (i.e., removing the Serial prefix).  In processing, <code>print()</code> and <code>println()</code> produce output in the lower black console of the main editor window.</p>
+                <p>Where you have used <code>server.print()</code> for the real robot StampC3 (or similar server commands), this interface does not exist in the simulation.  On the StampC3, <code>server</code> is the interface to the Wi-Fi network being hosted by your robot, which your computer connects to.  This is not simulated.</p>
+              </aside>
+
+
+              </div>
+              <!--
+              <figure class="motor-diagram">
+                <figcaption>An actual run of the supplied Processing sandbox, with telemetry graphs enabled and the view panned and zoomed to show the map. The plotted Sim values are generated by the model. TCP labels reserve space for physical telemetry; they do not indicate that a robot is connected.</figcaption>
+                <img class="simulation-screenshot" src="assets/images/digital-twin/processing-sandbox-telemetry.png" alt="Processing Digital Twin in Sandbox mode. A blue-grey robot and five sensor markers appear over a rectangular black-line map. The right-hand panel shows simulated motor PWM, surface readings and encoder counts. The TCP status is attempting a connection; there is no physical-robot overlay." />
+              </figure>
+              <figure class="motor-diagram">
+                <figcaption>Corresponding responsibilities on the robot and in Processing. Preserve the meaning of the controller's inputs and outputs when moving a behaviour between them.</figcaption>
+                <img class="simulation-contract-diagram" src="assets/images/digital-twin/controller-contract.svg" alt="Two parallel paths: StampC3 Controller_c in Controller.cpp communicates through Robot_c with the physical robot; Processing Controller_c in Controller.pde communicates through RobotSimulation_c with motor, sensor and odometry models. Both paths exchange measurements and motor commands, but they use separate code." />
+              </figure>
+              -->
+              <div class="exercise-grid">
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Simulation and controller orientation guidance">
+                    <button id="simulation-self-tab" type="button" class="context-tab active" data-context="nonai" role="tab" aria-selected="true" aria-controls="simulation-self-panel">Self-Directed Route</button>
+                    <button id="simulation-ai-tab" type="button" class="context-tab" data-context="ai" role="tab" aria-selected="false" aria-controls="simulation-ai-panel">AI-Assisted Route</button>
+                  </div>
+                  <div id="simulation-self-panel" class="context-panel active investigation" data-panel="nonai" role="tabpanel" aria-labelledby="simulation-self-tab">
+                    <h3>Explore, trace and predict</h3>
+                    <ol>
+                      <li><strong>Make a working copy and run without the physical robot.</strong> Save a copy of the supplied <code>DigitalTwin</code> sketch folder, including its tabs and <code>surface.png</code>. In Processing, open <code>DigitalTwin.pde</code> and press Run. Check that the status says <code>Mode: Sandbox</code>. The supplied sandbox starts its controller automatically. A TCP message such as “not connected”, “connecting” or “unavailable; retrying” is expected when no robot is connected and does not prevent the simulation from running. Keep this exercise in sandbox mode.</li>
+                      <li><strong>Orient yourself in the window.</strong> Find the robot body, the blue heading arrow and the five small surface-sensor markers near the front of the body. The background image supplies the surface pattern sampled by the simulated sensors. Click the simulator window to give it keyboard focus, then press <strong>G</strong> to show the graphs. Try <strong>+</strong> and <strong>−</strong> to change zoom, <strong>T</strong> to toggle tracking, and the arrow keys to pan. Panning turns tracking off. These controls change your view, not the controller or motor model.
+                        <p>Locate the motor-PWM, surface-sensor and encoder-count plots. The encoder plot shows accumulated counts, not speed: a steeper slope indicates a greater count rate. The plots display a rolling time window, so capture an event while it is visible. Describe one change in a sensor trace and a nearby change in motor command. At this point, treat their timing as an observation to explain, not proof of a particular control rule.</p>
+                      </li>
+                      <li><strong>Follow one simulation update through the tabs.</strong> In <code>DigitalTwin.pde</code>, find <code>setup()</code>, which creates a <code>Simulator</code>, and <code>draw()</code>, which calls its update and drawing functions. In <code>Simulator.pde</code>, find <code>updateRobotModel()</code> and the call <code>controller.update(robot)</code>. Then open <code>Controller.pde</code> and find <code>update(RobotSimulation_c robot)</code>.
+                        <pre><code>Processing draw():
+    Update the simulator
+        For each due model step:
+            Advance the simulated clock
+            Controller reads measurements and requests motor PWM
+            Robot models update motion from those commands
+        Record graph samples when due
+    Draw the map, robot, status and graphs</code></pre>
+                        <p>Find the 10 ms model step in <code>Simulator.pde</code> and the 10 ms controller interval in <code>Controller.pde</code>. Screen frames need not arrive every 10 ms; the simulator can perform several model steps before drawing a frame. In <code>Controller.pde</code>, <code>robot.getMillis()</code> reads the simulated clock. Use that clock for controller behaviour, rather than accidentally substituting Processing's wall-clock <code>millis()</code>.</p>
+                      </li>
+                      <li><strong>Read the controller's side of the contract.</strong> In <code>Controller.pde</code>, locate <code>getSurfaceSensors()</code>, <code>getEncoders()</code>, <code>getPose()</code> and the call to <code>runLineFollower(...)</code>. Follow that last function to <code>robot.setMotorPWM(...)</code>. What does the controller read, what decision does it make, and what does it request?
+                        <p>Now open <code>RobotSimulation.pde</code>. Its <code>getSurfaceSensors()</code> fills <code>surface.reading</code> by sampling the map through the sensor models. Its <code>setMotorPWM(...)</code> passes commands to the motor model; <code>updatePhysics(...)</code> subsequently advances motion and odometry. The controller selects commands, while these other classes determine their simulated consequences. Sketch this path in your own words, including the return path from new measurements to the next decision.</p>
+                      </li>
+                      <li><strong>Compare with the StampC3 implementation.</strong> Open the supplied <code>StampC3_Template</code> in Arduino IDE alongside Processing. Read <code>Controller.h</code>, <code>Controller.cpp</code> and <code>Robot.h</code>. Use the table below to find corresponding operations, then add one note about what agrees and one about what differs. You are reading the physical controller here; you do not need to upload code.
+                        <div class="api-table-wrap"><table class="api-table">
+                          <thead><tr><th>Part of the agreement</th><th>StampC3</th><th>Processing</th></tr></thead>
+                          <tbody>
+                            <tr><td>Controller entry point</td><td><code>update(Robot_c &amp;robot, RobotWifiAP_c &amp;server)</code></td><td><code>update(RobotSimulation_c robot)</code>; no network argument</td></tr>
+                            <tr><td>Controller time</td><td><code>robot.getMillis()</code>: StampC3 elapsed milliseconds</td><td><code>robot.getMillis()</code>: explicitly advanced simulated milliseconds</td></tr>
+                            <tr><td>Surface readings</td><td><code>robot.surface.reading[0..4]</code>: cached physical-interface channels</td><td>The same five channel positions, filled by image-sampling models</td></tr>
+                            <tr><td>Acquisition status</td><td><code>getEncoders()</code> returns success/failure and refreshes cached integer counts</td><td><code>getEncoders()</code> returns no value; model encoder values already update during physics steps</td></tr>
+                            <tr><td>Motor requests</td><td><code>setMotorPWM(left, right)</code> sends requests over I2C and returns acknowledgement status</td><td><code>setMotorPWM(left, right)</code> stores model commands and returns no value</td></tr>
+                            <tr><td>Starting and observing</td><td>The supplied controller latches the StampC3 button press and publishes CSV telemetry</td><td>Sandbox starts through <code>setSignal(1)</code>; the simulator owns graphs and TCP reception</td></tr>
+                          </tbody>
+                        </table></div>
+                        <p>The contract includes units, signs, sensor ordering, update timing and state transitions, not only function names. Processing does not implement every public function in <code>Robot.h</code>; for example, a hardware success check cannot simply be copied around a model function that returns no value. Matching the class name <code>Controller_c</code> does not check or synchronise the two implementations for you. The <a href="processing-reference.html#processing-controller">controller reference</a> and <a href="processing-reference.html#processing-robot-api">simulated-robot reference</a> provide a useful code map.</p>
+                      </li>
+                      <li><strong>Predict one small controller change.</strong> In <code>Controller.pde</code>, find these lines in <code>runLineFollower(...)</code>:
+                        <pre><code>float turn = (robot.surface.reading[1] - robot.surface.reading[3]) * LINE_FOLLOW_GAIN;
+robot.setMotorPWM(BASE_PWM - turn, BASE_PWM + turn);</code></pre>
+                        <p>Find <code>BASE_PWM</code> near the top of the same tab. Before editing, predict what reducing it from 45 to 30 would do to the two requests when <code>turn</code> is zero, then when it is non-zero. Does changing the base also change the difference between the two requested PWM values for the same sensor readings? Check the search branch too: it uses separate recovery-PWM constants, so changing the base does not directly change those requests.</p>
+                      </li>
+                      <li><strong>Run the comparison and explain what you see.</strong> First record a short baseline run with graphs visible. Stop the sketch, change only <code>final float BASE_PWM = 45;</code> to <code>final float BASE_PWM = 30;</code> in <code>Controller.pde</code>, save, and press Run again. Restarting gives you the supplied initial pose and controller state; use the same map, view and observation duration for the two runs. Capture screenshots or short recordings of the path and graphs.
+                        <p>Compare the motor requests while following the line, the slopes of the encoder traces, and any searching or loss of the line. If a trace does not match your first prediction, use the controller's branches to explain which behaviour was active. The sensor history can change as the path changes, so the entire run need not be a uniformly slower copy. Repeat the baseline if you need to check that the difference follows your edit.</p>
+                      </li>
+                      <li><strong>Separate a controller change from a model claim.</strong> Open <code>MotorsModel.pde</code> and locate the function that maps requested PWM to wheel speed. Describe the relationship that this supplied model assumes. Use it to explain your simulation result, then identify one physical measurement from Phase 1 that would test whether the assumption is useful for your robot.
+                        <p>Similarly, <code>SurfaceSensorModel.pde</code> samples image brightness: a visible mark in <code>surface.png</code> may affect the simulated reading even if the corresponding fine printed mark is not detected by the real sensors. A convincing picture does not establish that the motor or sensor response is physically accurate. Keep your prediction, the changed line of code, a before/after observation, and one claim that still needs physical evidence.</p>
+                        <p>Restore <code>BASE_PWM</code> to its original value and rerun before the live demonstration in the next exercise. Check that the physical sketch used for that demonstration also contains the supplied baseline controller. Changing <code>Controller.pde</code> does not change the StampC3, and changing <code>Controller.cpp</code> does not change the simulation. When we later build an FSM or speed controller, we will preserve the intended behaviour across both versions and adapt the interface details explicitly.</p>
+                      </li>
+                    </ol>
+                    <div class="measure-row"><span><b>Trace</b> measurements to commands</span><span><b>Predict</b> one controller change</span><span><b>Distinguish</b> model output and physical evidence</span></div>
+                  </div>
+                  <div id="simulation-ai-panel" class="context-panel" data-panel="ai" role="tabpanel" aria-labelledby="simulation-ai-tab" hidden></div>
+                </div>
+              </div>
+            </div>
+          </article>
+					<article id="exercise-03" class="exercise-card">
+						<div class="exercise-index">03</div>
 						<div class="exercise-content">
-							<div class="exercise-heading"><div><span class="concept-tag">Common baseline · physical and simulated run</span><h2>Run the Digital Twin Demonstration</h2></div><span class="time-badge">30–40 min</span></div>
+							<div class="exercise-heading"><div><span class="concept-tag">Common baseline · physical and simulated run</span><h2>Run the Full Digital Twin Demonstration</h2></div><span class="time-badge">30–40 min</span></div>
 							<div class="teaching-brief">
-								<p>We should now be ready to run the full demonstration of the Digital Twin robotic system.  Follow the steps below to verify that the full system works as expected.  When the demonstration works correctly, you should see an output from the Processing Digital Twin that looks like the following image:</p><p align="center"><img src="./assets/images/setup/digital_twin_output.png" alt="Screenshot of the Digital Twin system operating successfully" width="100%"></p><p>In the above image, we can observe:
+								<p>We should now be ready to run the full demonstration of the Digital Twin robotic system.  This means that we will connect your computer to the Wi-Fi network hosted by the StampC3 on the real robot.  This will allow the real robot to transmit data in real time to the Processing simulation.</p>
+                <p>If you have developed code from Phase 1 before attempting this test of the full digital twin system, it is recommended that you upload the original StampC3_Template code to your robot first. This will mean that we can test the full digital twin system with code that we know should work.  If you encounter any issues when testing with the example code, contact a member of the teaching staff.  If you use the code you have developed in Phase 1, it is very likely you have disabled the function <code>publishTelemetry(...)</code>, which is required for the full digital twin system to operate.</p>
+                <p>Follow the steps below to verify that the full system works as expected.  When the demonstration works correctly, you should see an output from the Processing Digital Twin that looks similar to the following image:</p><p align="center"><img src="./assets/images/setup/digital_twin_output.png" alt="Screenshot of the Digital Twin system operating successfully" width="100%"></p><p>In the above image, we can observe:
 								<ol>
 									<li>The simulated robot as the blue circle.  Black dots represent the sensor placement.</li>              
 									<li>The real robot as the orange circle, without the black dots for sensor placement.</li>
@@ -84,20 +315,21 @@
 								</p></div>
 
 								<div class="exercise-grid"><div class="investigation"><h3>Run and observation checklist</h3>
+                  In the following steps, it is quite important to follow the order strictly.  
 										<ol>
 											<li>Place your robot on the provided test map, at the start location indicated with grey markings</li>
 											<li>Turn on your robot by pressing the small on/off button once.  The StampC3 should illuminate the on board LED.  Your robot should not yet move.</li>
-											<li>Connect your computer via WiFi to the robot.  The robot should show up in the available WiFi networks with the name you provided in the previous exercise. Wait for your computer to connect.  Your operating system may notify you that the internet is not available - this is expected, not an error.  This may mean you have an unusual WiFi icon, such as a question mark.  </li>
-											<li>Open the Processing sketch in <strong>DigitalTwin</strong> and run it.  It should immediately start running the simulated controller.</li>
-											<li>Press the <strong>m</strong> key once to toggle the simulator mode to <strong>live</strong>.</li>
-											<li>Start the physical robot by pressing the button on top once.  The real robot should begin following the line.</li>
+											<li>Connect your computer via WiFi to the robot.  The robot should show up in the available WiFi networks with the name configured in your StampC3 sketch. Wait for your computer to connect.  Your operating system may notify you that the internet is not available - this is expected, not an error.  This may mean you have an unusual WiFi icon, such as a question mark. Some operating systems may automatically disconnect if no internet is disconnected - this can be disabled. </li>
+											<li>Open the Processing sketch <strong>DigitalTwin</strong> and run it by pressing the play icon.  It should immediately start running the simulated controller, you will see the simulated robot following the line.</li>
+											<li>Press the <strong>m</strong> key once to toggle the simulator mode to <strong>live</strong>.  You can confirm that this is the case by observing the change of the status text in the grey box at the top left of the simulation visualisation.  Confirm that the state is "connected" , and that your computer has connected to the address 192.168.4.1:80</li>
+											<li>Start the physical robot by pressing the button on top of the StampC3 once.  The real robot should begin following the line.</li>
 											<li>Verify in the Digital Twin that the visualation for both the real robot and simulated robot are moving.</li>
 											<li><strong>The visualisation of the real robot and simulated robot will behave differently</strong> - this is expected. In fact, these differences represent the core matter of interest for this course.</li> 
 										</ol><div class="measure-row"><span><b>Run</b> physical and simulated examples</span><span><b>Separate</b> observation from explanation</span><span><b>Pose</b> one testable question</span></div></div></div>
 						</div>
 					</article>
-					<article id="exercise-03" class="exercise-card">
-						<div class="exercise-index">03</div>
+					<article id="exercise-04" class="exercise-card">
+						<div class="exercise-index">04</div>
 						<div class="exercise-content">
 							<div class="exercise-heading"><div><span class="concept-tag">Telemetry · direct connection</span><h2>Debugging: Take Measurements with Serial</h2></div><span class="time-badge">10–15 min</span></div>
 							<div class="teaching-brief">
@@ -123,8 +355,8 @@
 									<div class="measure-row"><span><b>Serial</b> inspect a direct record</span><span><b>Interpret</b> field, time, and source</span><span><b>Keep</b> an error if needed</span></div></div></div>
 						</div>
 					</article>
-					<article id="exercise-04" class="exercise-card">
-						<div class="exercise-index">04</div>
+					<article id="exercise-05" class="exercise-card">
+						<div class="exercise-index">05</div>
 						<div class="exercise-content">
 							<div class="exercise-heading"><div><span class="concept-tag">Telemetry · optional live comparison</span><h2>Inspect WiFi Telemetry</h2></div><span class="time-badge">10–15 min</span></div>
 							<div class="teaching-brief">
@@ -133,7 +365,7 @@
 							<div class="exercise-grid"><div class="investigation"><h3>Measurement checklist</h3>
 									<ol>
 										<li>Place your robot, then turn it on via the On/Off button.  You should see the on board LED illuminate.  The robot should not move.</li>
-										<li>On your computer, connect to the robot by selecting the WiFi network with the name you gave earlier.</li>
+											<li>On your computer, connect to the robot by selecting the WiFi network with the name configured in your StampC3 sketch.</li>
 										<li>If you are on <strong>MacOS</strong> or a <strong>Linux Operation System</strong>, open a Terminal instance (command line) and issue the following command:
 											<blockquote>nc 192.168.4.1 80</blockquote> You should see the data from the robot printing to the terminal window.  If you want to save this data to a file, you can use the following command: 
 											<blockquote>nc 192.168.4.1 80 > saved_data.csv</blockquote> where <code>saved.csv</code> is your chosen file name.  Simply press <code>ctrl+c</code> or <code>cmd+c</code> to end the process.</li>
@@ -146,6 +378,1051 @@
 						</div>
 					</article>
         
+          <article id="exercise-06" class="exercise-card">
+            <div class="exercise-index">06</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Simulation · test maps</span><h2>Create a Test Map with Inkscape</h2></div><span class="time-badge">10–15 min</span></div>
+              <div class="teaching-brief">
+                <p>Create a black-and-white surface for the simulated robot to explore. The Processing simulation treats <strong>one image pixel as one millimetre</strong>, so the exported image dimensions determine the size of your map.</p>
+              </div>
+              <div class="exercise-grid"><div class="investigation"><h3>Map checklist</h3>
+                <ol>
+                  <li><strong>Install Inkscape.</strong> <a href="https://inkscape.org/download/">Download Inkscape for your operating system</a>, follow its installation instructions, then open a new document.</li>
+                  <li><strong>Set the page size in millimetres.</strong> Open <strong>File → Document Properties</strong>. Set both the page-size units and <strong>Display units</strong> to <strong>mm</strong>. For an A3 landscape map, use width <strong>420 mm</strong> and height <strong>297 mm</strong>.</li>
+                  <figure class="motor-diagram">
+                    <img src="assets/images/setup/inkscape-document-properties.png" alt="Inkscape Document Properties: A3 landscape page, width 420 mm, height 297 mm and display units mm." style="max-width: 558px; width: 100%; height: auto;">
+                    <figcaption>Use millimetres for the page dimensions and display units.</figcaption>
+                  </figure>
+                  <li><strong>Draw your surface.</strong> Set the page background to opaque white: click the <strong>Page</strong> colour in Document Properties and set RGBA to <code>ffffffff</code>. Draw black lines or shapes using the rectangle or Bézier tool. Choose feature sizes in mm, and save an editable <strong>SVG</strong> copy.</li>
+                  <li><strong>Export at one pixel per millimetre.</strong> Open <strong>File → Export</strong>, select <strong>Page</strong> and <strong>PNG</strong>, then set <strong>DPI to 25.4</strong>. There are 25.4 mm in an inch, so this gives 1 pixel/mm. Check the pixel width and height: our A3 example must be <strong>420 × 297 px</strong>. Export the whole page, keeping its white background.</li>
+                  <figure class="motor-diagram">
+                    <img src="assets/images/setup/inkscape-export-settings.png" alt="Inkscape PNG export panel with Page selected, resolution 25.4 DPI and image dimensions 420 by 297 pixels." style="max-width: 600px; width: 100%; height: auto;">
+                    <figcaption>Export the page at 25.4 dpi; verify the pixel dimensions before exporting.</figcaption>
+                  </figure>
+                  <li><strong>Load your map.</strong> Export as <code>surface.png</code> into the <code>DigitalTwin/data/</code> folder (create it if needed), then restart the Processing sketch. Check that your shapes appear at the expected size.</li>
+                </ol>
+                
+                <p>For the physical copy, print the SVG or a PDF at <strong>100% / actual size</strong>. The exported low-resolution PNG is intended for the simulation tool only.</p>
+              </div></div>
+            </div>
+          </article>
+
+          <article id="exercise-07" class="exercise-card fsm-exercise">
+            <div class="exercise-index">07</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Robot behaviour · finite-state machines</span><h2>Build a Finite-State Machine</h2></div><span class="time-badge">60–90 min</span></div>
+              <div class="teaching-brief">
+                <p>In this exercise we build a new finite state machine (FSM) to operate the real robot through different behaviours.  Our overall objective is to get the robot to explore within the large black rectangle, avoiding the black line of the rectangle when necessary.  A finite state machine (FSM) describes a system using a limited set of states, each representing a distinct mode of operation. The system occupies one state at a time and changes state when a specified event or condition occurs. Its current state determines how it responds and what actions it performs. Organising your code by an FSM is particularly useful because entire behaviours can be added, removed, enable/disabled, or organised into more complicated chains of behaviours.</p>
+              <figure class="motor-diagram">
+                <figcaption>State-transition diagram for the runLineFollower(...) function example.</figcaption>
+                <img src="assets/images/phase-2-fsm-exploration.png" width="100%" alt="" />
+              </figure>
+                <p>The line following behaviour provided to you in the example StampC3_Template code already has an operating finite state machine. Reviewing the function <code>runLineFollower(...)</code> (see <a href="https://github.com/paulodowd/RoboticsScienceAndSystems/blob/a357fe6b730fe48bc9b8fb5c91a9f75e8b05ea5d/StampC3_Template/Controller.cpp#L110">here</a>), we can observe that the variable <code>mode</code> is evaluated across different if-statements to determine different robot behaviours.  The following <stronog>states</stronog> are defined in Controller.h (see <a href="https://github.com/paulodowd/RoboticsScienceAndSystems/blob/a357fe6b730fe48bc9b8fb5c91a9f75e8b05ea5d/StampC3_Template/Controller.h#L81">here</a>):
+                  </p>
+                <div class="code-comparison">
+                <pre>
+<code>
+    enum Mode {
+      WAITING,
+      FOLLOWING_LINE,
+      SEARCHING_FOR_LINE,
+      STOPPED
+    };</code></pre>
+  </div>
+    <p>The above block of code is an enumeration, it used to associate human-readable words to numeric values. WAITING, FOLLOWING_LINE, SEARCHING_FOR_LINE, STOPPED are the enumerators, creating named constant values.  By default, C++ assigns these values integers beginning with 0 (WAITING = 0, FOLLOWING_LINE = 1, etc).  We can therefore think of the variable <code>mode</code> within runLineFollower(...) as operating like a flag to signal the current operational state of the robot.  FSMs typically do two things: first, ascertain what the current state is, and whether it is still true; second, execute some code for a current state.  If <code>mode == SEARCHING_FOR_LINE</code>, the controlling code can decide whether the state needs to change based on any new information available to the robot.  Reviewing runLineFollower(...) further, we can see an example of this occuring:
+    </p>
+    <div class="code-comparison">
+        <pre>
+<code>
+  if (mode == SEARCHING_FOR_LINE) {
+    if (line_detected) {
+      mode = FOLLOWING_LINE;
+    } else if (now - recovery_start_ms >= RECOVERY_TIMEOUT_MS) {
+      mode = STOPPED;
+    }
+  }</code></pre>
+  </div>
+  <p>In the above, we can see how a FSM can transition from one state to another, based on the information available.  First, the current state is ascertained with <code>if( mode == SEARCHING_FOR_LINE )</code>.  We can think of this as the robot asking itself "what am I doing right now?".  If the robot is searching for a line, the FSM has 3 possible decisions.</p>
+  <ol>
+    <li><code>if( line_detected )</code>: If a line is detected, then the robot should transition to the state FOLLOWING_LINE.  This is achieved by simply changing the value of <code>mode</code>.  Subsequent code will then operate based on the surface sensor readings to configure the motors.</li>
+    <li><code> else if( now - recovery_start_ms >= RECOVERY_TIMEOUT_MS )</code>: This condition is checking whether the robot has been searching for a line for a period longer than or equal to RECOVERY_TIMEOUT_MS.  If true, the FSM transitions to a STOPPED state.  Setting mode to STOPPED will mean subsequent code will disable the PWM sent to the motors.</li>
+    <li>Implicitly, if neither of the above 2 transitions occur, then the robot will simply remain in the SEARCHING_FOR_LINE state.</li>
+  </ol>
+
+  <p>In the next section of code of runLineFollower(...), we see that the FSM then executes code encapsulated by some state flags.  In the 3 lines of code, line following is produced as an implicit behaviour, if the neither of the two prior state flags were true:
+  </p>
+  <div class="code-comparison">
+        <pre>
+<code>
+  if (mode == STOPPED) {
+    robot.setMotorPWM(0, 0);
+    return;
+  }
+
+  if (mode == SEARCHING_FOR_LINE) {
+    robot.setMotorPWM(RECOVERY_LEFT_PWM, RECOVERY_RIGHT_PWM);
+    return;
+  }
+
+  float error = (float)robot.surface.reading[1] - (float)robot.surface.reading[3];
+  float turn = error * LINE_FOLLOW_GAIN;
+  robot.setMotorPWM(BASE_PWM - turn, BASE_PWM + turn);
+</code></pre>
+  </div>
+
+
+  <p>Considering the states and transitions, it is possible to create simple FSM diagrams using blocks as states and labelled arrows as transitions.  In the middle of the diagram, we can trace two states and two state transitions which form a loop - the robot will follow a line, and if it loses the line, search to find the line again:</p>
+<figure class="motor-diagram">
+                <figcaption>State-transition diagram for the runLineFollower(...) function example.</figcaption>
+                <img class="fsm-state-diagram" src="assets/images/phase-2-fsm-line-following.png" alt="" />
+              </figure>
+  
+
+      <p>In this exercise, we will design a slightly larger FSM with the aim of controlling the robot to move around within the large black rectangle boundary on the A3 test sheet provided to you.  If the robot encounters the black boundary it move to reliably turn away.  We will also build in an end state, stopping the robot after a period of time has elapsed.</p>
+      
+      
+                <p>You already have a useful starting point: <code>Controller_c</code> stores the modes used by the supplied line follower. We will keep our new FSM inside this class too, so its state, timing and decisions stay together. <code>Robot_c</code> will continue to provide the functions for reading the robot and requesting motor commands. If classes still feel unfamiliar, that is fine: the steps below show where each declaration and function belongs.  It will be useful to review the following state-transition diagram for the exploration and avoidance behaviour:</p>
+                <figure class="motor-diagram">
+                <figcaption>State-transition diagram: exploration and avoidance repeat until the trial time expires. The overall deadline takes priority over the other transitions.</figcaption>
+                <img class="fsm-state-diagram" src="assets/images/phase-2-fsm.svg" alt="WAITING starts EXPLORING on a button press. EXPLORING continues while no line is detected; a detected line starts REVERSING. After 350 milliseconds, begin TURNING. After 600 milliseconds of turning, return to EXPLORING if the sensors are clear, or REVERSING if a line is still detected. From any moving state, a 20-second trial deadline leads to FINISHED with zero PWM until reset." />
+              </figure>
+                <p>Our first exploring behaviour will simply drive forwards while no black line is detected. On detecting the boundary, the robot will reverse briefly, turn, and try exploring again. Therefore, the avoidance behaviour has two parts - reversing and turning.  To achieve reverse and turn, we will implement these as time limited operations.  Therefore, once the sensors detect a black boundary, the robot will reverse for a short period of time.  A separate timer will end the whole trial, including any avoidance in progress. You can build and test each part in turn; it does not need to work perfectly on the first attempt.</p>
+                
+                <p>Once you have the basic exploring and avoidance behaviours working, you are encouraged to explore them further to investigate the overall effects on the robot behaviour.  For example, by modifying any timing values, or later updating timed-motion for better motion control techniques.  A timed reverse does not guarantee a particular distance, and a timed turn does not guarantee a particular angle. Likewise, this exercise uses fixed threshold values for sensors, and sensor readings can be unreliable. We will start by using your Phase 1 measurements to choose a line-detection threshold. </p>
+              </div>
+              
+              <div class="exercise-grid">
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Finite-state machine guidance">
+                    <button id="fsm-self-directed-tab" type="button" class="context-tab active" data-context="nonai" role="tab" aria-selected="true" aria-controls="fsm-self-directed-panel">Self-Directed Route</button>
+                    <button id="fsm-ai-assisted-tab" type="button" class="context-tab" data-context="ai" role="tab" aria-selected="false" aria-controls="fsm-ai-assisted-panel">AI-Assisted Route</button>
+                  </div>
+                  <div id="fsm-self-directed-panel" class="context-panel active investigation" data-panel="nonai" role="tabpanel" aria-labelledby="fsm-self-directed-tab">
+                <h3>Build and investigate</h3>
+                <p>The following steps guide you to implement a new Finite State Machine to produce exploration and avoidance behaviours.  This code could have been provided to you as a complete template.  Instead, these exercises will require you to navigate the existing code, and so encourage you to improve your familiarity with the code generally.  For each step guiding you to implement some code, you are recommended to reflect on the decision being made to place code in one location, and not another.</p>
+                <ol>
+                  <li><strong>Save a working copy and trace the existing controller.</strong> It is often best to start a new piece of work with a known working solution. In our case, the original StampC3_Template code fits this description. Open <code>StampC3_Template.ino</code> in Arduino IDE and save a separate copy of the sketch folder for this exercise. Find <code>controller.update(robot, server)</code> in <code>loop()</code>, then open <code>Controller.cpp</code> and find the definition of <code>Controller_c::update(...)</code>. Identify the update timer, sensor and odometry acquisition, button handling, line-following call, and telemetry block. Keep the top-level <code>loop()</code>, including <code>server.update()</code>, as it is.</li>
+                  <li><strong>Establish what counts as a black line.</strong> With the motors stopped, use the existing surface-sensor telemetry (i.e., via Serial Monitor) to compare all five channels over the white interior and the thick black boundary. Move the robot by hand, including positions where only an outer sensor overlaps the line. Use your Phase 1 evidence to choose a threshold value that will indicate a black surface with some margin for variation. You may want to identify a different value for each sensor.  To begin with, we will assume that the front three surface sensors (DN2, DN3, DN4) will be used.  In <code>Controller.h</code>, find the existing <code>LINE_THRESHOLD</code> and replace its supplied value with your measured choice. </li>
+                  <li><strong>Predict the behaviours before writing the code.</strong> Follow the above state-transition diagram and describe the motor commands in each state. Why should the robot finish reversing and turning even if the line disappears from view? What should happen if the trial time runs out during a turn? 
+                  </li>
+                  <li><strong>Declare the new states in <code>Controller.h</code>.</strong> Find <code>private:</code> inside <code>class Controller_c</code>. Insert the following declarations below it, before the existing <code>enum Mode</code>. Keep the existing <code>Mode</code> and its variables because the original example functions still refer to them. Our new <code>State</code> type is separate; <code>State::WAITING</code> names a value belonging to that type.  The new functions we create will refer to State instead of Mode.
+                    <pre data-fsm-code="declarations"><code>enum class State {
+  WAITING,
+  EXPLORING,
+  REVERSING,
+  TURNING,
+  FINISHED
+};
+
+State state;
+unsigned long state_start_ms;
+unsigned long trial_start_ms;
+
+void enterState(State next_state, unsigned long now);
+bool boundaryDetected(const Robot_c &amp;robot) const;
+void runStateMachine(Robot_c &amp;robot, unsigned long now);</code></pre>
+                    <p>These are declarations: they describe the memory and functions the controller will use. The function bodies go in <code>Controller.cpp</code>. A member variable such as <code>state</code> keeps its value between calls, which is how the controller remembers its progress.</p>
+                  </li>
+                  <li><strong>Give the FSM a known starting state and two clocks.</strong> In <code>Controller.cpp</code>, add these three lines inside <code>Controller_c::reset()</code>, after the existing assignments. The constructor already calls <code>reset()</code>, so they also initialise the FSM when the program starts.
+                    <pre data-fsm-code="initialisation"><code>state = State::WAITING;
+state_start_ms = 0;
+trial_start_ms = 0;</code></pre>
+                    <p><code>state_start_ms</code> records when the current behaviour began. <code>trial_start_ms</code> records the button press that starts the whole trial and must not restart during avoidance. Waiting before that press does not use up the exploration time. Resetting these variables does not itself send a motor command; the next accepted controller update will apply the waiting state's zero-PWM command.</p>
+                  </li>
+                  <li><strong>Add one function for entering a state.</strong> At the end of <code>Controller.cpp</code>, after the closing brace of the last existing function, add this definition. Do not put it inside <code>update()</code> or another function.
+                    <pre data-fsm-code="entry"><code>void Controller_c::enterState(State next_state, unsigned long now) {
+  state = next_state;
+  state_start_ms = now;
+
+  if (Serial) {
+    Serial.printf("FSM,%lu,%u\n", now, static_cast&lt;unsigned int&gt;(state));
+  }
+}</code></pre>
+                    <p><code>Controller_c::</code> identifies this as a function belonging to our controller class. The log records a transition once, when it happens. The state numbers follow the declaration order: <code>0</code> is <code>WAITING</code>, <code>1</code> is <code>EXPLORING</code>, <code>2</code> is <code>REVERSING</code>, <code>3</code> is <code>TURNING</code>, and <code>4</code> is <code>FINISHED</code>. Initialisation does not print a transition record.</p>
+                    <p>Only call this function when changing state. Calling it on every update would repeatedly restart the state's clock, so a timed transition might never happen.</p>
+                  </li>
+                  <li><strong>Turn sensor readings into a boundary decision.</strong> Beneath <code>enterState(...)</code>, add the helper function below. It uses the sensor readings acquired by <code>update()</code> and reports true if any channel detects black. The example <code>lineDetected(...)</code> checks only the central channel. This newer function checks all 5 sensors, so that an outer sensor can also trigger avoidance behaviour.
+                    <pre data-fsm-code="boundary"><code>bool Controller_c::boundaryDetected(const Robot_c &amp;robot) const {
+  for (uint8_t channel = 0; channel &lt; 5; ++channel) {
+    if (robot.surface.reading[channel] &gt;= LINE_THRESHOLD) {
+      return true;
+    }
+  }
+  return false;
+}</code></pre>
+                    <p>This is our operational definition of “line detected”, not a measurement of the robot's position within the rectangle. Before continuing, explain what the function returns when only one sensor exceeds the threshold, and when none does.</p>
+                  </li>
+                  <li><strong>Write the state machine.</strong> Beneath <code>boundaryDetected(...)</code>, add the function below. The overall deadline is checked first. If time remains, the first <code>switch</code> chooses a transition; the second chooses motor commands for the resulting state. Entering <code>FINISHED</code> therefore requests zero PWM in the same update. The durations and PWM values are starting choices to test using your robot.
+                    <ul><li>The following code extract introduces a <strong>switch case statement</strong>.   You can think of a switch case statement as being similar to an if-statement.  The switch case statement evaluates its expression and begins executing at the matching case label.  For example, <code>case State::WAITING</code> is equivalent to <code>if( state == State::WAITING)</code>.  In a switch case statement, the <code>break;</code> command it used to ensure that only 1 case block operates - unless it is required for sequential cases to be evaulated in turn.  It is possible to configure a switch case statement to execute several cases that evaluate as true by omitting the break command - this is called drop-through or fall-through.</li>
+                    </ul>
+                    <pre data-fsm-code="machine"><code>void Controller_c::runStateMachine(Robot_c &amp;robot, unsigned long now) {
+  const unsigned long trial_duration_ms = 20000UL;
+  const unsigned long reverse_duration_ms = 350UL;
+  const unsigned long turn_duration_ms = 600UL;
+  bool line_detected = boundaryDetected(robot);
+  bool trial_running = state != State::WAITING &amp;&amp; state != State::FINISHED;
+
+  // 1. The trial deadline takes priority over every moving state.
+  if (trial_running &amp;&amp; now - trial_start_ms &gt;= trial_duration_ms) {
+    enterState(State::FINISHED, now);
+  } else {
+    switch (state) {
+      case State::WAITING:
+        if (robot.isButtonPressed()) {
+          signal = 1;
+          trial_start_ms = now;
+          enterState(State::EXPLORING, now);
+        }
+        break;
+
+      case State::EXPLORING:
+        if (line_detected) {
+          enterState(State::REVERSING, now);
+        }
+        break;
+
+      case State::REVERSING:
+        if (now - state_start_ms &gt;= reverse_duration_ms) {
+          enterState(State::TURNING, now);
+        }
+        break;
+
+      case State::TURNING:
+        if (now - state_start_ms &gt;= turn_duration_ms) {
+          if (line_detected) {
+            enterState(State::REVERSING, now);
+          } else {
+            enterState(State::EXPLORING, now);
+          }
+        }
+        break;
+
+      case State::FINISHED:
+        // Remain here until the controller is reset.
+        break;
+    }
+  }
+
+  // 2. Apply the commands for the resulting state.
+  switch (state) {
+    case State::EXPLORING:
+      robot.setMotorPWM(30, 30);
+      break;
+
+    case State::REVERSING:
+      robot.setMotorPWM(-30, -30);
+      break;
+
+    case State::TURNING:
+      robot.setMotorPWM(-30, 30);
+      break;
+
+    case State::WAITING:
+    case State::FINISHED:
+      robot.setMotorPWM(0, 0);
+      break;
+  }
+}</code></pre>
+                    <p>Each <code>case</code> selects a state; <code>break</code> ends that branch of the <code>switch</code>. During <code>EXPLORING</code>, no detected line means no transition, so forward motion continues. During avoidance, the short state timers let the robot back away and reorient before checking whether to explore again. If the sensors still report a line after turning, it repeats avoidance. </p>
+                    <p><code>now - state_start_ms</code> is time in the current state; <code>now - trial_start_ms</code> is time since the trial began. Keeping the timestamps as <code>unsigned long</code> handles timer wraparound for these short intervals. The <code>UL</code> suffix gives each duration the same type. We use <code>&gt;=</code> because updates may skip over the exact target millisecond. Trace a line detection just before the deadline, then a call at the deadline: why must the stop take priority?</p>
+                  </li>
+                  <li><strong>Connect the FSM to <code>update()</code>.</strong> In <code>Controller_c::update(...)</code>, remove the existing button-handling block beginning <code>if (signal == 0)</code> and the following <code>if (signal == 1)</code> block that calls <code>runLineFollower(robot, now)</code>. Replace both blocks with this single call, after <code>robot.getPose()</code> and before the telemetry-timer block:
+                    <pre data-fsm-code="call"><code>runStateMachine(robot, now);</code></pre>
+                    <p>Keep the update-timer check, sensor acquisition, odometry update and telemetry block. The FSM must run in <code>WAITING</code> as well as during movement, so do not put its call inside <code>if (signal == 1)</code>. If your working copy calls a different motion experiment here, disable that call too: only this FSM should request motor commands during this exercise.</p>
+                    <p>We set <code>signal</code> to one when the trial begins to preserve the telemetry convention “the controller has started”. It stays one in <code>FINISHED</code>; it is not our FSM state. The FSM handles the button directly, so do not call the original <code>setSignal(1)</code> to start this sequence. The original line-following function can remain in the file without being called.</p>
+                  </li>
+                  <li><strong>Compile, then check the decisions before free movement.</strong> Click <strong>Verify</strong> in Arduino IDE. If a new function is “not declared”, check that its declaration is inside the class in <code>Controller.h</code>, and that its definition includes <code>Controller_c::</code> in <code>Controller.cpp</code>. Secure the robot with the wheels free to rotate before uploading. Present white paper and then a black strip beneath the sensors at approximately their normal distance from the surface, keeping hands clear of the wheels. Open Serial Monitor at <code>115200</code> and press the StampC3 button with all sensors over white. Check forward commands, a line-triggered reverse, a turn, and a return to exploration when clear. Present black beneath an outer sensor too: does it trigger avoidance?</li>
+                  <li><strong>Check that the trial always ends.</strong> Repeat the test with the robots wheels lifted from the surface.  Check with white beneath the sensors for the entire trial, then with black kept beneath them to provoke repeated avoidance.  In both cases, check that the robot stops operating after the deadline period.  Also present a line near the deadline so the trial ends during avoidance.</p>
+                    <p>The existing Wi-Fi telemetry continues whilst this FSM controller code operates. The extra debugging statments prefixed with <code>FSM,</code> only appear on the Serial interface. It is a good idea to keep any debugging statements separate from the Wi-Fi telemetry, so that your robot can still reliably interface with the Processing simulation. Leave the WiFi CSV format unchanged. Wi-Fi telemetry is published less frequently than control updates on the robot itself, so debugging via the Wi-Fi telemetry could mean that some important information is missed. </p>
+                  </li>
+                  <li><strong>Test exploration on the printed rectangle.</strong> Put the sheet flat in a clear floor area and keep the power switch accessible. Start wholly inside the rectangle with the sensors clear of the line. Power-cycle, then press the StampC3 button. First observe an approach to a straight section of boundary; then try an oblique approach and a corner. If the wheels do not move reliably, choose suitable PWM values from your Phase 1 measurements and record the change. If the robot leaves the rectangle, investigate which part of the robot is a likely cause (e.g., sensor subsystem, motors, controller timings, etc).</li>
+                  <li><strong>Evaluate and refine one behaviour.</strong> Choose a change based on a failure or limitation you have observed: for example, adjust the reverse duration, change the turning duration, or reduce exploration PWM. Predict its effect, change only that setting, and repeat the same trials. Longer reversing may clear a boundary but leave less room behind the robot; a larger turn may help at one approach angle and hinder another. Explain both the improvement and any remaining failures. Encoder-based odometry can help describe the path, but use physical observations to establish whether the robot stayed inside.</p>
+                  <p>Once the basic behaviour works, propose a different exploration or avoidance rule, such as a gentle exploring curve or choosing turn direction from the first sensor to detect the boundary. Sketch how the state actions or transitions would change before implementing it. Keep your final diagram, code and evidence together. When you later implement this behaviour in the Digital Twin, use the same rules and a corresponding boundary map; editing the StampC3 C++ alone does not update the Processing controller.</p>
+                  </li>
+                </ol>
+                <div class="measure-row"><span><b>Detect</b> the black boundary</span><span><b>Coordinate</b> exploration and avoidance</span><span><b>Verify</b> stopping time and physical behaviour</span></div>
+                  </div>
+                  <div id="fsm-ai-assisted-panel" class="context-panel" data-panel="ai" role="tabpanel" aria-labelledby="fsm-ai-assisted-tab" hidden>
+                    <h3>Build, understand and adapt an FSM with AI</h3>
+                    <p>You may ask AI to generate the complete FSM implementation for this exercise. Use it as a programming partner and a tutor as you make that implementation part of your working robot code. The aim is to become familiar with where the controller remembers its state, how it changes behaviour, and how you can extend it. You can ask for direct explanations or annotated code whenever these help you make progress.</p>
+                    <p>The diagram above gives us a starting design. We will implement it, follow a short sequence through the code, try the behaviours on the robot, and then make one small structural change. A working controller and an explanation of that change are the focus; you do not need a performance study of how effectively the robot explores the rectangle.</p>
+                    <ol>
+                      <li><strong>Give AI the existing code and the behaviour you want.</strong> Save a separate copy of the complete <code>StampC3_Template</code> sketch folder, keeping the folder and main <code>.ino</code> names identical. Keep the source open while you work. If your AI tool can inspect repositories, direct it to <a href="https://github.com/paulodowd/RoboticsScienceAndSystems" target="_blank" rel="noopener">Robotics Science and Systems</a> and name <code>StampC3_Template</code>. Otherwise, provide the relevant contents of <code>StampC3_Template.ino</code>, <code>Controller.h</code>, <code>Controller.cpp</code>, <code>Robot.h</code> and <code>TaskTimer.h</code>. Provide further definitions if needed. Replace any WiFi credentials with placeholders within your code before uploading it to AI or sharing it.
+                        <p>Describe the intended sequence using the diagram: wait with zero PWM for a button press, explore forwards, reverse for 350 ms when black is detected, then turn for 600 ms. After turning, explore if clear or reverse again if black remains. Finish after 20 seconds from the start press, including if avoidance is still in progress, and request zero PWM until reset. For this route, use any of the five sensor channels to detect the boundary. Choose the threshold and suitable motor requests from your Phase 1 observations; mark any provisional values as starting choices. If needed, compare the existing sensor telemetry over white and black with the motors stopped before choosing a threshold.</p>
+                        <div class="prompt-snippet">“Help me implement this FSM inside Controller_c using the template files and behaviour description I provide. You may generate the complete changes to Controller.h and Controller.cpp. Keep state between updates, initialise it in reset(), and use elapsed-time checks so the controller keeps returning to loop(). Preserve the existing sensor acquisition, odometry, update timer, telemetry and top-level loop. Keep the CSV signal field zero before starting and one after starting, including when finished. Replace the original button/line-following control blocks so only the new FSM commands the motors. Explain where each change belongs and name the files and symbols supporting your choices. Identify assumptions and missing information; do not invent API methods, measured parameters or successful tests.”</div>
+                      </li>
+                      <li><strong>Find the FSM within the generated code.</strong> Before asking for a general explanation, try locating the state declaration, a transition condition, a motor action and the timestamps. Mark anything you cannot yet explain. Ask AI to work through those parts with you, pointing to the exact code, and check its explanation against your files.
+                        <p>Follow one call from <code>loop()</code> into <code>Controller_c::update(...)</code> and the FSM, then back again. What remembers the current state between calls? What is the difference between entering a state and performing its action? Why does the controller need both a state-start time and a trial-start time? Locate the deadline check and explain how it can still run while the robot is reversing. If the generated code uses a <code>switch</code>, follow where execution begins and where <code>break</code> or <code>return</code> ends it; later case labels do not perform new checks during fall-through.</p>
+                        <div class="prompt-snippet">“Act as a code-reading tutor. I will show you the parts of this FSM I have located and explain what I think they do. Check my account against the code, one point at a time. Focus on state memory, transitions, motor actions and the two clocks. Give a direct explanation or small example when I am stuck, then ask me to trace a similar step. Help me understand this implementation without turning the discussion into a quiz on unrelated C++ details.”</div>
+                      </li>
+                      <li><strong>Predict a short sequence through the controller.</strong> In a few notes or an annotated diagram, trace a button press, a black-line detection, the line disappearing during reversing, and the deadline expiring during turning. At each point, identify the current state, the condition checked and the requested motor action. For the last event, imagine an avoidance manoeuvre that begins near the end of the trial. Explain why losing sight of the line need not immediately end reversing, and why reaching the trial deadline must end the turn.
+                        <p>Share your trace with AI and ask it to identify the first disagreement with the actual code. Revise either your explanation or the implementation as needed. This is a prediction of software decisions; the AI has not observed your robot and cannot establish that the motors or sensors will behave as expected.</p>
+                      </li>
+                      <li><strong>Integrate, compile and try the behaviours.</strong> Apply the changes to your saved sketch and click <strong>Verify</strong> in Arduino IDE. Check that <code>loop()</code> still calls <code>server.update()</code> and <code>controller.update(robot, server)</code>. The new FSM must run while waiting as well as while moving; it must not depend on the old <code>if (signal == 1)</code> gate. Keep declarations in <code>Controller.h</code> and member-function definitions in <code>Controller.cpp</code>. If compilation fails, give AI the relevant code and exact error, ask it to explain the correction, and compile your own copy again.
+                        <p>Before uploading, secure the robot with its wheels clear of the surface, keep fingers and cables away from the wheels, and keep the power switch accessible. Open Serial Monitor at <code>115200</code>. With the sensors over white at their usual height, press the StampC3 button. Present black beneath a sensor, including an outer sensor, and look for exploration, reversing, turning and a return to exploration when clear. Also keep black present to check repeated avoidance, and check that the deadline ends the trial during avoidance. A further button press should not restart the finished trial; power-cycle between trials. Use the power switch if you need to stop early.</p>
+                        <p>Ask AI to help add a short Serial message when the state changes if the sequence is difficult to follow. Keep these debugging messages separate from the unchanged WiFi CSV. A state message shows a software decision; observe the robot too. Once the supported checks work, try the printed rectangle on a clear floor, starting inside with the sensors over white. Switch off if it leaves the boundary. Discuss an unexpected result using what you actually saw and the relevant code. A brief account of the sequence is sufficient here; detailed timing plots or containment scores are not required.</p>
+                      </li>
+                      <li><strong>Make one small change to the FSM structure.</strong> Save the working version, then add a brief <code>PAUSING</code> state between reversing and turning. First draw the new state and its arrows yourself: reversing ends, the robot requests zero PWM during the pause, and turning begins after a pause duration you choose. Identify where the new state, entry condition, motor action and exit condition belong before asking AI to help implement them.
+                        <p>Keep the original trial-start time: the pause must not restart the 20-second trial. The overall deadline should also finish the trial during <code>PAUSING</code>, even though its motor request is zero. Ask AI to review those two points, compile the revision and check the added pause with the wheels supported. Predict the changed sequence before pressing the button. This change lets you practise extending an FSM; it does not need to improve avoidance performance.</p>
+                      </li>
+                    </ol>
+                    <p><strong>Expected outcome:</strong> you should have an FSM controller running within the supplied template, be able to explain how it selects and changes behaviours, and know how to add or modify a state with AI assistance. Use your revised diagram to explain the pause and the deadline to a teammate, then check your account against the code. Keep the working sketch, diagram and a few notes together with your team work; these support your learning and are not additional submission requirements.</p>
+                    <div class="measure-row"><span><b>Implement</b> an FSM in the existing controller</span><span><b>Explain</b> states, transitions and timing</span><span><b>Adapt</b> one part of the behaviour</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <!-- not yet ready 12 Oct 2026
+          <article id="exercise-08" class="exercise-card speed-exercise">
+            <div class="exercise-index">08</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motor commands · deadband compensation</span><h2>Compensate for Motor Deadband</h2></div><span class="time-badge">60–90 min</span></div>
+              <div class="teaching-brief">
+                <p>In your exploration FSM, a small forward PWM may have produced no movement at all. Increasing it may then have made the wheel start quite suddenly. Your <a href="motors.html#exercise-03">Phase 1 deadband investigation</a> gives us a way to make a more informed choice: instead of asking the motor to operate in a region where it rarely moves, could we map small movement requests to commands that reliably start it?</p>
+                <p><strong>Deadband compensation</strong> changes the command before it reaches the motor. We will introduce a normalised forward request, \(q\), between zero and one. Zero means “request no drive”; one means “use our chosen upper PWM limit”. A small positive value means a small movement request, not yet a particular speed. Without compensation we send \(Uq\), where \(U\) is that limit. With compensation, positive requests begin above a measured starting command, \(b\), and use the remaining command range.</p>
+                <div class="equation">\[u(q)=\begin{cases}0,&amp;q=0\\b+(U-b)q,&amp;0&lt;q\leq1.\end{cases}\]</div>
+                <p>For an arithmetic example only, let \(b=20\), \(U=60\), and \(q=0.1\). The uncompensated request is 6 PWM; the compensated request is 24 PWM. At \(q=1\), both reach 60 PWM. At exactly zero, both must request zero. Your robot's values must come from your measurements, not this example.</p>
+                <p>This mapping deliberately jumps over a low-command region. It does not remove friction, make the motor physically linear, or guarantee arbitrarily slow motion. The smallest positive request may still produce a noticeable speed. Starting from rest can also require more PWM than continued motion, so a mapping chosen for reliable starting may overdrive an already moving wheel. We will first test this simple rule on one motor, then decide what the evidence supports.</p>
+              </div>
+              <figure class="motor-diagram">
+                <figcaption>Command mapping, not a motor-speed prediction. The compensated branch skips low PWM while preserving zero and the chosen upper limit. The illustrated thresholds are not calibration values.</figcaption>
+                <img class="speed-control-diagram" src="assets/images/phase-2-deadband-compensation.svg" alt="PWM command against normalised request q. The uncompensated line runs from zero to U. The compensated line begins just above b for positive requests and meets U at q equals one. An open circle at b and a filled point at the origin show that exactly zero still produces zero PWM." />
+              </figure>
+              <div class="exercise-grid">
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Deadband compensation guidance">
+                    <button id="deadband-self-tab" type="button" class="context-tab active" data-context="nonai" role="tab" aria-selected="true" aria-controls="deadband-self-panel">Self-Directed Route</button>
+                    <button id="deadband-ai-tab" type="button" class="context-tab" data-context="ai" role="tab" aria-selected="false" aria-controls="deadband-ai-panel">AI-Assisted Route</button>
+                  </div>
+                  <div id="deadband-self-panel" class="context-panel active investigation" data-panel="nonai" role="tabpanel" aria-labelledby="deadband-self-tab">
+                    <h3>Build and investigate</h3>
+                    <ol>
+                      <li><strong>Keep your FSM and make a separate experiment.</strong> Save a copy of the complete sketch folder from Exercise 7. Secure the robot with both wheels clear of the surface; keep fingers and cables away from the wheels and the power switch accessible. We will test only the left motor in its positive-PWM direction and command the right motor to zero. Keep <code>server.update()</code> and <code>controller.update(robot, server)</code> in the top-level <code>loop()</code>. We will replace the controller's update body below so the FSM and this experiment cannot issue competing commands.</li>
+                      <li><strong>Choose a starting command from evidence.</strong> Revisit your left-wheel, forward, start-from-rest trials. Choose <code>mapping_start_pwm</code> from commands that repeatedly produced sustained movement, not a single encoder twitch. Choose <code>mapping_pwm_limit</code> above it but within a modest, tested range below saturation. The supported command range ends at 200, but that is not a target for this experiment.
+                        <p>Check that these choices remain suitable with the wheels supported. If your earlier data were collected under a different load, take a few short confirmation trials using your Phase 1 test before proceeding. Record the detection criterion, observation interval, rest interval, battery condition and spread across repeats. If no reliable starting region exists below your chosen limit, investigate that first rather than inventing a threshold. Confirm the encoder sign too: positive PWM should give positive speed in the convention used below.</p>
+                      </li>
+                      <li><strong>Add the experiment's settings and memory.</strong> In <code>Controller.h</code>, insert the following inside <code>Controller_c</code>, under <code>private:</code>. Leave the existing declarations in place. Replace the two zero PWM settings with your measured choices; the supplied zeros deliberately prevent a moving trial until you do so. Start with <code>mapping_request = 0.0f</code> and compensation disabled.
+                        <pre data-mapping-code="declarations"><code>enum class MappingState { WAITING, RUNNING, FINISHED };
+MappingState mapping_state;
+unsigned long mapping_start_ms, mapping_last_ms;
+int32_t mapping_last_count;
+
+float mapping_start_pwm = 0.0f;  // Replace with measured starting PWM.
+float mapping_pwm_limit = 0.0f;  // Replace with a tested upper limit.
+float mapping_request = 0.0f;    // q: normalised request, 0 to 1.
+float mapping_encoder_sign = 1.0f;
+bool mapping_use_compensation = false;
+
+bool mappingSettingsValid() const;
+float mapMotorRequest(float request) const;
+void runMappingTrial(Robot_c &amp;robot, unsigned long now, bool encoder_ok);</code></pre>
+                        <p>If your forward encoder counts decrease, change <code>mapping_encoder_sign</code> to <code>-1.0f</code>. At the end of the existing <code>Controller_c::reset()</code> in <code>Controller.cpp</code>, add:</p>
+                        <pre data-mapping-code="initialisation"><code>mapping_state = MappingState::WAITING;
+mapping_start_ms = 0;
+mapping_last_ms = 0;
+mapping_last_count = 0;</code></pre>
+                      </li>
+                      <li><strong>Write the command mapping.</strong> Add these definitions at the end of <code>Controller.cpp</code>, outside all existing functions. The first checks the settings; the second calculates a PWM without sending it. Keeping calculation separate makes it easier to inspect and test.
+                        <pre data-mapping-code="deadband"><code>bool Controller_c::mappingSettingsValid() const {
+  return mapping_start_pwm &gt; 0.0f
+      &amp;&amp; mapping_pwm_limit &gt; mapping_start_pwm
+      &amp;&amp; mapping_pwm_limit &lt;= 200.0f
+      &amp;&amp; mapping_request &gt;= 0.0f &amp;&amp; mapping_request &lt;= 1.0f
+      &amp;&amp; (mapping_encoder_sign == 1.0f || mapping_encoder_sign == -1.0f);
+}
+
+float Controller_c::mapMotorRequest(float request) const {
+  if (!(request &gt; 0.0f)) return 0.0f;
+  float q = constrain(request, 0.0f, 1.0f);
+  if (!mapping_use_compensation) return mapping_pwm_limit * q;
+  return mapping_start_pwm + (mapping_pwm_limit - mapping_start_pwm) * q;
+}</code></pre>
+                        <p>Trace both versions for zero, a small positive request and one. Why must the zero check come before adding the offset? Why do we scale the remaining range by <code>mapping_pwm_limit - mapping_start_pwm</code>, rather than adding the offset to the whole original range? These functions cover forward requests only; do not pass negative requests to test reverse.</p>
+                      </li>
+                      <li><strong>Add a short, non-blocking trial.</strong> Beneath the mapping functions, add the trial below. It waits for the StampC3 button, sends one constant mapped request, measures speed every approximately 50 ms, and requests zero after five seconds. There is no feedback correction: the encoder is observing the result, not changing the command.
+                        <pre><code>WAITING: request zero; a button press checks the settings and starts
+RUNNING:
+    Failed encoder read or elapsed trial time? Request zero and finish
+    Measurement interval ready? Calculate speed and log the result
+FINISHED: keep requesting zero until reset</code></pre>
+                        <pre data-mapping-code="trial"><code>void Controller_c::runMappingTrial(Robot_c &amp;robot, unsigned long now, bool encoder_ok) {
+  if (mapping_state == MappingState::FINISHED) {
+    robot.setMotorPWM(0, 0);
+    return;
+  }
+
+  if (mapping_state == MappingState::WAITING) {
+    robot.setMotorPWM(0, 0);
+    if (!robot.isButtonPressed()) return;
+    if (!encoder_ok || !mappingSettingsValid()) {
+      mapping_state = MappingState::FINISHED;
+      Serial.println("END,0,check_settings_or_encoder");
+      return;
+    }
+    mapping_start_ms = now;
+    mapping_last_ms = now;
+    mapping_last_count = robot.getLeftEncoderCount();
+    float pwm = mapMotorRequest(mapping_request);
+    if (!robot.setMotorPWM(pwm, 0)) {
+      robot.setMotorPWM(0, 0);
+      mapping_state = MappingState::FINISHED;
+      Serial.println("END,0,motor_write_failed");
+      return;
+    }
+    mapping_state = MappingState::RUNNING;
+    Serial.println("record,t_ms,dt_s,left_count,request,compensated,mapped_pwm,sent_pwm,measured_cps");
+    Serial.printf("START,%.3f,%d,%.3f,%d\n", mapping_request,
+                  mapping_use_compensation, pwm, robot.getLeftMotorPWM());
+    return;
+  }
+
+  if (!encoder_ok || now - mapping_start_ms &gt;= 5000UL) {
+    robot.setMotorPWM(0, 0);
+    mapping_state = MappingState::FINISHED;
+    Serial.printf("END,%lu,%s\n", now - mapping_start_ms,
+                  encoder_ok ? "timeout" : "encoder_read_failed");
+    return;
+  }
+
+  unsigned long elapsed_ms = now - mapping_last_ms;
+  if (elapsed_ms &lt; 50UL) return;
+  int32_t count = robot.getLeftEncoderCount();
+  int64_t delta = (int64_t)count - (int64_t)mapping_last_count;
+  if (delta &gt; INT32_MAX) delta -= (int64_t(1) &lt;&lt; 32);
+  if (delta &lt; INT32_MIN) delta += (int64_t(1) &lt;&lt; 32);
+  float dt_s = elapsed_ms * 0.001f;
+  float measured = mapping_encoder_sign * (float)delta / dt_s;
+  mapping_last_count = count;
+  mapping_last_ms = now;
+
+  Serial.printf("MAP,%lu,%.4f,%ld,%.3f,%d,%.3f,%d,%.2f\n",
+                now - mapping_start_ms, dt_s, (long)count,
+                mapping_request, mapping_use_compensation,
+                mapMotorRequest(mapping_request), robot.getLeftMotorPWM(), measured);
+}</code></pre>
+                        <p>The first measurement uses the change since the button press, not the absolute count. Count-wrap handling preserves small differences when the signed counter rolls over. Speed is in counts/s, using actual elapsed seconds; one count in 50 ms is 20 counts/s, so a staircase in the trace can be measurement resolution. Keep the 50 ms interval fixed for your comparisons. Motor-write acknowledgement is not proof of movement; if communication fails, a zero request may fail too, so use the physical power switch if the robot does not stop.</p>
+                      </li>
+                      <li><strong>Connect the trial and check zero first.</strong> Replace the complete definition of <code>Controller_c::update(...)</code> in <code>Controller.cpp</code> with the following. Do not add a second definition or retain the FSM call in this body.
+                        <pre data-mapping-code="update"><code>void Controller_c::update(Robot_c &amp;robot, RobotWifiAP_c &amp;server) {
+  (void)server;
+  unsigned long now = robot.getMillis();
+  if (!update_timer.isReady(now)) return;
+  update_timer.resetTimer(now);
+  bool encoder_ok = robot.getEncoders();
+  if (encoder_ok) {
+    odometry.update(robot.getLeftEncoderCount(), robot.getRightEncoderCount());
+  }
+  runMappingTrial(robot, robot.getMillis(), encoder_ok);
+}</code></pre>
+                        <p>WiFi servicing continues in <code>loop()</code>, but this experiment logs only to Serial and does not publish the usual Digital Twin telemetry. Click <strong>Verify</strong>, upload with the wheels supported, and open Serial Monitor at <code>115200</code>. With valid PWM settings and a zero request, press the button: both wheels should remain unpowered and an <code>END</code> record should appear after approximately five seconds. Check zero with compensation enabled too. A second button press should not restart the finished trial. Power-cycle between trials and allow the same rest interval with the wheel stationary before starting.</p>
+                      </li>
+                      <li><strong>Compare starting with and without compensation.</strong> Choose a small positive <code>mapping_request</code> for which your Phase 1 evidence predicts the uncompensated command will lie in the deadband. Calculate both PWM requests before uploading. Run with <code>mapping_use_compensation = false</code>, then change only that flag to <code>true</code> and repeat. Keep each trial short; switch off if the motor behaves unexpectedly. Repeat each condition at least three times, then test several requests spanning your chosen range, including zero.
+                        <p>Keep the <code>MAP</code> rows as the numeric dataset and preserve <code>START</code>, <code>END</code> and the settings separately. Plot speed against elapsed time, then summarise starting success, time to sustained motion and late-time speed using stated criteria. If a run has not settled, report that rather than choosing a convenient average. Log both <code>mapped_pwm</code> and the cached integer <code>sent_pwm</code>: small differences come from command conversion, not measured motor torque. Alternate the condition order across repeats where practical so battery drift is less likely to favour one version.</p>
+                      </li>
+                      <li><strong>Decide what improved, and keep the limitation visible.</strong> Did the wheel start more reliably? Did a very small positive request produce more speed than you wanted? Plot settled speed against \(q\), retaining repeat variation; do not assume that this relationship is now linear. Explain why reliable starting and smooth low-speed operation are different outcomes.
+                        <p>Keep the original data and mapping as your first compensation model. Only after the left-forward test is understood should you consider other wheel/direction combinations, each with its own measurements and sign checks. Separate starting and running offsets are a possible later extension, but need evidence for when to switch between them. In Exercise 9, we will instead ask the mapping for a particular settled speed.</p>
+                      </li>
+                    </ol>
+                    <div class="measure-row"><span><b>Reuse</b> measured starting behaviour</span><span><b>Compare</b> raw and compensated commands</span><span><b>Explain</b> remaining low-speed limits</span></div>
+                  </div>
+                  <div id="deadband-ai-panel" class="context-panel" data-panel="ai" role="tabpanel" aria-labelledby="deadband-ai-tab" hidden></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article id="exercise-09" class="exercise-card speed-exercise">
+            <div class="exercise-index">09</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motor models · feedforward speed commands</span><h2>Linearise the Motor's Settled-Speed Response</h2></div><span class="time-badge">60–90 min</span></div>
+              <div class="teaching-brief">
+                <p>Your deadband mapping may now start the wheel reliably, but doubling its request need not double the speed. What if the controller could ask for 300 counts/s rather than choosing a PWM and hoping for the right result? Your <a href="motors.html#exercise-05">Phase 1 gain model</a> and <a href="motors.html#exercise-06">response-shape investigation</a> provide a starting point. They predicted speed from PWM; here we will use that relationship in the other direction.</p>
+                <p>An <strong>inverse model</strong> estimates the input needed for a desired output. If your measured moving-region response is adequately described by \(\hat v=Gu+c\), the corresponding PWM estimate for a speed demand \(r\) is:</p>
+                <div class="equation">\[u_{\mathrm{ff}}=\frac{r-c}{G}.\]</div>
+                <p>The subscript “ff” stands for <strong>feedforward</strong>: we choose the command from earlier measurements, without waiting for a current speed error. For illustration, \(G=5\) (counts/s)/PWM and \(c=-100\) counts/s would give 60 PWM for a demand of 200 counts/s. This arithmetic is useful only inside the range where that fitted line predicts adequately. At zero demand we explicitly request zero; extrapolating the line to zero would give an unwanted non-zero command.</p>
+                <p><strong>Linearising the response</strong> here means making settled measured speed approximately proportional to the controller's speed demand over a stated usable range. It does not mean that the physical motor has become linear. A local straight-line inverse may be sufficient; a curved response may need a different inverse. Neither removes acceleration delays, guarantees starting under a new load, or corrects a changing battery condition automatically.</p>
+                <p>We will keep the same left motor and timed trial, changing just the mapping and the meaning of its input. There is no need to add a more elaborate model immediately. First establish whether a simple inverse makes useful predictions at demands you did not use to develop it; then let the remaining error guide your next step.</p>
+              </div>
+              <figure class="motor-diagram">
+                <figcaption>Keep the model and its inverse in different roles. The forward model predicts what a PWM will do; the controller's inverse chooses a PWM for a speed demand. Encoder measurements test the prediction but do not yet correct it.</figcaption>
+                <img class="speed-control-diagram" src="assets/images/phase-2-motor-inverse.svg" alt="Forward modelling maps PWM through a measured response model to predicted settled speed. Feedforward control maps a speed demand through the inverse model to PWM, then through the real motor to measured speed. Demand and measurement are compared for evaluation, with no feedback arrow to the command." />
+              </figure>
+              <div class="exercise-grid">
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Motor response linearisation guidance">
+                    <button id="inverse-self-tab" type="button" class="context-tab active" data-context="nonai" role="tab" aria-selected="true" aria-controls="inverse-self-panel">Self-Directed Route</button>
+                    <button id="inverse-ai-tab" type="button" class="context-tab" data-context="ai" role="tab" aria-selected="false" aria-controls="inverse-ai-panel">AI-Assisted Route</button>
+                  </div>
+                  <div id="inverse-self-panel" class="context-panel active investigation" data-panel="nonai" role="tabpanel" aria-labelledby="inverse-self-tab">
+                    <h3>Build and investigate</h3>
+                    <ol>
+                      <li><strong>Save the deadband experiment and review your fit.</strong> Make a copy of the complete Exercise 8 sketch. Keep its trial, speed estimator, reset assignments, Serial logger and replacement <code>update()</code>. Select the left-forward linear fit from Phase 1, with speed expressed in counts/s. If the original fit used a different speed unit, convert both slope and intercept consistently before using it here.
+                        <p>Choose a PWM interval where the wheel reliably starts from rest, remains below saturation, and the fit predicts settled speed adequately. This may be narrower than the interval you fitted. Do not identify the fitted zero crossing with the breakaway threshold: they are different estimates. If no useful overlap exists, collect a small number of confirmation trials or choose another validated model; do not extrapolate the line through the deadband. Record the load, battery condition and settling time associated with the fit.</p>
+                      </li>
+                      <li><strong>Declare the model and change the input units.</strong> Under <code>private:</code> in <code>Controller.h</code>, beside the mapping settings, add:
+                        <pre data-mapping-code="inverse-declarations"><code>float mapping_gain = 0.0f;           // G: (counts/s) per PWM.
+float mapping_intercept_cps = 0.0f;  // c: counts/s.
+float mapping_model_min_pwm = 0.0f;  // Lower end of the validated range.</code></pre>
+                        <p>Replace these placeholders with your fit and lower boundary. Set the existing <code>mapping_pwm_limit</code> to the upper boundary of that same usable interval. Set <code>mapping_request</code> initially to zero and change its comment to <code>// demanded speed in counts/s</code>. Do not leave an old value such as <code>0.2f</code> thinking it means 20% speed. The existing <code>mapping_start_pwm</code> can remain declared, but the new inverse does not use it. We must not add the deadband offset a second time.</p>
+                        <p>We will reuse <code>mapping_use_compensation</code>: <code>false</code> selects a simple proportional reference and <code>true</code> selects the fitted inverse. Both now accept the same speed demand. The reference joins the origin to the model's upper endpoint; it is a comparison case, not the previous exercise's normalised-input mapping.</p>
+                      </li>
+                      <li><strong>Replace the two mapping functions.</strong> In <code>Controller.cpp</code>, add <code>#include &lt;math.h&gt;</code> immediately after <code>#include "Controller.h"</code>. Replace the complete definitions of <code>mappingSettingsValid()</code> and <code>mapMotorRequest(...)</code> from Exercise 8 with these versions. Do not change the trial function.
+                        <pre data-mapping-code="inverse"><code>bool Controller_c::mappingSettingsValid() const {
+  if (!(isfinite(mapping_gain) &amp;&amp; mapping_gain &gt; 0.0f
+        &amp;&amp; isfinite(mapping_intercept_cps)
+        &amp;&amp; mapping_model_min_pwm &gt; 0.0f
+        &amp;&amp; mapping_pwm_limit &gt; mapping_model_min_pwm
+        &amp;&amp; mapping_pwm_limit &lt;= 200.0f)) return false;
+  float v_min = mapping_gain * mapping_model_min_pwm + mapping_intercept_cps;
+  float v_max = mapping_gain * mapping_pwm_limit + mapping_intercept_cps;
+  bool in_range = mapping_request == 0.0f
+      || (mapping_request &gt;= v_min &amp;&amp; mapping_request &lt;= v_max);
+  return isfinite(v_min) &amp;&amp; isfinite(v_max) &amp;&amp; v_min &gt; 0.0f &amp;&amp; v_max &gt; v_min
+      &amp;&amp; in_range
+      &amp;&amp; (mapping_encoder_sign == 1.0f || mapping_encoder_sign == -1.0f);
+}
+
+float Controller_c::mapMotorRequest(float request) const {
+  if (!(request &gt; 0.0f)) return 0.0f;
+  float v_max = mapping_gain * mapping_pwm_limit + mapping_intercept_cps;
+  float pwm = mapping_use_compensation
+      ? (request - mapping_intercept_cps) / mapping_gain
+      : mapping_pwm_limit * request / v_max;
+  return constrain(pwm, 0.0f, mapping_pwm_limit);
+}</code></pre>
+                        <p>The settings check admits zero or a speed inside the model's usable range; it rejects positive demands in the unvalidated gap below it, rather than silently raising them to a minimum speed. The final clamp bounds the command, but is not permission to request unreachable speeds. These checks establish numerical consistency, not physical validity of the model. In reference mode, the simple proportional command may fall below the useful moving range: observing that failure is part of the comparison.</p>
+                        <p>For a paper check, use the illustrative \(G=5\), \(c=-100\), with a validated interval of 40–80 PWM. What speed range does the code admit? For a 200 counts/s demand, the reference gives approximately 53.3 PWM and the inverse gives 60 PWM. Check zero, both range endpoints, and an out-of-range demand too. Do not use these example parameters as your robot's calibration.</p>
+                      </li>
+                      <li><strong>Check the wiring before testing the model.</strong> Compile, upload with the wheels supported and repeat the zero-demand trial in both modes. Confirm the timeout and no restart without reset. Then choose one modest, in-range speed demand using your own fit, predict its command by hand, and compare with the <code>START</code> record. Keep the right motor at zero.
+                        <p>The <code>request</code> column in each <code>MAP</code> row now means counts/s; label this explicitly when saving and plotting the data so it cannot be confused with Exercise 8's dimensionless \(q\). The <code>compensated</code> column identifies reference versus inverse mode. Record the fit, range, wheel, direction and trial identity alongside the CSV. A failed settings check should prompt you to inspect units and range choices, not remove the check.</p>
+                      </li>
+                      <li><strong>Test predictions you did not fit.</strong> Before collecting new data, choose several attainable demands spread across the validated speed range, including intermediate values not used to construct or select the mapping. For each demand, predict the PWM and expected settled speed. Run at least three repeats in each mode, keeping rest time, support, measurement interval and battery conditions as consistent as practical. Alternate the order where possible.
+                        <p>Plot demanded and measured speed against time. Choose a late-time averaging window based on your settling evidence and use it consistently; five seconds is a starting trial duration, not proof that settling has finished. If necessary, justify and use a longer finite duration for both modes, changing <code>5000UL</code> in the trial's deadline check. Retain the startup trace even when the claim concerns settled speed.</p>
+                        <p>Then plot settled measured speed against demanded speed with the equality line \(v=r\), showing the spread of repeats. Also plot tracking error \(r-v\) against demand. Compare mean absolute error over the same held-back demands, but retain individual failures and variation rather than reporting only one score. Keep the model fixed during this test; if you revise it after seeing these results, reserve new demands for the next validation.</p>
+                      </li>
+                      <li><strong>Use a curved inverse only if the evidence needs it.</strong> A systematic bend in the error plot may show that one local line is inadequate, but changed load, battery condition or insufficient settling can also cause disagreement. Check those explanations before adding complexity. If Phase 1 supports the normalised power law \(\hat v_n=x^\gamma\), with positive \(\gamma\), its inverse is:
+                        <div class="equation">\[\begin{aligned}v_n&amp;=\frac{r-v_{\min}}{v_{\max}-v_{\min}}\\u_{\mathrm{ff}}&amp;=u_{\min}+(u_{\max}-u_{\min})\,v_n^{1/\gamma}.\end{aligned}\]</div>
+                        <p>Use the same PWM and speed normalisation boundaries as your fitted power-law model, not newly substituted endpoints from the linear fit. A zero demand still bypasses the inverse and requests zero PWM; positive demands outside the validated interval remain unsupported. At the lowest supported non-zero demand, the formula returns \(u_{\min}\), not zero.</p>
+                        <p>As an optional extension, save your linear version, add the power-law parameters beside the other settings in <code>Controller.h</code>, and replace the compensated branch in <code>mapMotorRequest(...)</code>. Use <code>powf(v_normalised, 1.0f / gamma)</code> for the power. Update <code>mappingSettingsValid()</code> to check finite parameters, increasing boundaries, positive gamma and the new demand interval. Do not put this calculation after the deadband mapping. The following pseudocode also describes a lookup-table alternative if your measured curve is not well represented by one equation:</p>
+                        <pre><code>Choose either an equation inverse OR a lookup table
+Zero demand? Return zero PWM
+Demand outside the validated speed interval? Reject the trial
+For a lookup table:
+    Store ordered pairs of settled speed and the PWM that produced it
+    Require strictly increasing speeds and increasing PWM
+    Find the two entries that bracket the requested speed
+    Interpolate PWM between those entries
+    Never extrapolate beyond the validated endpoints
+Apply the same tested upper command limit</code></pre>
+                        <p>For neighbouring entries \((v_a,u_a)\) and \((v_b,u_b)\), interpolation gives \(u=u_a+(u_b-u_a)(r-v_a)/(v_b-v_a)\). Use repeat summaries from an established monotonic region; do not blindly sort noisy measurements into an apparent inverse. Exclude deadband and saturation plateaux, where many commands can give indistinguishable speeds. For a quadratic fit, an inverse is only meaningful on a validated monotonic branch; selecting an arbitrary root is not a solution. Compare any extension against the saved linear mapping on the same independent test conditions. Retaining the line is a valid result.</p>
+                      </li>
+                      <li><strong>Connect the result to the Digital Twin and feedback.</strong> Keep two roles separate: the simulator's forward motor model should reproduce the imperfections you measured, while the controller's inverse tries to compensate for them. Do not make the simulated motor ideal to obtain a better-looking result. When implementing the mapping in Processing's <code>Controller.pde</code>, explicitly reconcile its units and timing with the StampC3 version; the C++ edits do not transfer automatically.
+                        <p>Save your feedforward-only code and validation plots. In <a href="#exercise-10">Exercise 10</a> we will keep this experimental framework but bypass the mapping to measure what P feedback alone can do. <a href="#exercise-13">Exercise 13</a> then compares feedforward, PI and their combination using one trial. For now, identify the errors your fixed mapping cannot correct. Those limitations give feedback a clear job to do.</p>
+                      </li>
+                    </ol>
+                    <div class="measure-row"><span><b>Invert</b> an evidence-backed model</span><span><b>Validate</b> unseen speed demands</span><span><b>Separate</b> feedforward and feedback</span></div>
+                  </div>
+                  <div id="inverse-ai-panel" class="context-panel" data-panel="ai" role="tabpanel" aria-labelledby="inverse-ai-tab" hidden></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article id="exercise-10" class="exercise-card speed-exercise">
+            <div class="exercise-index">10</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motor speed · proportional feedback</span><h2>Control One Motor with a P-Controller</h2></div><span class="time-badge">60–90 min</span></div>
+              <div class="teaching-brief">
+                <p>In Exercise 9, your inverse model chose a PWM for a demanded wheel speed. The measured speed may have been close, or you may have found a repeatable gap. Either result gives us a useful next question: could the controller use the encoder measurement to adjust its command while the wheel is moving? A fixed mapping cannot respond to an unexpected change by itself. A <strong>feedback controller</strong> repeatedly measures the output, compares it with the demand, and acts on the difference.</p>
+                <p>We will keep the same left motor, supported-wheel arrangement and speed measurement. You have already done the work needed to identify a sensible operating range; here we will use it to investigate a different command rule. A <strong>proportional controller</strong>, or P-controller, multiplies the current speed error by a gain, \(K_p\). If measured speed is below demand, a positive error requests more forward PWM. As the wheel approaches demand, that contribution gets smaller.</p>
+                <div class="equation">\(e_k = r_k - v_k,\qquad P_k = K_p e_k,\qquad u_k = \operatorname{clip}(P_k,\,0,\,u_{\max})\)</div>
+                <p>Here, \(r_k\) is demanded speed, \(v_k\) is measured speed, and \(u_k\) is the PWM request at update \(k\). We use encoder counts per second throughout these exercises. The output is limited to forward PWM: a negative error reduces the request towards zero, rather than commanding reverse. This is a forward-speed experiment, so reducing speed relies on the wheel slowing under a reduced command.</p>
+                <p>There is a useful limitation to discover. A real motor normally needs a non-zero command to sustain a non-zero speed. With this P-only rule, exactly zero error produces zero PWM, so exact tracking cannot generally persist. The wheel does not stop instantly when PWM falls: it has inertia. A stable response may settle below demand with a persistent error that supplies the necessary command. With other gains or operating conditions, you may instead observe pulsing or oscillation. We will use measurements to establish which occurs, before adding integral action in <a href="#exercise-11">Exercise 11</a>.</p>
+                <p>For this first feedback experiment, we deliberately bypass the mappings from Exercises 8 and 9. This is an experimental comparison, not a suggestion that your earlier work was unnecessary. P alone lets us observe how much persistent error is needed to sustain a command. Keep the inverse model and its recordings: in <a href="#exercise-13">Exercise 13</a>, we will test whether prediction and feedback work usefully together.</p>
+                <p>This progression is also illustrated in the <a href="https://ctms.engin.umich.edu/CTMS/?example=MotorSpeed&amp;section=ControlPID" target="_blank" rel="noopener">University of Michigan motor-speed control tutorial</a>. Its model and gains are examples, not a calibration of your robot.</p>
+              </div>
+              <figure class="motor-diagram">
+                <figcaption>One wheel's feedback loop. Keep this measurement path and logging format for the P, PI and PID comparisons.</figcaption>
+                <img class="speed-control-diagram" src="assets/images/phase-2-speed-feedback.svg" alt="Demanded speed minus measured speed gives the error. The controller converts error into a PWM request, which is limited before driving the left motor. Encoder count change divided by elapsed time estimates wheel speed and feeds it back to the comparison." />
+              </figure>
+              <div class="exercise-grid">
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Proportional speed control guidance">
+                    <button id="speed-p-self-tab" type="button" class="context-tab active" data-context="nonai" role="tab" aria-selected="true" aria-controls="speed-p-self-panel">Self-Directed Route</button>
+                    <button id="speed-p-ai-tab" type="button" class="context-tab" data-context="ai" role="tab" aria-selected="false" aria-controls="speed-p-ai-panel">AI-Assisted Route</button>
+                  </div>
+                  <div id="speed-p-self-panel" class="context-panel active investigation" data-panel="nonai" role="tabpanel" aria-labelledby="speed-p-self-tab">
+                    <h3>Build and investigate</h3>
+                    <ol>
+                      <li><strong>Continue from your motor-mapping experiment.</strong> Save the complete Exercise 9 sketch and recordings, then make a working copy for feedback. Keep <code>mapMotorRequest(...)</code>, <code>mappingSettingsValid()</code>, their declarations and all model settings for later use, but do not call the mapping when calculating P-only PWM. Keep the robot supported, both wheels clear of the surface, fingers and cables clear, and the power switch accessible. The right motor remains at zero.
+                        <p>We will replace <code>runMappingTrial(...)</code> with <code>runSpeedTrial(...)</code>: the button, timing and encoder-measurement structure will be familiar, but now each new measurement changes the command. Remove the old trial function definition and declaration, the <code>MappingState</code> enum, <code>mapping_state</code>, <code>mapping_start_ms</code>, <code>mapping_last_ms</code> and <code>mapping_last_count</code>, and their four assignments in <code>reset()</code>. Do not remove the model parameters, <code>mapping_request</code>, <code>mapping_encoder_sign</code> or <code>mapping_use_compensation</code>. Keep the top-level <code>loop()</code> unchanged. Complete the replacements below before compiling.</p>
+                      </li>
+                      <li><strong>Carry your measured settings into the feedback trial.</strong> Choose a modest positive demand within the usable speed range you validated in Exercise 9. Copy its value in counts/s into <code>speed_target_cps</code> below, copy the tested <code>mapping_pwm_limit</code> into <code>speed_pwm_limit</code>, and copy <code>mapping_encoder_sign</code> into <code>speed_encoder_sign</code>. These are separate settings, not automatically linked variables. Do not substitute a normalised request from Exercise 8 for a speed demand.
+                        <p>Retain the 50 ms measurement interval and the same count-change-over-elapsed-seconds calculation. For example, 15 counts in 50 ms is 300 counts/s; one count in that interval is 20 counts/s. Longer intervals smooth the estimate but delay feedback, so keep this choice fixed while comparing gains. Your <a href="motors.html#exercise-02">Phase 1 speed measurements</a> remain a useful reference if the sign or units are unclear. Do not make \(K_p\) negative to disguise an encoder-sign error.</p>
+                        <p>The example settings in the code are not a calibration. Replace them before running, using your own demand and limit. An unreachable demand cannot be made reachable by increasing a gain. Keep the inverse model saved and select <code>mapping_use_compensation = true</code> so it is ready for later comparison; this flag has no effect on the P-only path because that path never calls <code>mapMotorRequest(...)</code>.</p>
+                      </li>
+                      <li><strong>Add the feedback trial's memory and settings.</strong> In <code>Controller.h</code>, insert these declarations inside <code>Controller_c</code> under <code>private:</code>, where you removed the mapping-trial declarations. The saved mapping functions and parameters remain separate. We include zero-valued I and D columns now so the logger can stay the same in the next two exercises.
+                        <pre data-speed-code="declarations"><code>enum class SpeedState { WAITING, RUNNING, FINISHED };
+SpeedState speed_state;
+unsigned long speed_start_ms;
+unsigned long speed_last_ms;
+int32_t speed_last_count;
+
+float speed_target_cps = 300.0f;
+float speed_kp = 0.10f;
+float speed_pwm_limit = 60.0f;
+float speed_encoder_sign = 1.0f;
+
+float speed_error, speed_p, speed_i, speed_d;
+float speed_raw, speed_pwm;
+
+void resetSpeedMemory();
+float calculateSpeedPWM(float demand, float measured, float dt_s);
+void runSpeedTrial(Robot_c &amp;robot, unsigned long now, bool encoder_ok);</code></pre>
+                        <p>At the end of the existing <code>Controller_c::reset()</code> body in <code>Controller.cpp</code>, add:</p>
+                        <pre data-speed-code="initialisation"><code>speed_state = SpeedState::WAITING;
+speed_start_ms = 0;
+speed_last_ms = 0;
+speed_last_count = 0;
+resetSpeedMemory();</code></pre>
+                        <p>Then add this new function at the end of <code>Controller.cpp</code>, outside every other function. It clears controller memory without changing your chosen gains.</p>
+                        <pre data-speed-code="reset"><code>void Controller_c::resetSpeedMemory() {
+  speed_error = 0.0f;
+  speed_p = 0.0f;
+  speed_i = 0.0f;
+  speed_d = 0.0f;
+  speed_raw = 0.0f;
+  speed_pwm = 0.0f;
+}</code></pre>
+                      </li>
+                      <li><strong>Write the P-controller.</strong> Beneath <code>resetSpeedMemory()</code>, add this definition. It calculates an absolute PWM request, not an increment to add to the previous PWM.
+                        <pre data-speed-code="p"><code>float Controller_c::calculateSpeedPWM(float demand, float measured, float dt_s) {
+  (void)dt_s;  // P alone does not need the time interval.
+  speed_error = demand - measured;
+  speed_p = speed_kp * speed_error;
+  speed_i = 0.0f;
+  speed_d = 0.0f;
+  speed_raw = speed_p;
+  speed_pwm = constrain(speed_raw, 0.0f, speed_pwm_limit);
+  return speed_pwm;
+}</code></pre>
+                        <p>The units of \(K_p\) are PWM per (count/s). As an arithmetic check, with a demand of 300 counts/s, measured speed of 200 counts/s and \(K_p=0.10\), the P contribution is 10 PWM. What does this function request when measured speed reaches demand? What happens when measured speed exceeds demand? Do not add a fixed forward PWM bias in this experiment: we want to observe what P alone can sustain.</p>
+                      </li>
+                      <li><strong>Replace the mapping trial with a feedback trial.</strong> Add the following function beneath <code>calculateSpeedPWM(...)</code>, in place of the removed <code>runMappingTrial(...)</code>. It retains the button-start, count-wrap handling and 50 ms estimator from Exercise 9. The key change is that each fresh speed measurement now produces a new command. The trial lasts 10 seconds, then requests zero PWM and remains finished until reset. A failed encoder read ends the trial rather than treating an old count as a new measurement.
+                        <pre><code>While waiting: request zero PWM
+On button press: clear controller memory and save count/time
+While running:
+    Check the trial deadline and whether encoder acquisition succeeded
+    When the measurement interval has elapsed:
+        Estimate speed from count change / elapsed seconds
+        Calculate the controller output once for this measurement
+        Send the limited command to the left motor; keep the right at zero
+        Log the measurement and each controller contribution
+On completion: request zero PWM and clear controller memory</code></pre>
+                        <pre data-speed-code="trial"><code>void Controller_c::runSpeedTrial(Robot_c &amp;robot, unsigned long now, bool encoder_ok) {
+  if (speed_state == SpeedState::FINISHED) {
+    robot.setMotorPWM(0, 0);
+    return;
+  }
+
+  if (speed_state == SpeedState::WAITING) {
+    robot.setMotorPWM(0, 0);
+    if (encoder_ok &amp;&amp; robot.isButtonPressed()) {
+      resetSpeedMemory();
+      speed_start_ms = now;
+      speed_last_ms = now;
+      speed_last_count = robot.getLeftEncoderCount();
+      speed_state = SpeedState::RUNNING;
+      Serial.println("record,t_ms,dt_s,left_count,demand_cps,measured_cps,error_cps,P_pwm,I_pwm,D_pwm,raw_pwm,limited_pwm,sent_pwm");
+    }
+    return;
+  }
+
+  if (!encoder_ok || now - speed_start_ms &gt;= 10000UL) {
+    robot.setMotorPWM(0, 0);
+    speed_state = SpeedState::FINISHED;
+    resetSpeedMemory();
+    Serial.printf("END,%lu,%s\n", now - speed_start_ms,
+                  encoder_ok ? "timeout" : "encoder_read_failed");
+    return;
+  }
+
+  unsigned long elapsed_ms = now - speed_last_ms;
+  if (elapsed_ms &lt; 50UL) return;
+
+  int32_t current_count = robot.getLeftEncoderCount();
+  int64_t delta_count = (int64_t)current_count - (int64_t)speed_last_count;
+  // Allow for a signed 32-bit encoder counter wrapping.
+  if (delta_count &gt; INT32_MAX) delta_count -= (int64_t(1) &lt;&lt; 32);
+  if (delta_count &lt; INT32_MIN) delta_count += (int64_t(1) &lt;&lt; 32);
+  float dt_s = elapsed_ms * 0.001f;
+  float measured = speed_encoder_sign * (float)delta_count / dt_s;
+  speed_last_count = current_count;
+  speed_last_ms = now;
+
+  float demand = speed_target_cps;
+  float pwm = calculateSpeedPWM(demand, measured, dt_s);
+  if (!robot.setMotorPWM(pwm, 0)) {
+    robot.setMotorPWM(0, 0);
+    speed_state = SpeedState::FINISHED;
+    resetSpeedMemory();
+    Serial.printf("END,%lu,motor_write_failed\n", now - speed_start_ms);
+    return;
+  }
+  Serial.printf("SPEED,%lu,%.4f,%ld,%.2f,%.2f,%.2f,%.3f,%.3f,%.3f,%.3f,%.3f,%d\n",
+                now - speed_start_ms, dt_s, (long)current_count,
+                demand, measured, speed_error,
+                speed_p, speed_i, speed_d, speed_raw, speed_pwm,
+                robot.getLeftMotorPWM());
+}</code></pre>
+                        <p>The first command and speed calculation wait for a complete measurement interval; unlike Exercise 9, we do not send a moving command at the button press. Account for this initial wait when comparing startup traces. The absolute encoder count at startup is not a travelled distance. <code>raw_pwm</code> is the controller's unconstrained request, <code>limited_pwm</code> is after our clamp, and <code>sent_pwm</code> is the cached integer request from the interface. None measures motor voltage or torque. As before, use the power switch if a communication failure prevents the robot responding to a zero command.</p>
+                      </li>
+                      <li><strong>Connect the experiment to the sketch.</strong> Replace the complete definition of <code>Controller_c::update(...)</code> in <code>Controller.cpp</code> with this version. Replace it once; do not add a second definition.
+                        <pre data-speed-code="update"><code>void Controller_c::update(Robot_c &amp;robot, RobotWifiAP_c &amp;server) {
+  (void)server;  // This experiment records to Serial.
+  unsigned long now = robot.getMillis();
+  if (!update_timer.isReady(now)) return;
+  update_timer.resetTimer(now);
+
+  bool encoder_ok = robot.getEncoders();
+  if (encoder_ok) {
+    odometry.update(robot.getLeftEncoderCount(), robot.getRightEncoderCount());
+  }
+  runSpeedTrial(robot, robot.getMillis(), encoder_ok);
+}</code></pre>
+                        <p>Compared with Exercise 9, the final call changes from <code>runMappingTrial(...)</code> to <code>runSpeedTrial(...)</code>. Acquisition, the update timer and local odometry remain the same. The timestamp comes from the StampC3 just after acquisition; it approximates the acquisition interval and is not a hardware encoder timestamp. Do not call the old mapping trial, FSM or motion helpers alongside the new trial. WiFi servicing continues, but this experiment still records to Serial rather than sending the usual Digital Twin telemetry.</p>
+                      </li>
+                      <li><strong>Verify the setup before tuning.</strong> Compile, upload with the wheels supported, and open Serial Monitor at <code>115200</code>. Confirm that both motors wait at zero, then press the StampC3 button. Check that only the left wheel is commanded, its measured sign is sensible, and the trial ends at approximately 10 seconds. A second press should not restart it. Power-cycle between trials. If a positive command produces an increasingly negative speed estimate, stop and correct the encoder sign before increasing any gain.</li>
+                      <li><strong>Tune P and keep the evidence.</strong> Record the demand, \(K_p\), PWM limit, measurement interval, wheel, battery condition and whether the wheel is unloaded. Plot demand and measured speed against time, with error and requested PWM in separate aligned plots. Use the numeric fields on <code>SPEED</code> rows; retain the header and <code>END</code> reason separately.
+                        <p>Before running, predict the first moving request: from rest it is approximately \(\operatorname{clip}(K_p r,0,U)\). Compare it with the starting PWM you established in Exercise 8. Below that region the wheel may not start; above it, starting is more plausible but stable control is not guaranteed. For illustration, \(K_p=0.10\) and \(r=300\) counts/s give 30 PWM before limiting. Compare this with your measured starting behaviour, not a universal threshold.</p>
+                        <p>Start with a modest positive gain and increase it in small, recorded steps while keeping demand and timing fixed. Look for the trade-off between response time, settled error, oscillation and time spent at the PWM limit. Do not cure a P-only starting failure by quietly adding the deadband offset: that would change the controller being tested. Back off when oscillation or saturation obscures the behaviour; sustained oscillation is not a required tuning target.</p>
+                        <p>Repeat a promising gain at least three times. Estimate mean error over a stated late-time window and show its variation; if the response has not settled, say so. Distinguish a P-only offset from an unreachable demand or an incorrect speed estimate. Keep a stable P-only result and its raw data as the baseline for Exercise 11. A plot that settles below demand can be exactly the evidence this exercise needs.</p>
+                      </li>
+                    </ol>
+                    <div class="measure-row"><span><b>Measure</b> one wheel's speed</span><span><b>Tune</b> proportional action</span><span><b>Explain</b> residual error</span></div>
+                  </div>
+                  <div id="speed-p-ai-panel" class="context-panel" data-panel="ai" role="tabpanel" aria-labelledby="speed-p-ai-tab" hidden></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article id="exercise-11" class="exercise-card speed-exercise">
+            <div class="exercise-index">11</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motor speed · integral action</span><h2>Remove Persistent Speed Error with a PI-Controller</h2></div><span class="time-badge">45–75 min</span></div>
+              <div class="teaching-brief">
+                <p>Your P-controller may now produce a repeatable speed while still falling short of demand. Increasing \(K_p\) can reduce that gap, but it also makes the controller react more strongly to every speed fluctuation. Could we give it a separate way to respond to an error that persists over time?</p>
+                <p>An <strong>integral term</strong> remembers accumulated error. On each new speed sample, we add a small amount proportional to error and elapsed time. If the wheel remains too slow, the I contribution grows; if it becomes too fast, that contribution decreases. When error reaches zero, the contribution stops changing but retains its existing value. It can therefore supply the non-zero command needed to sustain speed while the P contribution becomes small.</p>
+                <p>You have already met another way to supply sustained drive: the inverse model in Exercise 9 predicted a PWM from earlier measurements. Integral action reaches a command differently, by accumulating error during the current run. A good feedforward prediction may start close to the required command; an integrator needs time to build its contribution, but can respond to a persistent mismatch the fixed model did not predict. Neither is automatically better under every condition. Here we keep feedforward disabled so we can inspect how the integral develops.</p>
+                <div class="equation">\(I_k = I_{k-1} + K_i e_k \Delta t_k,\qquad u_k = \operatorname{clip}(P_k + I_k,\,0,\,u_{\max})\)</div>
+                <p>Here \(I_k\) is already a contribution in PWM units: \(K_i\) is included in each increment, so we must not multiply by it again when forming the output. We will inspect this accumulation directly before judging the wheel's motion. A correctly tuned PI-controller can reduce persistent error for a reachable constant demand in stable operation; finite measurement resolution, changing loads and command limits still affect what you observe.</p>
+                <p>The command limit matters because an integral can keep growing while the motor is already receiving the largest permitted command. This is <strong>integral wind-up</strong>, and it can delay recovery when demand falls. We will use conditional integration to reject changes that push further into our software limit. This follows the principle described in the <a href="https://www.mathworks.com/help/simulink/slref/anti-windup-control-using-a-pid-controller.html" target="_blank" rel="noopener">MathWorks anti-windup example</a>; it only addresses the limit we know and apply, not every possible limit or lag in the physical system.</p>
+              </div>
+              <div class="exercise-grid">
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Proportional-integral speed control guidance">
+                    <button id="speed-pi-self-tab" type="button" class="context-tab active" data-context="nonai" role="tab" aria-selected="true" aria-controls="speed-pi-self-panel">Self-Directed Route</button>
+                    <button id="speed-pi-ai-tab" type="button" class="context-tab" data-context="ai" role="tab" aria-selected="false" aria-controls="speed-pi-ai-panel">AI-Assisted Route</button>
+                  </div>
+                  <div id="speed-pi-self-panel" class="context-panel active investigation" data-panel="nonai" role="tabpanel" aria-labelledby="speed-pi-self-tab">
+                    <h3>Build and investigate</h3>
+                    <ol>
+                      <li><strong>Continue with the same left motor and trial.</strong> Save your P-only code and recordings. Keep the support arrangement, demand, \(K_p\), PWM limit and 50 ms measurement interval unchanged initially. Keep the right motor at zero. In <code>Controller.h</code>, add the following next to <code>speed_kp</code>:
+                        <pre data-speed-code="pi-declarations"><code>float speed_ki = 0.0f;</code></pre>
+                        <p>We start with zero so the new code can first reproduce the P-only baseline. With speed in counts/s and time in seconds, \(K_i\) has units of PWM per count. Check that <code>speed_i</code> is a member of <code>Controller_c</code>, not a local variable that is recreated on each call. The existing <code>resetSpeedMemory()</code> already clears it at the start and end of a trial.</p>
+                      </li>
+                      <li><strong>Replace the controller calculation with PI.</strong> In <code>Controller.cpp</code>, replace the entire <code>calculateSpeedPWM(...)</code> definition from Exercise 10 with this one. Leave the speed estimator, trial function and logger intact.
+                        <pre><code>For each new speed sample:
+    Calculate error and P contribution
+    Propose I_new = I_old + Ki × error × elapsed_seconds
+    Would this change push further beyond an output limit?
+        Yes: keep I_old
+        No: accept I_new
+    Add P and I, then limit the PWM request</code></pre>
+                        <pre data-speed-code="pi"><code>float Controller_c::calculateSpeedPWM(float demand, float measured, float dt_s) {
+  speed_error = demand - measured;
+  speed_p = speed_kp * speed_error;
+  speed_d = 0.0f;
+
+  float i_candidate = speed_i + speed_ki * speed_error * dt_s;
+  float candidate_output = speed_p + i_candidate;
+  bool pushes_high = candidate_output &gt; speed_pwm_limit &amp;&amp; speed_error &gt; 0.0f;
+  bool pushes_low = candidate_output &lt; 0.0f &amp;&amp; speed_error &lt; 0.0f;
+  if (!pushes_high &amp;&amp; !pushes_low) {
+    speed_i = i_candidate;
+  }
+
+  speed_raw = speed_p + speed_i;
+  speed_pwm = constrain(speed_raw, 0.0f, speed_pwm_limit);
+  return speed_pwm;
+}</code></pre>
+                        <p>Notice that only the proposed integral increment is rejected at a limit; we still calculate a new motor request. An error that would bring the output back towards the permitted range is allowed to unwind the integral. Merely clipping the final PWM would not prevent the hidden integral value from growing. Compile and repeat the P baseline with <code>speed_ki = 0.0f</code> before adding integral action.</p>
+                      </li>
+                      <li><strong>Check accumulation and sign with a small calculation.</strong> Before running the motor with non-zero \(K_i\), trace the update by hand using these illustrative values: \(K_i=0.02\), \(\Delta t=0.05\) s, and an initial I contribution of zero. For this arithmetic check only, take \(K_p=0\) so that the following small positive I values remain within the output limits.
+                        <pre><code>Error (counts/s)    Change in I (PWM)    New I (PWM)
+     +100                +0.10              0.10
+     +100                +0.10              0.20
+        0                 0.00              0.20
+      -50                -0.05              0.15</code></pre>
+                        <p>Explain why zero error preserves 0.20 PWM rather than clearing it, and why negative error reduces the stored positive contribution rather than necessarily making it negative. With the same constant error held for twice as long, the accumulated change should double. Integrating milliseconds as though they were seconds would make the increment 1000 times too large. Reusing an old speed sample on every faster <code>loop()</code> call would also accumulate incorrectly; our trial calls the calculation once per new measurement interval.</p>
+                      </li>
+                      <li><strong>Introduce a small positive integral gain.</strong> Choose a starting \(K_i\) by predicting the increase in PWM over one second at the error seen in your P-only trial. Keep that predicted increase modest relative to your PWM limit; the arithmetic example is not a tuned gain recommendation. Run a short supported-wheel trial and plot the I contribution alongside error, P, raw output and limited output.
+                        <p>Inspect a few consecutive <code>SPEED</code> rows. Away from a limit, does <code>I_now - I_previous</code> approximately equal <code>Ki × error_now × dt_s_now</code>, allowing for printed precision? Does positive error make I grow, zero error make it hold, and negative error make it decrease? At a limit, a held I value may be the intended conditional-integration rule. Explain that from the proposed output rather than assuming the integrator is broken.</p>
+                        <p>If I changes with the wrong sign, check <code>demand - measured</code>, the encoder direction and the sign of \(K_i\). If I never accumulates, look for a reset inside the measurement loop or a local variable shadowing <code>speed_i</code>. If it grows unexpectedly fast, check seconds versus milliseconds and how often the update is called. Resolve these questions before increasing the gain.</p>
+                      </li>
+                      <li><strong>Tune I while watching the whole response.</strong> Hold \(K_p\) fixed at first and increase \(K_i\) in small, recorded steps. Look for the residual error reducing while the I contribution supplies more of the sustained PWM. Also watch for overshoot, slow oscillation and time spent at a limit. Reduce \(K_i\) if the accumulated correction makes the response worse. P and I interact, so you may later revisit \(K_p\), but change one gain at a time and keep the previous result for comparison.</li>
+                      <li><strong>Test a decrease in demand and recovery from the limit.</strong> In <code>runSpeedTrial(...)</code>, replace only <code>float demand = speed_target_cps;</code> with this schedule:
+                        <pre data-speed-code="demand-step"><code>float demand = (now - speed_start_ms &lt; 5000UL)
+                 ? speed_target_cps
+                 : 0.6f * speed_target_cps;</code></pre>
+                        <p>Choose the starting demand so that both speeds are in the usable region you confirmed in Exercise 9. The factor <code>0.6f</code> is a proposed test, not a guarantee that the lower speed is supported. If it falls below your validated range, choose a different fraction between zero and one and record it for subsequent comparisons. Predict what happens to error and I just after the demand falls. Do not reset I at this step: observing it adjust is the purpose of the trial. A negative error should reduce I unless the proposed update is blocked by the lower output limit. Because our output cannot reverse, deceleration may take time even when the request reaches zero.</p>
+                        <p>To check anti-windup without holding or stalling the wheel, run a separate trial with a lower positive software PWM limit that makes the first demand unattainable but still permits the second. Use your measured PWM–speed relationship to choose it. Look for saturation, a bounded I contribution and recovery after the decrease. If there is no such useful range in your measurements, trace the limiting cases in code instead of forcing a physical test. Restore the original limit afterwards. The 10-second timeout should still request zero PWM and clear the stored I contribution.</p>
+                      </li>
+                      <li><strong>Compare P and PI using the same test.</strong> Run the same demand schedule with \(K_i=0\), then with your chosen PI gains, using at least three repeats of each. Compare late-time mean error, overshoot, settling behaviour and saturation under the same conditions. Define your settling band and measurement window before judging the plots; if encoder quantisation is larger than your band, revise the criterion and state why. Keep enough raw data to show both improvement and variation. Finish by explaining how a non-zero I contribution can sustain the motor when the P contribution is small.</li>
+                      <li><strong>Compare the sustained command with your inverse-model prediction.</strong> For an in-range demand, calculate the PWM that Exercise 9's saved model predicts. Keep this as an analysis value; do not add it to the PI output yet. In a settled, unsaturated window where measured speed is close to demand, compare that prediction with the mean PI request, \(P+I\), and show the contributions separately.
+                        <p>If P is small, much of the drive may now come from I. Does the total lie near the model's prediction, allowing for repeat variation and integer PWM conversion? Agreement supports the model under these conditions; it does not establish a true motor parameter. A gap may reflect changed battery or load, model error, a remaining speed error, or incomplete settling. If speed is still changing or the output is limited, report why this is not yet a like-for-like steady-speed comparison. Do not tune I merely to make its numerical value equal the feedforward estimate.</p>
+                        <p>Save this PI-only sketch before Exercise 12. Keep both the PI result and the earlier feedforward result: Exercise 13 will compare them under a common schedule, then test their combination.</p>
+                      </li>
+                    </ol>
+                    <div class="measure-row"><span><b>Inspect</b> integral sign and memory</span><span><b>Limit</b> wind-up</span><span><b>Compare</b> P and PI evidence</span></div>
+                  </div>
+                  <div id="speed-pi-ai-panel" class="context-panel" data-panel="ai" role="tabpanel" aria-labelledby="speed-pi-ai-tab" hidden></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article id="exercise-12" class="exercise-card speed-exercise">
+            <div class="exercise-index">12</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motor speed · derivative action</span><h2>Investigate Whether PID Improves Speed Control</h2></div><span class="time-badge">45–75 min</span></div>
+              <div class="teaching-brief">
+                <p>You now have a PI-controller whose individual contributions you can inspect. A third term, <strong>derivative action</strong>, responds to how quickly a signal is changing. For example, if speed is rising rapidly towards demand, a negative D contribution can reduce the drive before the P error becomes small. This can help damp a response, but an encoder estimate that jumps between discrete values also looks as though it is changing rapidly.</p>
+                <p>We will therefore treat PID as a candidate improvement to test. The derivative will act on <strong>measured speed</strong>: \(D=-K_d\,dv/dt\). With a constant demand this equals differentiating the error, but it avoids a direct derivative spike when we step the demand. We will also smooth the estimated rate with a first-order filter. Filtering reduces rapid fluctuations while adding delay, so its effect must be part of your comparison.</p>
+                <div class="equation">\[\begin{aligned}a_k &amp;= \frac{v_k-v_{k-1}}{\Delta t_k}\\ \alpha_k &amp;= \frac{\Delta t_k}{\tau_d+\Delta t_k}\\ \bar a_k &amp;= \bar a_{k-1}+\alpha_k(a_k-\bar a_{k-1})\\ D_k &amp;= -K_d\bar a_k\end{aligned}\]</div>
+                <p>Here \(a_k\) is the rate of change of the speed estimate and \(\bar a_k\) is its filtered value; neither is a reading from the robot's accelerometer. The filter time constant \(\tau_d\) is in seconds. The <a href="https://www.mathworks.com/help/simulink/slref/pidcontroller2dof.html" target="_blank" rel="noopener">MathWorks PID documentation</a> describes filtered derivative action and separate treatment of demand and measurement. You do not need MATLAB or Simulink for this exercise: we will implement and inspect the calculation in your existing C++ controller.</p>
+                <p>A useful result may be that PI already gives the better trade-off for this motor and sampling interval. The aim is to justify a controller choice from repeated measurements, not to make every term non-zero.</p>
+                <p>This is still a feedback-only comparison: neither version uses the deadband mapping or inverse model. Derivative action responds to changes in measured speed; it does not supply a model-based steady-speed command or make an inaccurate mapping correct. At a genuinely constant measured speed its contribution tends towards zero. Keeping the command path unchanged helps us attribute any difference between these trials to D and its filter.</p>
+              </div>
+              <div class="exercise-grid">
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Proportional-integral-derivative speed control guidance">
+                    <button id="speed-pid-self-tab" type="button" class="context-tab active" data-context="nonai" role="tab" aria-selected="true" aria-controls="speed-pid-self-panel">Self-Directed Route</button>
+                    <button id="speed-pid-ai-tab" type="button" class="context-tab" data-context="ai" role="tab" aria-selected="false" aria-controls="speed-pid-ai-panel">AI-Assisted Route</button>
+                  </div>
+                  <div id="speed-pid-self-panel" class="context-panel active investigation" data-panel="nonai" role="tabpanel" aria-labelledby="speed-pid-self-tab">
+                    <h3>Build and investigate</h3>
+                    <ol>
+                      <li><strong>Preserve a PI reference run.</strong> Save your PI code, gains and recordings. Keep the same left motor, support arrangement, demand schedule, PWM limit and measurement interval, including any revised lower-demand fraction from Exercise 11. Confirm that neither PI nor PID calls <code>mapMotorRequest(...)</code> or adds a deadband offset. Add these members next to the speed-controller settings under <code>private:</code> in <code>Controller.h</code>:
+                        <pre data-speed-code="pid-declarations"><code>float speed_kd = 0.0f;
+float speed_d_tau_s = 0.10f;
+float speed_previous_measured;
+float speed_filtered_rate;
+bool speed_have_previous;</code></pre>
+                        <p>With speed measured in counts/s, \(K_d\) has units of PWM per (count/s²). The filter's 0.10 s value is an initial choice to record and evaluate. At the end of <code>resetSpeedMemory()</code> in <code>Controller.cpp</code>, add these assignments so each trial starts without a remembered derivative:</p>
+                        <pre data-speed-code="pid-reset"><code>speed_previous_measured = 0.0f;
+speed_filtered_rate = 0.0f;
+speed_have_previous = false;</code></pre>
+                      </li>
+                      <li><strong>Extend the PI calculation to filtered PID.</strong> Replace the complete <code>calculateSpeedPWM(...)</code> definition with this version. The measurement, trial and logging functions stay the same; the existing D column will now show the added contribution.
+                        <pre data-speed-code="pid"><code>float Controller_c::calculateSpeedPWM(float demand, float measured, float dt_s) {
+  speed_error = demand - measured;
+  speed_p = speed_kp * speed_error;
+
+  if (speed_have_previous) {
+    float rate = (measured - speed_previous_measured) / dt_s;
+    float alpha = dt_s / (speed_d_tau_s + dt_s);
+    speed_filtered_rate += alpha * (rate - speed_filtered_rate);
+  } else {
+    speed_filtered_rate = 0.0f;
+    speed_have_previous = true;
+  }
+  speed_previous_measured = measured;
+  speed_d = -speed_kd * speed_filtered_rate;
+
+  float i_candidate = speed_i + speed_ki * speed_error * dt_s;
+  float candidate_output = speed_p + i_candidate + speed_d;
+  bool pushes_high = candidate_output &gt; speed_pwm_limit &amp;&amp; speed_error &gt; 0.0f;
+  bool pushes_low = candidate_output &lt; 0.0f &amp;&amp; speed_error &lt; 0.0f;
+  if (!pushes_high &amp;&amp; !pushes_low) {
+    speed_i = i_candidate;
+  }
+
+  speed_raw = speed_p + speed_i + speed_d;
+  speed_pwm = constrain(speed_raw, 0.0f, speed_pwm_limit);
+  return speed_pwm;
+}</code></pre>
+                        <p>The first speed sample seeds the history and gives zero D contribution, avoiding an invented jump from zero speed. The trial already guarantees a positive elapsed interval; retain that check. Keep gains non-negative and the filter time constant positive. Notice that the anti-windup decision now considers P, I and D together, because all three contribute to the limited output.</p>
+                      </li>
+                      <li><strong>Check the derivative's direction before tuning.</strong> Compile and run with \(K_d=0\); it should reproduce your PI baseline within trial variation. Then trace an illustrative rise from 200 to 220 counts/s in 0.05 s. The unfiltered rate is \(400\) counts/s². With a previously zero filtered rate and \(\tau_d=0.10\) s, \(\alpha=1/3\), giving approximately \(133.3\) counts/s² after filtering. For a positive \(K_d\), should D add drive or subtract it?
+                        <p>Trace a falling speed too. At a demand step with unchanged measured speed, there is no new derivative contribution caused by the demand itself; an existing filtered value may still decay. Explain why the P term can jump at that same step. These checks help separate a useful rate response from a sign error or differentiation of the wrong signal.</p>
+                      </li>
+                      <li><strong>Try a small derivative gain and inspect the terms.</strong> Keep your PI gains and filter time constant fixed at first. Choose a small positive \(K_d\), using the observed changes in measured speed to predict its approximate PWM contribution. Repeat the same demand schedule and plot demand, measured speed, P, I, D and limited PWM. Does the D term oppose a rapid rise in speed? Does overshoot or settling improve? Or does the command fluctuate in response to individual encoder-count changes?
+                        <p>Change one setting at a time. If D is dominated by measurement fluctuations, first check the estimator and timing. You can then compare a smaller \(K_d\) or a longer filter time constant, recording the added smoothing and delay. Do not increase the measurement interval and change a gain in the same comparison. An apparent improvement in a smoothed plot should not hide increased variation in the actual command.</p>
+                      </li>
+                      <li><strong>Choose PI or PID using repeated evidence.</strong> Compare at least three PI runs (\(K_d=0\)) and three runs with your candidate PID settings under the same conditions. Use the error windows and settling criterion from Exercise 11, and also compare command variation and time at the limits. Keep raw data alongside any smoothed visualisation. State which controller you would retain for this motor and why; keeping PI is a valid conclusion if D adds complexity or noise without a useful improvement.</li>
+                      <li><strong>Keep the left-wheel result, then plan an extension.</strong> Save both your PI-only reference and the PID candidate. <a href="#exercise-13">Exercise 13</a> returns to the left-wheel PI reference to combine it with feedforward, even if PID performed well here; this keeps the next comparison focused on one added component. You can revisit D afterwards.
+                        <p>Testing the right wheel is a separate extension, not a prerequisite for Exercise 13. Change both the encoder getter and the command channel together: use <code>robot.getRightEncoderCount()</code>, send <code>robot.setMotorPWM(0, pwm)</code>, and log <code>robot.getRightMotorPWM()</code>. Recheck sign and attainable speed, and begin the P → PI → PID comparison again rather than assuming the gains transfer.</p>
+                        <p>For simultaneous control, each motor will need its own gains, integral memory, previous-speed value and derivative-filter state. A small reusable speed-controller class with one instance per motor is a useful next design step; the outer FSM can then select demanded wheel speeds for exploring, reversing and turning. Recheck tuning under the intended floor load before drawing conclusions about the whole robot. Supported-wheel trials establish behaviour under that test condition, not under every load.</p>
+                      </li>
+                    </ol>
+                    <div class="measure-row"><span><b>Inspect</b> derivative sign and noise</span><span><b>Compare</b> PI and PID fairly</span><span><b>Justify</b> the controller you retain</span></div>
+                  </div>
+                  <div id="speed-pid-ai-panel" class="context-panel" data-panel="ai" role="tabpanel" aria-labelledby="speed-pid-ai-tab" hidden></div>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article id="exercise-13" class="exercise-card speed-exercise">
+            <div class="exercise-index">13</div>
+            <div class="exercise-content">
+              <div class="exercise-heading"><div><span class="concept-tag">Motor speed · combining prediction and feedback</span><h2>Compare Feedforward, PI and Their Combination</h2></div><span class="time-badge">45–75 min</span></div>
+              <div class="teaching-brief">
+                <p>You now have two ways to request a wheel speed. Your inverse model predicts a command from earlier measurements; your PI-controller adjusts its command from the error it sees during a run. Could a useful prediction provide most of the drive, leaving feedback to correct the remaining mismatch? We can answer this with the same motor and measurements you have already used.</p>
+                <p>In the combined controller, feedforward and feedback are added in <strong>PWM units</strong>. The inverse receives the speed demand, not the speed error. Its output joins P and I before the single final command limit. We do not pass the sum through the deadband mapping again: the saved inverse already estimates the motor command.</p>
+                <div class="equation">\(u=\operatorname{clip}(u_{\mathrm{ff}}+P+I,\,0,\,U)\)</div>
+                <p>A good prediction may reduce the correction that I has to build, but that is a hypothesis to test, not a guaranteed improvement. The extra starting drive may also increase overshoot or time at the limit. A smaller integral contribution is not, by itself, evidence of better speed control. We will compare tracking, transients and command variation with one trial and one logging format.</p>
+              </div>
+              <figure class="motor-diagram">
+                <figcaption>The combined command path. The mode selects the feedforward branch, the PI branch, or both. Anti-windup considers their total before limiting; a zero demand and the trial deadline override the moving command.</figcaption>
+                <img class="speed-control-diagram" src="assets/images/phase-2-feedforward-pi.svg" alt="Speed demand goes to an inverse model producing feedforward PWM and to an error calculation using measured speed. Error goes to PI. Feedforward and PI are summed, limited and sent to the motor. Encoders provide measured speed for feedback. Anti-windup uses the total candidate command." />
+              </figure>
+              <div class="exercise-grid">
+                <div class="context-box" data-context-box>
+                  <div class="context-tabs" role="tablist" aria-label="Feedforward and feedback comparison guidance">
+                    <button id="comparison-self-tab" type="button" class="context-tab active" data-context="nonai" role="tab" aria-selected="true" aria-controls="comparison-self-panel">Self-Directed Route</button>
+                    <button id="comparison-ai-tab" type="button" class="context-tab" data-context="ai" role="tab" aria-selected="false" aria-controls="comparison-ai-panel">AI-Assisted Route</button>
+                  </div>
+                  <div id="comparison-self-panel" class="context-panel active investigation" data-panel="nonai" role="tabpanel" aria-labelledby="comparison-self-tab">
+                    <h3>Combine and compare</h3>
+                    <ol>
+                      <li><strong>Return to the saved left-wheel PI sketch.</strong> Make a copy of your Exercise 11 version, not the PID or right-wheel extension. Keep the supported-wheel arrangement, encoder estimator, <code>runSpeedTrial(...)</code>, <code>update()</code> and the saved Exercise 9 mapping functions. Retain <code>#include &lt;math.h&gt;</code> in <code>Controller.cpp</code>. Use your validated inverse, whether it was the line or a justified extension; do not refit it during this comparison.
+                        <p>Set <code>mapping_use_compensation = true</code> so the mapping selects the inverse rather than its proportional reference. Keep <code>speed_pwm_limit</code> equal to <code>mapping_pwm_limit</code> and both encoder-sign settings equal. Preserve your chosen PI gains. Feedforward and PI must share the same units, direction and final limit before their outputs can be meaningfully added.</p>
+                      </li>
+                      <li><strong>Add a mode and a feedforward log value.</strong> In <code>Controller.h</code>, add the following beside the existing speed-controller members under <code>private:</code>:
+                        <pre data-comparison-code="declarations"><code>enum class SpeedMode { FEEDFORWARD_ONLY, PI_ONLY, FEEDFORWARD_PI };
+SpeedMode speed_mode = SpeedMode::PI_ONLY;
+float speed_low_target_cps = 0.0f;  // Replace for the moving comparison.
+float speed_ff;
+bool speed_comparison_fault;
+
+bool comparisonSettingsValid(float demand);</code></pre>
+                        <p>At the end of <code>resetSpeedMemory()</code> in <code>Controller.cpp</code>, add these assignments. Keep its existing assignments too.</p>
+                        <pre data-comparison-code="reset"><code>speed_ff = 0.0f;
+speed_comparison_fault = false;</code></pre>
+                        <p>Choose the mode before uploading, then power-cycle between trials. Do not switch modes while moving: a remembered integral would make the starting conditions different. The enum order gives log codes 0, 1 and 2 respectively.</p>
+                      </li>
+                      <li><strong>Use one demand schedule and validate it.</strong> Set <code>speed_target_cps</code> and <code>speed_low_target_cps</code> to two positive speeds in your inverse model's validated interval, with the second lower than the first. Do not assume that 60% of an attainable speed is still inside that interval. In <code>runSpeedTrial(...)</code>, replace the entire previous demand assignment, including its conditional expression, with:
+                        <pre data-comparison-code="schedule"><code>unsigned long trial_ms = now - speed_start_ms;
+float demand = trial_ms &lt; 4000UL ? speed_target_cps
+             : trial_ms &lt; 8000UL ? speed_low_target_cps
+             : 0.0f;</code></pre>
+                        <p>The final two seconds test an explicit zero-demand stop policy before the existing 10-second deadline. Zero means request zero PWM and clear I, not actively brake or guarantee an instant physical stop. For the first supported-wheel check, temporarily set both demand settings to zero; restore your recorded positive choices for the comparison.</p>
+                        <p>Add this helper at the end of <code>Controller.cpp</code>. It reuses the saved model's validation for the <em>current</em> demand, rather than checking a stale request from Exercise 9. It applies the same admissible demand range in all three modes so the comparison is like-for-like.</p>
+                        <pre data-comparison-code="validation"><code>bool Controller_c::comparisonSettingsValid(float demand) {
+  mapping_request = demand;
+  return isfinite(demand) &amp;&amp; mapping_use_compensation
+      &amp;&amp; mappingSettingsValid()
+      &amp;&amp; isfinite(speed_kp) &amp;&amp; speed_kp &gt;= 0.0f
+      &amp;&amp; isfinite(speed_ki) &amp;&amp; speed_ki &gt;= 0.0f
+      &amp;&amp; speed_pwm_limit == mapping_pwm_limit
+      &amp;&amp; speed_encoder_sign == mapping_encoder_sign;
+}</code></pre>
+                        <p>Inside the existing <code>if (encoder_ok &amp;&amp; robot.isButtonPressed())</code> block in <code>runSpeedTrial(...)</code>, insert this check <em>before</em> its call to <code>resetSpeedMemory()</code>. This rejects an invalid schedule before any moving command.</p>
+                        <pre data-comparison-code="start-check"><code>if (!comparisonSettingsValid(speed_target_cps)
+    || !comparisonSettingsValid(speed_low_target_cps)) {
+  speed_state = SpeedState::FINISHED;
+  resetSpeedMemory();
+  Serial.println("END,0,check_comparison_settings");
+  return;
+}</code></pre>
+                      </li>
+                      <li><strong>Replace the PI calculation with the three-mode version.</strong> Replace the complete <code>calculateSpeedPWM(...)</code> definition, leaving the estimator and timers alone. The output remains in PWM units and D stays zero throughout.
+                        <pre><code>Check the current demand, model settings and measurement
+Zero demand? Clear controller memory and return zero PWM
+Feedforward enabled? Calculate PWM from the inverse of the speed demand
+PI enabled? Calculate P and propose the next I
+    Check FF + P + proposed I against the output limits
+    Reject an integral change that pushes further beyond a limit
+Sum the active contributions, then apply one final command limit</code></pre>
+                        <pre data-comparison-code="calculation"><code>float Controller_c::calculateSpeedPWM(float demand, float measured, float dt_s) {
+  if (!comparisonSettingsValid(demand) || !isfinite(measured)
+      || !isfinite(dt_s) || dt_s &lt;= 0.0f) {
+    resetSpeedMemory();
+    speed_comparison_fault = true;
+    return 0.0f;
+  }
+  if (demand == 0.0f) {
+    resetSpeedMemory();
+    speed_error = demand - measured;
+    return 0.0f;
+  }
+
+  speed_error = demand - measured;
+  speed_d = 0.0f;
+  speed_ff = speed_mode == SpeedMode::PI_ONLY ? 0.0f : mapMotorRequest(demand);
+  if (!isfinite(speed_ff) || speed_ff &lt; 0.0f || speed_ff &gt; speed_pwm_limit) {
+    resetSpeedMemory();
+    speed_comparison_fault = true;
+    return 0.0f;
+  }
+
+  if (speed_mode == SpeedMode::FEEDFORWARD_ONLY) {
+    speed_p = 0.0f;
+    speed_i = 0.0f;
+  } else {
+    speed_p = speed_kp * speed_error;
+    float i_candidate = speed_i + speed_ki * speed_error * dt_s;
+    float candidate_output = speed_ff + speed_p + i_candidate;
+    bool pushes_high = candidate_output &gt; speed_pwm_limit &amp;&amp; speed_error &gt; 0.0f;
+    bool pushes_low = candidate_output &lt; 0.0f &amp;&amp; speed_error &lt; 0.0f;
+    if (!pushes_high &amp;&amp; !pushes_low) speed_i = i_candidate;
+  }
+
+  speed_raw = speed_ff + speed_p + speed_i;
+  speed_pwm = constrain(speed_raw, 0.0f, speed_pwm_limit);
+  return speed_pwm;
+}</code></pre>
+                        <p>Notice that anti-windup sees <code>speed_ff + speed_p + i_candidate</code>, not just P and I. The feedforward contribution already uses some of the available command range. I may become negative if the model overpredicts the required drive; a negative <em>correction</em> is allowed even though the final PWM cannot be negative.</p>
+                        <p>In <code>runSpeedTrial(...)</code>, immediately after <code>float pwm = calculateSpeedPWM(demand, measured, dt_s);</code> and before the motor-write check, insert:</p>
+                        <pre data-comparison-code="fault-check"><code>if (speed_comparison_fault) {
+  robot.setMotorPWM(0, 0);
+  speed_state = SpeedState::FINISHED;
+  Serial.printf("END,%lu,comparison_settings_or_measurement\n", now - speed_start_ms);
+  return;
+}</code></pre>
+                        <p>Keep the existing encoder-failure, motor-write-failure and deadline branches. A reported fault ends the trial; investigate its cause before resetting. A software stop request still depends on communication, so keep the physical power switch accessible.</p>
+                      </li>
+                      <li><strong>Extend the logger once for all three modes.</strong> Replace the header-printing line in the button-start block with:
+                        <pre data-comparison-code="header"><code>Serial.println("record,mode,t_ms,dt_s,left_count,demand_cps,measured_cps,error_cps,FF_pwm,P_pwm,I_pwm,D_pwm,raw_pwm,limited_pwm,sent_pwm");</code></pre>
+                        <p>Replace the complete <code>Serial.printf("SPEED,...")</code> call at the end of <code>runSpeedTrial(...)</code>, including its argument lines, with:</p>
+                        <pre data-comparison-code="logger"><code>Serial.printf("COMPARE,%u,%lu,%.4f,%ld,%.2f,%.2f,%.2f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%d\n",
+              static_cast&lt;unsigned int&gt;(speed_mode),
+              now - speed_start_ms, dt_s, (long)current_count,
+              demand, measured, speed_error, speed_ff,
+              speed_p, speed_i, speed_d, speed_raw, speed_pwm,
+              robot.getLeftMotorPWM());</code></pre>
+                        <p>Use <code>COMPARE</code> rows as the numeric dataset and retain <code>END</code> reasons separately. Save the model, gains, demands, limit, sign and mode with each run. Feedforward-only still measures and logs speed, but does not use its error to change PWM. All modes now wait for the first 50 ms measurement before sending a moving command, unlike the original Exercise 9 trial.</p>
+                      </li>
+                      <li><strong>Check the terms before comparing performance.</strong> Compile and run the all-zero schedule in each mode with the wheels supported. Check zero FF, P, I, D and PWM, followed by the timeout. Then restore the two positive demands and trace these cases on paper before running:
+                        <p>With an illustrative limit of 60 PWM, FF = 50, P = 8 and a proposed I = 5, the candidate total is 63. If positive error caused I to increase, that increment should be rejected even though P + I alone is only 13. Conversely, a negative error can reduce I to bring an excessive total back towards the range. At zero error, I holds its value; at zero <em>demand</em>, our stop policy clears it. These are different conditions.</p>
+                        <p>Run the positive schedule first in <code>PI_ONLY</code>. During its positive-demand segments it should reproduce the saved PI rule within trial variation; the explicit zero-demand segment is new. Then check <code>FEEDFORWARD_ONLY</code>: P, I and D should remain zero and PWM should follow the saved inverse. Finally check <code>FEEDFORWARD_PI</code>: does FF stay constant during each constant-demand segment while P and I respond to error? At the downward demand step, do not clear I; the calculation should adjust it from its existing value.</p>
+                      </li>
+                      <li><strong>Compare three controllers with the same experiment.</strong> Run at least three repeats of each mode, keeping the demand schedule, 50 ms measurement interval, upper limit and support conditions the same. Use the same PI gains in PI-only and combined mode for the first comparison; alternate mode order where practical. Plot demand and speed, then FF, P, I and total PWM on aligned time axes. Apply the same error windows, settling band, overshoot measure and command-variation measure to each.
+                        <p>Does adding feedforward improve startup or tracking, or mainly change how the total command is shared? Does the fixed model leave a settled error that PI reduces? Is a faster response accompanied by more overshoot or saturation? Four-second plateaux may not be long enough to settle; if necessary, extend both plateaux and the overall timeout consistently for every mode, retaining a finite deadline and a final zero-demand interval. Keep failures and repeat variation visible.</p>
+                        <p>Identical gains make this first comparison controlled, not necessarily optimal for each architecture. You may subsequently retune the combined controller, but label that as a separate comparison and retain the original runs. Conclude which approach you would use for this motor, load and demand range, including any remaining limitations. A simpler controller is a valid choice if the extra model does not improve the evidence. You can then revisit derivative action or repeat the investigation for the other wheel using its own calibration and controller memory.</p>
+                      </li>
+                    </ol>
+                    <div class="measure-row"><span><b>Combine</b> prediction and correction</span><span><b>Compare</b> under common conditions</span><span><b>Justify</b> the added complexity</span></div>
+                  </div>
+                  <div id="comparison-ai-panel" class="context-panel" data-panel="ai" role="tabpanel" aria-labelledby="comparison-ai-tab" hidden></div>
+                </div>
+              </div>
+            </div>
+          </article>
+          -->
         </div>
         
 

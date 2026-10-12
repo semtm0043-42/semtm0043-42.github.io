@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="570" viewBox="0 0 760 570" role="img" aria-labelledby="title description">
+  <title id="title">The controller contract across two implementations</title>
+  <desc id="description">The physical and simulated controllers share intended meanings for units, signs, channels, timing and commands. On the StampC3, Controller.cpp uses Robot_c to communicate with the physical robot. In Processing, Controller.pde uses RobotSimulation_c to communicate with motor, sensor and odometry models. Commands flow down each path and measurements return upwards. These are separate source files, not automatic code sharing.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#277052" />
+    </marker>
+  </defs>
+  <rect width="760" height="570" rx="8" fill="#fff" />
+  <g font-family="Arial, sans-serif" text-anchor="middle" fill="#243b30">
+    <rect x="65" y="12" width="630" height="72" rx="8" fill="#fff3ce" stroke="#b7a567" />
+    <text x="380" y="40" font-size="21" font-weight="bold">Shared meaning of the controller contract</text>
+    <text x="380" y="66" font-size="17">Units · signs · sensor channels · timing · motor requests</text>
+    <text x="190" y="122" font-size="21" font-weight="bold">StampC3 / C++</text>
+    <text x="570" y="122" font-size="21" font-weight="bold">Processing / Java</text>
+    <g stroke="#80a995" stroke-width="1.5">
+      <rect x="65" y="140" width="250" height="75" rx="8" fill="#f0f5f1" />
+      <rect x="445" y="140" width="250" height="75" rx="8" fill="#e1f3e9" />
+      <rect x="65" y="285" width="250" height="65" rx="8" fill="#f0f5f1" />
+      <rect x="445" y="285" width="250" height="65" rx="8" fill="#e1f3e9" />
+      <rect x="65" y="420" width="250" height="80" rx="8" fill="#f0f5f1" />
+      <rect x="445" y="420" width="250" height="80" rx="8" fill="#e1f3e9" />
+    </g>
+    <g font-size="20" font-weight="bold">
+      <text x="190" y="169">Controller_c</text>
+      <text x="570" y="169">Controller_c</text>
+      <text x="190" y="325">Robot_c</text>
+      <text x="570" y="325">RobotSimulation_c</text>
+      <text x="190" y="452">Physical robot</text>
+      <text x="570" y="452">Robot models</text>
+    </g>
+    <g font-size="17">
+      <text x="190" y="197">Controller.h / Controller.cpp</text>
+      <text x="570" y="197">Controller.pde</text>
+      <text x="190" y="481">Motors, sensors, encoders</text>
+      <text x="570" y="481">Motors, sensors, odometry</text>
+    </g>
+    <g fill="none" stroke="#277052" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M110 215 V282" />
+      <path d="M270 285 V218" />
+      <path d="M490 215 V282" />
+      <path d="M650 285 V218" />
+      <path d="M110 350 V417" />
+      <path d="M270 420 V353" />
+      <path d="M490 350 V417" />
+      <path d="M650 420 V353" />
+    </g>
+    <g font-size="15">
+      <text x="110" y="257" dx="0" stroke="#fff" stroke-width="5" paint-order="stroke">Commands</text>
+      <text x="270" y="257" stroke="#fff" stroke-width="5" paint-order="stroke">Measurements</text>
+      <text x="490" y="257" stroke="#fff" stroke-width="5" paint-order="stroke">Commands</text>
+      <text x="650" y="257" stroke="#fff" stroke-width="5" paint-order="stroke">Measurements</text>
+      <text x="190" y="391">I2C interface</text>
+      <text x="570" y="391">Model calculations</text>
+    </g>
+    <text x="380" y="545" font-size="18">Corresponding behaviour, maintained in separate source files</text>
+  </g>
+</svg>
