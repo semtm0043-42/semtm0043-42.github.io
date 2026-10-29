@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="420mm"
+   height="297mm"
+   viewBox="0 0 420 297"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   sodipodi:docname="testsheet_1.svg"
+   inkscape:export-filename="testsheet_1.pdf"
+   inkscape:export-xdpi="25.4"
+   inkscape:export-ydpi="25.4"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showguides="true"
+     inkscape:zoom="2"
+     inkscape:cx="230.75"
+     inkscape:cy="554.25"
+     inkscape:window-width="2521"
+     inkscape:window-height="1374"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <marker
+       id="arrow"
+       markerWidth="10"
+       markerHeight="10"
+       refX="8"
+       refY="5"
+       orient="auto"
+       viewBox="0 0 10 10"
+       preserveAspectRatio="xMidYMid">
+      <path
+         d="M 0,0 10,5 0,10 Z"
+         fill="#222222"
+         id="path1" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#ffffff;stroke:none;stroke-width:19;stroke-dasharray:none"
+       id="rect2"
+       width="420"
+       height="297"
+       x="0"
+       y="0"
+       sodipodi:insensitive="true" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:18.4919;stroke-dasharray:none"
+       id="rect1"
+       width="301.81537"
+       height="200.50813"
+       x="72.713982"
+       y="48.245934" />
+    <g
+       id="g1">
+      <circle
+         style="fill:none;stroke:#000000;stroke-width:0.3;stroke-dasharray:0.3, 2.4;stroke-dashoffset:0"
+         id="path26"
+         cx="72.968048"
+         cy="154.51801"
+         r="50" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.3;stroke-dasharray:3.6, 3.6;stroke-dashoffset:0"
+         d="M 22.968048,154.51801 H 122.96805"
+         id="path27" />
+    </g>
+    <g
+       id="g60"
+       transform="matrix(0.1638422,0,0,0.1638422,141.459,72.806908)">
+      <g
+         fill="none"
+         stroke="#222222"
+         stroke-linecap="round"
+         id="g2">
+        <circle
+           cx="500"
+           cy="500"
+           r="330"
+           stroke-width="3"
+           id="circle1" />
+        <line
+           x1="140"
+           y1="500"
+           x2="860"
+           y2="500"
+           stroke="#aaaaaa"
+           stroke-width="1.5"
+           id="line1" />
+        <line
+           x1="500"
+           y1="140"
+           x2="500"
+           y2="860"
+           stroke="#aaaaaa"
+           stroke-width="1.5"
+           id="line2" />
+      </g>
+      <circle
+         cx="500"
+         cy="500"
+         r="5"
+         fill="#222222"
+         id="circle2" />
+      <line
+         x1="812"
+         y1="500"
+         x2="848"
+         y2="500"
+         stroke="#222222"
+         stroke-width="4"
+         id="line3" />
+      <line
+         x1="809.09998"
+         y1="417.17999"
+         x2="828.40997"
+         y2="412"
+         stroke="#222222"
+         stroke-width="2"
+         id="line4" />
+      <line
+         x1="770.20001"
+         y1="344"
+         x2="801.38"
+         y2="326"
+         stroke="#222222"
+         stroke-width="4"
+         id="line5" />
+      <line
+         x1="720.62"
+         y1="279.38"
+         x2="746.07001"
+         y2="253.92999"
+         stroke="#222222"
+         stroke-width="4"
+         id="line6" />
+      <line
+         x1="656"
+         y1="229.8"
+         x2="674"
+         y2="198.62"
+         stroke="#222222"
+         stroke-width="4"
+         id="line7" />
+      <line
+         x1="582.82001"
+         y1="190.89999"
+         x2="588"
+         y2="171.59"
+         stroke="#222222"
+         stroke-width="2"
+         id="line8" />
+      <line
+         x1="500"
+         y1="188"
+         x2="500"
+         y2="152"
+         stroke="#222222"
+         stroke-width="4"
+         id="line9" />
+      <line
+         x1="417.17999"
+         y1="190.89999"
+         x2="412"
+         y2="171.59"
+         stroke="#222222"
+         stroke-width="2"
+         id="line10" />
+      <line
+         x1="344"
+         y1="229.8"
+         x2="326"
+         y2="198.62"
+         stroke="#222222"
+         stroke-width="4"
+         id="line11" />
+      <line
+         x1="279.38"
+         y1="279.38"
+         x2="253.92999"
+         y2="253.92999"
+         stroke="#222222"
+         stroke-width="4"
+         id="line12" />
+      <line
+         x1="229.8"
+         y1="344"
+         x2="198.62"
+         y2="326"
+         stroke="#222222"
+         stroke-width="4"
+         id="line13" />
+      <line
+         x1="190.89999"
+         y1="417.17999"
+         x2="171.59"
+         y2="412"
+         stroke="#222222"
+         stroke-width="2"
+         id="line14" />
+      <line
+         x1="188"
+         y1="500"
+         x2="152"
+         y2="500"
+         stroke="#222222"
+         stroke-width="4"
+         id="line15" />
+      <line
+         x1="190.89999"
+         y1="582.82001"
+         x2="171.59"
+         y2="588"
+         stroke="#222222"
+         stroke-width="2"
+         id="line16" />
+      <line
+         x1="229.8"
+         y1="656"
+         x2="198.62"
+         y2="674"
+         stroke="#222222"
+         stroke-width="4"
+         id="line17" />
+      <line
+         x1="279.38"
+         y1="720.62"
+         x2="253.92999"
+         y2="746.07001"
+         stroke="#222222"
+         stroke-width="4"
+         id="line18" />
+      <line
+         x1="344"
+         y1="770.20001"
+         x2="326"
+         y2="801.38"
+         stroke="#222222"
+         stroke-width="4"
+         id="line19" />
+      <line
+         x1="417.17999"
+         y1="809.09998"
+         x2="412"
+         y2="828.40997"
+         stroke="#222222"
+         stroke-width="2"
+         id="line20" />
+      <line
+         x1="500"
+         y1="812"
+         x2="500"
+         y2="848"
+         stroke="#222222"
+         stroke-width="4"
+         id="line21" />
+      <line
+         x1="582.82001"
+         y1="809.09998"
+         x2="588"
+         y2="828.40997"
+         stroke="#222222"
+         stroke-width="2"
+         id="line22" />
+      <line
+         x1="656"
+         y1="770.20001"
+         x2="674"
+         y2="801.38"
+         stroke="#222222"
+         stroke-width="4"
+         id="line23" />
+      <line
+         x1="720.62"
+         y1="720.62"
+         x2="746.07001"
+         y2="746.07001"
+         stroke="#222222"
+         stroke-width="4"
+         id="line24" />
+      <line
+         x1="770.20001"
+         y1="656"
+         x2="801.38"
+         y2="674"
+         stroke="#222222"
+         stroke-width="4"
+         id="line25" />
+      <line
+         x1="809.09998"
+         y1="582.82001"
+         x2="828.40997"
+         y2="588"
+         stroke="#222222"
+         stroke-width="2"
+         id="line26" />
+      <text
+         x="892"
+         y="500"
+         text-anchor="start"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text26">0</text>
+      <text
+         x="839.47998"
+         y="304"
+         text-anchor="start"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text27">π/6</text>
+      <text
+         x="777.19"
+         y="222.81"
+         text-anchor="start"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text28">π/4</text>
+      <text
+         x="696"
+         y="160.52"
+         text-anchor="start"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text29">π/3</text>
+      <text
+         x="500"
+         y="108"
+         text-anchor="middle"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text30">π/2</text>
+      <text
+         x="304"
+         y="160.52"
+         text-anchor="end"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text31">2π/3</text>
+      <text
+         x="222.81"
+         y="222.81"
+         text-anchor="end"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text32">3π/4</text>
+      <text
+         x="160.52"
+         y="304"
+         text-anchor="end"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text33">5π/6</text>
+      <text
+         x="108"
+         y="500"
+         text-anchor="end"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text34">π</text>
+      <text
+         x="160.52"
+         y="696"
+         text-anchor="end"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text35">7π/6</text>
+      <text
+         x="222.81"
+         y="777.19"
+         text-anchor="end"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text36">5π/4</text>
+      <text
+         x="304"
+         y="839.47998"
+         text-anchor="end"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text37">4π/3</text>
+      <text
+         x="500"
+         y="892"
+         text-anchor="middle"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text38">3π/2</text>
+      <text
+         x="696"
+         y="839.47998"
+         text-anchor="start"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text39">5π/3</text>
+      <text
+         x="777.19"
+         y="777.19"
+         text-anchor="start"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text40">7π/4</text>
+      <text
+         x="839.47998"
+         y="696"
+         text-anchor="start"
+         dominant-baseline="middle"
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="25px"
+         fill="#111111"
+         id="text41">11π/6</text>
+      <g
+         font-family="'DejaVu Sans', sans-serif"
+         font-size="20px"
+         fill="#555555"
+         text-anchor="middle"
+         dominant-baseline="middle"
+         aria-label="Degree labels at major angles"
+         id="g57">
+        <text
+           x="775"
+           y="500"
+           id="text42">0°</text>
+        <text
+           x="738.15997"
+           y="362.5"
+           id="text43">30°</text>
+        <text
+           x="694.45001"
+           y="305.54999"
+           id="text44">45°</text>
+        <text
+           x="637.5"
+           y="261.84"
+           id="text45">60°</text>
+        <text
+           x="500"
+           y="225"
+           id="text46">90°</text>
+        <text
+           x="362.5"
+           y="261.84"
+           id="text47">120°</text>
+        <text
+           x="305.54999"
+           y="305.54999"
+           id="text48">135°</text>
+        <text
+           x="261.84"
+           y="362.5"
+           id="text49">150°</text>
+        <text
+           x="225"
+           y="500"
+           id="text50">180°</text>
+        <text
+           x="261.84"
+           y="637.5"
+           id="text51">210°</text>
+        <text
+           x="305.54999"
+           y="694.45001"
+           id="text52">225°</text>
+        <text
+           x="362.5"
+           y="738.15997"
+           id="text53">240°</text>
+        <text
+           x="500"
+           y="775"
+           id="text54">270°</text>
+        <text
+           x="637.5"
+           y="738.15997"
+           id="text55">300°</text>
+        <text
+           x="694.45001"
+           y="694.45001"
+           id="text56">315°</text>
+        <text
+           x="738.15997"
+           y="637.5"
+           id="text57">330°</text>
+      </g>
+      <path
+         style="fill:#000000;stroke:#000000;stroke-width:1.13386;stroke-dasharray:none;marker-end:url(#arrow)"
+         d="M 500,500 H 626.68604"
+         id="path60" />
+    </g>
+  </g>
+</svg>

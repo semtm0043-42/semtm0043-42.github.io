@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   sodipodi:docname="robot_position_tool"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showguides="true"
+     inkscape:zoom="0.74772475"
+     inkscape:cx="302.91896"
+     inkscape:cy="614.53095"
+     inkscape:window-width="2521"
+     inkscape:window-height="1374"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <sodipodi:guide
+       position="105,211.25052"
+       orientation="1,0"
+       id="guide1"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="105,211.25052"
+       orientation="0,-1"
+       id="guide2"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#f9f9f9;stroke:#000000;stroke-width:1.02292;stroke-dasharray:none"
+       id="rect1"
+       width="148.97708"
+       height="38.977081"
+       x="30.511459"
+       y="66.260948" />
+    <circle
+       style="fill:#b3b3b3;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+       id="path1"
+       cx="105"
+       cy="85.749489"
+       r="55" />
+    <ellipse
+       style="fill:none;stroke:#ffffff;stroke-width:0.972976;stroke-dasharray:5.83785, 0.972976;stroke-dashoffset:0"
+       id="path1-1"
+       cx="104.89893"
+       cy="85.749489"
+       rx="53.51358"
+       ry="53.513786" />
+    <path
+       sodipodi:type="star"
+       style="fill:#f9f9f9;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+       id="path2"
+       inkscape:flatsided="true"
+       sodipodi:sides="3"
+       sodipodi:cx="16.984859"
+       sodipodi:cy="77.360725"
+       sodipodi:r1="5.0642543"
+       sodipodi:r2="2.5321274"
+       sodipodi:arg1="0.52359878"
+       sodipodi:arg2="1.5707963"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 21.370632,79.892853 -8.771545,0 4.385772,-7.596382 z"
+       transform="rotate(90,25.949321,94.71395)"
+       inkscape:transform-center-x="-1.2660627" />
+    <path
+       sodipodi:type="star"
+       style="fill:#f9f9f9;stroke:#000000;stroke-width:1;stroke-dasharray:none"
+       id="path2-3"
+       inkscape:flatsided="true"
+       sodipodi:sides="3"
+       sodipodi:cx="16.984859"
+       sodipodi:cy="77.360725"
+       sodipodi:r1="5.0642543"
+       sodipodi:r2="2.5321274"
+       sodipodi:arg1="0.52359878"
+       sodipodi:arg2="1.5707963"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 21.370632,79.892853 -8.771545,0 4.385772,-7.596382 z"
+       transform="matrix(0,1,1,0,89.135419,68.764629)"
+       inkscape:transform-center-x="1.2660626" />
+    <text
+       xml:space="preserve"
+       style="font-size:7.42933px;writing-mode:lr-tb;direction:ltr;fill:#f9f9f9;stroke:#000000;stroke-width:2.33995;stroke-dasharray:none"
+       x="89.428116"
+       y="87.305931"
+       id="text2"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="fill:#ffffff;stroke:none;stroke-width:2.33995"
+         x="89.428116"
+         y="87.305931">cut away</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:3.175px;writing-mode:lr-tb;direction:ltr;fill:#000000;stroke:none;stroke-width:1;stroke-dasharray:6.00001, 1;stroke-dashoffset:0"
+       x="27.954247"
+       y="19.992596"
+       id="text3"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="fill:#000000;stroke:none;stroke-width:1"
+         x="27.954247"
+         y="19.992596" /></text>
+  </g>
+</svg>
